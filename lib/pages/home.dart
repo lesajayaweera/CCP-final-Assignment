@@ -1,24 +1,48 @@
 import 'package:flutter/material.dart';
-import 'package:sport_ignite/widget/common/profile_with_search_bar.dart';
+import 'package:sport_ignite/widget/common/post.dart';
 
 class Home extends StatelessWidget {
-const Home({ Key? key }) : super(key: key);
+  const Home({super.key});
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
-    
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            title: CustomSearchBar(image: 'asset/image/profile.jpg'),
+            backgroundColor: Colors.white,
             floating: true,
-            snap: true,
+            centerTitle: false,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Padding(
+                padding: EdgeInsets.all(10),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: AssetImage('asset/image/profile.jpg'),
+                    ),
+                    SizedBox(width: 30),
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          border: InputBorder.none,
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 30),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              IconButton(onPressed: () => {}, icon: Icon(Icons.message)),
+            ],
           ),
-          
+          SliverToBoxAdapter(child: LinkedInPostCard(),)
         ],
       ),
-      
-    );  
+    );
   }
 }
