@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/widget/common/profile_with_search_bar.dart';
 
 class Home extends StatelessWidget {
 const Home({ Key? key }) : super(key: key);
@@ -10,8 +11,8 @@ const Home({ Key? key }) : super(key: key);
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            title: Text('Home Page',style: TextStyle(fontFamily: 'Main',fontWeight: FontWeight.bold),),
-            floating: true,   
+            title: CustomSearchBar(image: 'asset/image/profile.jpg'),
+            floating: true,
             snap: true,
           ),
           
