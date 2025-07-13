@@ -14,6 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       home: Home(),
       debugShowCheckedModeBanner: false,
+      title: 'SportsIgnite',
     );
   }
 }

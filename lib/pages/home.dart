@@ -7,12 +7,13 @@ class Home extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: CustomAppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
 
             //  Top App Bar
-            CustomAppBar(),
+            
             
           ],
         ),
