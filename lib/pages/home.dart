@@ -15,12 +15,17 @@ class Home extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
+            Post(),
+            Post(),
+            Post(),
+            Post(),
+            Post(),
             Post()
 
 
-            
-            
-            
+
+
+
           ],
         ),
       ),

@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 class Post extends StatelessWidget {
   const Post({Key? key}) : super(key: key);
 
+  // final String profileImage ;
+  // final String username;
+  // final String caption;
+
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -103,6 +108,14 @@ class Post extends StatelessWidget {
     );
   }
 }
+class TextPost extends StatelessWidget {
+  const TextPost({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
 
 class PostAction extends StatelessWidget {
   final IconData icon;
@@ -114,7 +127,7 @@ class PostAction extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Icon(icon, color: Colors.grey[700], size: 22),
+        IconButton(onPressed: (){},icon: Icon(icon, color: Colors.grey[700], size: 22),),
         const SizedBox(height: 4),
         Text(label, style: TextStyle(color: Colors.grey[700], fontSize: 12)),
       ],

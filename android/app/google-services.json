@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "58454763639",
+    "project_id": "sportignite-88208",
+    "storage_bucket": "sportignite-88208.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:58454763639:android:c74560dfdc5be807c97e72",
+        "android_client_info": {
+          "package_name": "com.example.sport_ignite"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcz21UuyhyqvWcrwWhodRSeRR6jDAP_o4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
