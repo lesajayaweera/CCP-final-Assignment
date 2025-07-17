@@ -24,21 +24,29 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
+
 class _MyAppState extends State<MyApp> {
+
+  bool _isLogin = false;
+  int selectedIndex = 0;
+
+
+  void _Login(){
+    setState(() {
+      _isLogin = true;
+
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    // return MaterialApp(
-    //   debugShowCheckedModeBanner: false,
-    //   home: Scaffold(
-    //     body: Login() ,
-    //   ),
-    // );
+    
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home:Scaffold(
+      home:_isLogin ?
+        Scaffold(
         body: Login(),
-      ),
+      ):Login()
     );
-  }
+  } 
 }

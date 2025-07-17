@@ -40,6 +40,7 @@ dependencies:
   firebase_storage: ^12.4.9
 
   material_design_icons_flutter: ^7.0.7296
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
