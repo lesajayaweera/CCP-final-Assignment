@@ -43,6 +43,10 @@ class _MyAppState extends State<MyApp> {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        fontFamily: 'Poppins',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
+      ),
       home:_isLogin ?
         Scaffold(
         body: Login(),
