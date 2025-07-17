@@ -140,6 +140,7 @@
 // }
 
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/pages/registration.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -352,7 +353,7 @@ class _LoginState extends State<Login> {
                         const Text("Don't have an account?"),
                         TextButton(
                           onPressed: () {
-                            // TODO: Navigate to Register screen
+                            Navigator.push(context,MaterialPageRoute(builder: (context)=>Registration()));
                           },
                           child: const Text("Register Now"),
                         )
