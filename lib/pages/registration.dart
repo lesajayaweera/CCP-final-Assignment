@@ -243,6 +243,13 @@ class _RegistrationState extends State<Registration> {
   final TextEditingController _companyController = TextEditingController(); // For Sponsor
   final TextEditingController _interestAreaController = TextEditingController(); // For Sponsor
 
+
+  final TextEditingController _genderController  = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _ageController =TextEditingController();
+  final TextEditingController _instituteCOntroller =TextEditingController();
+  
+
   String? _selectedRole;
 
   void _nextPage() {
