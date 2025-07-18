@@ -107,30 +107,7 @@ class _RegistrationState extends State<Registration> {
                     const SizedBox(height: 16),
 
                     // Role Dropdown: Sponsor or Athlete
-                    DropdownButtonFormField<String>(
-                      value: _selectedRole,
-                      decoration: const InputDecoration(
-                        labelText: "Select Role",
-                        border: OutlineInputBorder(),
-                      ),
-                      items: ['Sponsor', 'Athlete']
-                          .map(
-                            (role) => DropdownMenuItem(
-                              value: role,
-                              child: Text(role),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedRole = value;
-                        });
-                      },
-                      validator: (value) =>
-                          value == null ? 'Please select your role' : null,
-                    ),
-
-                    const SizedBox(height: 16),
+                    
 
                     // Password Field
                     TextFormField(
@@ -164,6 +141,30 @@ class _RegistrationState extends State<Registration> {
                     ),
 
                     const SizedBox(height: 24),
+                    DropdownButtonFormField<String>(
+                      value: _selectedRole,
+                      decoration: const InputDecoration(
+                        labelText: "Select Role",
+                        border: OutlineInputBorder(),
+                      ),
+                      items: ['Sponsor', 'Athlete']
+                          .map(
+                            (role) => DropdownMenuItem(
+                              value: role,
+                              child: Text(role),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedRole = value;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Please select your role' : null,
+                    ),
+                    const SizedBox(height: 16),
+
 
                     // Register Button
                     SizedBox(
@@ -182,8 +183,9 @@ class _RegistrationState extends State<Registration> {
                             // TODO: Add registration logic here
                           }
                         },
-                        child: const Text(
-                          "Register",
+                        child: Text(
+                          
+                          "${_selectedRole != null ? _selectedRole:""} Register",
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
