@@ -14,6 +14,11 @@ class RegistrationForm2 extends StatefulWidget {
 
 class _RegistrationForm2State extends State<RegistrationForm2> {
 
+//  initialization the form keys and editing controllers
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final  TextEditingController _nameController =TextEditingController();
+  
+
 
   @override
   Widget build(BuildContext context) {
