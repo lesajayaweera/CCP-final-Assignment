@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:sport_ignite/config/essentials.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -14,53 +15,28 @@ class _RegistrationState extends State<Registration> {
   final PageController _pageController = PageController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _teleController = TextEditingController();
+  final TextEditingController _experienceController =TextEditingController(); // For Athlete
+  final TextEditingController _companyController =TextEditingController(); // For Sponsor
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController dobController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
+
   bool _isPasswordVisible = false;
   int _currentStep = 0;
   File? profileImage;
 
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _teleController = TextEditingController();
-
-  final TextEditingController _experienceController =
-      TextEditingController(); // For Athlete
-  final TextEditingController _companyController =
-      TextEditingController(); // For Sponsor
-  final TextEditingController _interestAreaController =
-      TextEditingController(); // For Sponsor
-
-  final TextEditingController _nameController = TextEditingController();
-  TextEditingController dobController = TextEditingController();
   DateTime? selectedDate;
-
-  // final TextEditingController _genderController = TextEditingController();
-  // final TextEditingController _ageController = TextEditingController();
-  // final TextEditingController _instituteCOntroller = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
-
   String? _selectedRole;
   String? _selectedProvince;
-
-  final List<String> _provinces = [
-    'Central Province',
-    'Eastern Province',
-    'Northern Province',
-    'Southern Province',
-    'Western Province',
-    'North Western Province',
-    'North Central Province',
-    'Uva Province',
-    'Sabaragamuwa Province',
-  ];
-
+  String? _slectedGender;
+  String? _selectedIntrested;
+  String? _selectedOrganization;
+  String? _selectedSector;
   String? _selectedSport;
-  final List<String> _sports = [
-    'Football',
-    'Cricket',
-    'Basketball',
-    'Tennis',
-    'Athletics',
-  ];
+
   Future<void> pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (picked != null) {
@@ -130,7 +106,7 @@ class _RegistrationState extends State<Registration> {
                             color: Colors.blue,
                           ),
                     ),
-                    const SizedBox(height: 16),
+                    height(16),
 
                     // MULTI-STEP FORM
                     SizedBox(
@@ -164,7 +140,7 @@ class _RegistrationState extends State<Registration> {
                       ],
                     ),
 
-                    const SizedBox(height: 16),
+                    height(16),
 
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -194,7 +170,7 @@ class _RegistrationState extends State<Registration> {
           "Step 1: Basic Information",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 16),
+        height(16),
         TextFormField(
           controller: _emailController,
           validator: (value) {
@@ -213,7 +189,7 @@ class _RegistrationState extends State<Registration> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 16),
+        height(16),
         TextFormField(
           controller: _teleController,
           keyboardType: TextInputType.phone,
@@ -232,7 +208,7 @@ class _RegistrationState extends State<Registration> {
             border: OutlineInputBorder(),
           ),
         ),
-        const SizedBox(height: 16),
+        height(16),
         TextFormField(
           controller: _passwordController,
           obscureText: !_isPasswordVisible,
@@ -261,7 +237,7 @@ class _RegistrationState extends State<Registration> {
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        height(16),
         DropdownButtonFormField<String>(
           value: _selectedRole,
           decoration: const InputDecoration(
@@ -290,7 +266,7 @@ class _RegistrationState extends State<Registration> {
             'Step 2: Tell us About Yourself',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
+          height(16),
 
           // Profile Image Picker
           Center(
@@ -307,7 +283,7 @@ class _RegistrationState extends State<Registration> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          height(16),
 
           // Name TextField
           TextFormField(
@@ -324,7 +300,7 @@ class _RegistrationState extends State<Registration> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 16),
+          height(16),
 
           // Province and City side-by-side
           DropdownButtonFormField<String>(
@@ -333,7 +309,7 @@ class _RegistrationState extends State<Registration> {
               labelText: "Province",
               border: OutlineInputBorder(),
             ),
-            items: _provinces
+            items: provinces
                 .map(
                   (province) =>
                       DropdownMenuItem(value: province, child: Text(province)),
@@ -360,7 +336,7 @@ class _RegistrationState extends State<Registration> {
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 16),
+          height(16),
           TextFormField(
             controller: dobController,
             readOnly: true,
@@ -391,7 +367,7 @@ class _RegistrationState extends State<Registration> {
               }
             },
           ),
-          const SizedBox(height: 16),
+          height(16),
         ],
       ),
     );
@@ -406,14 +382,14 @@ class _RegistrationState extends State<Registration> {
             "Step 3: Athlete Details",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
+          height(16),
           DropdownButtonFormField<String>(
             value: _selectedSport,
             decoration: const InputDecoration(
               labelText: 'Sport',
               border: OutlineInputBorder(),
             ),
-            items: _sports.map((String sport) {
+            items: sports.map((String sport) {
               return DropdownMenuItem<String>(value: sport, child: Text(sport));
             }).toList(),
             onChanged: (String? newValue) {
@@ -424,7 +400,7 @@ class _RegistrationState extends State<Registration> {
             validator: (value) =>
                 value == null || value.isEmpty ? 'Please select a sport' : null,
           ),
-          const SizedBox(height: 16),
+          height(16),
           TextFormField(
             controller: _experienceController,
             decoration: const InputDecoration(
@@ -442,8 +418,43 @@ class _RegistrationState extends State<Registration> {
               if (number < 0) {
                 return 'Experience can’t be negative';
               }
-              return null; 
+              return null;
             },
+          ),
+          height(16),
+          DropdownButtonFormField<String>(
+            value: _selectedOrganization,
+            decoration: const InputDecoration(
+              labelText: "Select institution",
+              border: OutlineInputBorder(),
+            ),
+            items: organizations
+                .map((org) => DropdownMenuItem(value: org, child: Text(org)))
+                .toList(),
+            onChanged: (value) {
+              setState(() => _selectedOrganization = value);
+            },
+            validator: (value) => value == null
+                ? 'Please select what you are currently playing to'
+                : null,
+          ),
+          height(16),
+          DropdownButtonFormField<String>(
+            value: _slectedGender,
+            decoration: const InputDecoration(
+              labelText: "Select Gender",
+              border: OutlineInputBorder(),
+            ),
+            items: gender
+                .map(
+                  (value) => DropdownMenuItem(value: value, child: Text(value)),
+                )
+                .toList(),
+            onChanged: (value) {
+              setState(() => _slectedGender = value);
+            },
+            validator: (value) =>
+                value == null ? 'Please select your Gender!' : null,
           ),
         ],
       );
@@ -455,7 +466,7 @@ class _RegistrationState extends State<Registration> {
             "Step 3: Sponsor Details",
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
+          height(16),
           TextFormField(
             controller: _companyController,
             decoration: const InputDecoration(
@@ -465,15 +476,43 @@ class _RegistrationState extends State<Registration> {
             validator: (value) =>
                 value == null || value.isEmpty ? 'Enter company name' : null,
           ),
-          const SizedBox(height: 16),
-          TextFormField(
-            controller: _interestAreaController,
+          height(16),
+          DropdownButtonFormField<String>(
+            value: _selectedIntrested,
             decoration: const InputDecoration(
-              labelText: 'Interest Area',
+              labelText: 'Intrested in Sports',
               border: OutlineInputBorder(),
             ),
+            items: sports.map((String sport) {
+              return DropdownMenuItem<String>(value: sport, child: Text(sport));
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedIntrested = newValue!;
+              });
+            },
             validator: (value) =>
-                value == null || value.isEmpty ? 'Enter interest area' : null,
+                value == null || value.isEmpty ? 'Please select a sport' : null,
+          ),
+          height(16),
+
+          DropdownButtonFormField<String>(
+            value: _selectedSector,
+            decoration: const InputDecoration(
+              labelText: 'Organization Sector',
+              border: OutlineInputBorder(),
+            ),
+            items: sector.map((String sport) {
+              return DropdownMenuItem<String>(value: sport, child: Text(sport));
+            }).toList(),
+            onChanged: (String? newValue) {
+              setState(() {
+                _selectedSector = newValue!;
+              });
+            },
+            validator: (value) => value == null || value.isEmpty
+                ? 'Please select a Sector'
+                : null,
           ),
         ],
       );
@@ -481,4 +520,12 @@ class _RegistrationState extends State<Registration> {
       return const Center(child: Text("Please select a role"));
     }
   }
+}
+
+Widget height(double size) {
+  return SizedBox(height: size);
+}
+
+Widget Width(double size) {
+  return SizedBox(width: size);
 }
