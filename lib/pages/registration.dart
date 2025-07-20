@@ -116,7 +116,7 @@ class _RegistrationState extends State<Registration> {
                         physics: const NeverScrollableScrollPhysics(),
                         children: [
                           _buildStep1(),
-                          // _buildStep2(),
+                          _buildStep2(),
                           _buildStep3(),
                         ],
                       ),
