@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 
+import 'package:sport_ignite/widget/common/appbar.dart';
+
 class ProfilePage extends StatefulWidget {
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -211,211 +213,212 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('User profile'), centerTitle: true),
+      appBar: LinkedInAppBar(),
       body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 50),
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage('asset/image/background.png'),
-                        fit: BoxFit.cover,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: 190,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 50),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage('asset/image/background.png'),
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Align(
-                      alignment: Alignment.bottomLeft,
-                      child: SizedBox(
-                        width: 150,
-                        height: 150,
-                        child: Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            Container(
-                              decoration: const BoxDecoration(
-                                color: Colors.black,
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                  fit: BoxFit.cover,
-                                  image: AssetImage('asset/image/profile.jpg'),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: CircleAvatar(
-                                radius: 20,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).scaffoldBackgroundColor,
-                                child: Container(
-                                  margin: const EdgeInsets.all(8.0),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.green,
-                                    shape: BoxShape.circle,
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Align(
+                        alignment: Alignment.bottomLeft,
+                        child: SizedBox(
+                          width: 150,
+                          height: 150,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              Container(
+                                decoration: const BoxDecoration(
+                                  color: Colors.black,
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                    fit: BoxFit.cover,
+                                    image: AssetImage('asset/image/profile.jpg'),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Richie Lorie",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium
-                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
+                                  child: Container(
+                                    margin: const EdgeInsets.all(8.0),
+                                    decoration: const BoxDecoration(
+                                      color: Colors.green,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
                               ),
-                              Text('Ignited'),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text("Cricketer"),
-                        Text(
-                          "Central College Anuradhapura\nAnuradhapura, Sri Lanka",
-                          textAlign: TextAlign.left,
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-
-                    children: [
-                      OutlinedButton(
-                        onPressed: _showAddCertificatesDialog,
-                        child: Text("Add Certificates"),
-                      ),
-                      const SizedBox(width: 10),
-                      OutlinedButton(
-                        onPressed: () {},
-                        child: Text("Add Sections"),
-                      ),
-                    ],
-                  ),
-                  if (submittedCertificates.isNotEmpty)
+                  ],
+                ),
+              ),
+              Container(
+                child: Column(
+                  children: [
                     Padding(
-                      padding: const EdgeInsets.all(12.0),
+                      padding: const EdgeInsets.only(left: 10),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Divider(),
-                          Text(
-                            "Certificates",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                          Container(
+                            padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Richie Lorie",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                Text('Ignited'),
+                              ],
                             ),
                           ),
-                          ...submittedCertificates
-                              .map(_buildCertificateCard)
-                              .toList(),
+                          const SizedBox(height: 16),
+                          Text("Cricketer"),
+                          Text(
+                            "Central College Anuradhapura\nAnuradhapura, Sri Lanka",
+                            textAlign: TextAlign.left,
+                            style: TextStyle(color: Colors.grey[700]),
+                          ),
                         ],
                       ),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                              
                       children: [
-                        // Header row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Your Dashboard',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Row(
-                              children: const [
-                                Icon(Icons.star, size: 18, color: Colors.grey),
-                                SizedBox(width: 4),
-                                Text(
-                                  'ALL-STAR',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.grey,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                        OutlinedButton(
+                          onPressed: _showAddCertificatesDialog,
+                          child: Text("Add Certificates"),
                         ),
-                        const SizedBox(height: 16),
-                        // Stats card
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 20,
-                            horizontal: 16,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: const [
-                              StatItem(value: '2,279,545', label: 'Total Runs'),
-                              VerticalDivider(),
-                              StatItem(
-                                value: '279,545',
-                                label: 'Total Matches',
-                              ),
-                              VerticalDivider(),
-                              StatItem(value: '279,545', label: '100 s'),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16,),
-                        CertificateBanner(
-                          issuedBy: 'Government',
-                          competition: "100 Meters run",
-                          date: DateTime.now(),
+                        const SizedBox(width: 10),
+                        OutlinedButton(
+                          onPressed: () {},
+                          child: Text("Add Sections"),
                         ),
                       ],
                     ),
-                  ),
-                ],
+                    if (submittedCertificates.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Divider(),
+                            Text(
+                              "Certificates",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            ...submittedCertificates
+                                .map(_buildCertificateCard)
+                                .toList(),
+                          ],
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Your Dashboard',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Row(
+                                children: const [
+                                  Icon(Icons.star, size: 18, color: Colors.grey),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'ALL-STAR',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          // Stats card
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 20,
+                              horizontal: 16,
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: const [
+                                StatItem(value: '2,279,545', label: 'Total Runs'),
+                                VerticalDivider(),
+                                StatItem(
+                                  value: '279,545',
+                                  label: 'Total Matches',
+                                ),
+                                VerticalDivider(),
+                                StatItem(value: '279,545', label: '100 s'),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16,),
+                          CertificateBanner(
+                            issuedBy: 'Government',
+                            competition: "100 Meters run",
+                            date: DateTime.now(),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -484,6 +487,7 @@ class CertificateBanner extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16,),
+          CredentialCard(title: '100m Long Run',platformLogoUrl: 'asset/image/governmentLogo.png',issuer: 'Government', issueDate: 'Today',),
           CredentialCard(title: '100m Long Run',platformLogoUrl: 'asset/image/governmentLogo.png',issuer: 'Government', issueDate: 'Today',)
         ],
       ),
