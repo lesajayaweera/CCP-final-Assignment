@@ -125,35 +125,43 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text("Cancel"),
-              ),
-              if (certificateInputs.length < 10)
-                TextButton(
-                  onPressed: () {
-                    setStateDialog(() {
-                      certificateInputs.add(CertificateInput());
-                    });
-                  },
-                  child: Text("Add Another"),
-                ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    submittedCertificates.addAll(
-                      certificateInputs.where(
-                        (c) =>
-                            c.title.isNotEmpty &&
-                            c.issuer.isNotEmpty &&
-                            c.referenceLetterImage != null &&
-                            c.certificateImage != null,
-                      ),
-                    );
-                  });
-                  Navigator.of(context).pop();
-                },
-                child: Text("Save"),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("Cancel"),
+                  ),
+                  if (certificateInputs.length < 10)
+                    TextButton(
+                      onPressed: () {
+                        setStateDialog(() {
+                          certificateInputs.add(CertificateInput());
+                        });
+                      },
+                      child: Text("Add Another"),
+                    ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        submittedCertificates.addAll(
+                          certificateInputs.where(
+                            (c) =>
+                                c.title.isNotEmpty &&
+                                c.issuer.isNotEmpty &&
+                                c.referenceLetterImage != null &&
+                                c.certificateImage != null,
+                          ),
+                        );
+                      });
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Save"),
+                  ),
+                ],
               ),
             ],
           ),
@@ -305,15 +313,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    
+
                     children: [
                       OutlinedButton(
                         onPressed: _showAddCertificatesDialog,
                         child: Text("Add Certificates"),
                       ),
-                      const SizedBox(width: 10,),
+                      const SizedBox(width: 10),
                       OutlinedButton(
-                        onPressed: (){},
+                        onPressed: () {},
                         child: Text("Add Sections"),
                       ),
                     ],
@@ -348,7 +356,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
-                              'Yuor Dashboard',
+                              'Your Dashboard',
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
@@ -386,16 +394,24 @@ class _ProfilePageState extends State<ProfilePage> {
                             children: const [
                               StatItem(value: '2,279,545', label: 'Total Runs'),
                               VerticalDivider(),
-                              StatItem(value: '279,545', label: 'Total Matches'),
+                              StatItem(
+                                value: '279,545',
+                                label: 'Total Matches',
+                              ),
                               VerticalDivider(),
                               StatItem(value: '279,545', label: '100 s'),
                             ],
                           ),
                         ),
+                        const SizedBox(height: 16,),
+                        CertificateBanner(
+                          issuedBy: 'Government',
+                          competition: "100 Meters run",
+                          date: DateTime.now(),
+                        ),
                       ],
                     ),
                   ),
-                  
                 ],
               ),
             ),
@@ -403,61 +419,6 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
-
-    // return Scaffold(
-    //   body: Column(
-    //     children: [
-    //       _topHeader(context),
-    //       SizedBox(height: 60),
-    //       Center(
-    //         child: Text(
-    //           "KUMAR SANGAKKAR · 3rd",
-    //           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-    //         ),
-    //       ),
-    //       Center(child: Text("Cricketer")),
-    //       Center(
-    //         child: Text(
-    //           "Central College Anuradhapura\nAnuradhapura, Sri Lanka",
-    //           textAlign: TextAlign.center,
-    //           style: TextStyle(color: Colors.grey[700]),
-    //         ),
-    //       ),
-    //       SizedBox(height: 8),
-    //       Center(
-    //         child: Text(
-    //           "2,900 followers • 1,300 connections",
-    //           style: TextStyle(color: Colors.blue),
-    //         ),
-    //       ),
-    //       SizedBox(height: 10),
-    //       Row(
-    //         mainAxisAlignment: MainAxisAlignment.center,
-    //         children: [
-    //           OutlinedButton(
-    //             onPressed: _showAddCertificatesDialog,
-    //             child: Text("Add Certificates"),
-    //           ),
-    //         ],
-    //       ),
-    //       if (submittedCertificates.isNotEmpty)
-    //         Padding(
-    //           padding: const EdgeInsets.all(12.0),
-    //           child: Column(
-    //             crossAxisAlignment: CrossAxisAlignment.start,
-    //             children: [
-    //               Divider(),
-    //               Text(
-    //                 "Certificates",
-    //                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-    //               ),
-    //               ...submittedCertificates.map(_buildCertificateCard).toList(),
-    //             ],
-    //           ),
-    //         ),
-    //     ],
-    //   ),
-    // );
   }
 }
 
@@ -466,66 +427,6 @@ class CertificateInput {
   String issuer = '';
   Uint8List? referenceLetterImage;
   Uint8List? certificateImage;
-}
-
-Widget _topHeader(BuildContext context) {
-  return Stack(
-    fit: StackFit.expand,
-    children: [
-      Container(
-        margin: const EdgeInsets.only(bottom: 50),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-            colors: [Color(0xff0043ba), Color(0xff006df1)],
-          ),
-          borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(50),
-            bottomRight: Radius.circular(50),
-          ),
-        ),
-      ),
-      Align(
-        alignment: Alignment.bottomCenter,
-        child: SizedBox(
-          width: 150,
-          height: 150,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  image: DecorationImage(
-                    fit: BoxFit.cover,
-                    image: NetworkImage(
-                      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80',
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: CircleAvatar(
-                  radius: 20,
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  child: Container(
-                    margin: const EdgeInsets.all(8.0),
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ],
-  );
 }
 
 class StatItem extends StatelessWidget {
@@ -549,6 +450,109 @@ class StatItem extends StatelessWidget {
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
       ],
+    );
+  }
+}
+
+// to display the certificates
+class CertificateBanner extends StatelessWidget {
+  final String issuedBy;
+  // final Image logo;
+  final String competition;
+  final DateTime date;
+  const CertificateBanner({
+    required this.issuedBy,
+    required this.competition,
+    required this.date,
+    super.key,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const Text(
+                'Certificates and Competition',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16,),
+          CredentialCard(title: '100m Long Run',platformLogoUrl: 'asset/image/governmentLogo.png',issuer: 'Government', issueDate: 'Today',)
+        ],
+      ),
+    );
+  }
+}
+
+class CredentialCard extends StatelessWidget {
+  final String platformLogoUrl;
+  final String title;
+  final String issuer;
+  final String issueDate;
+
+  const CredentialCard({
+    super.key,
+    required this.platformLogoUrl,
+    required this.title,
+    required this.issuer,
+    required this.issueDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Image.asset(platformLogoUrl, width: 32, height: 32),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(issuer, style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 4),
+            Text(
+              'Issued $issueDate',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.open_in_new),
+              label: const Text('Show credential'),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

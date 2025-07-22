@@ -53,7 +53,8 @@ class _MyAppState extends State<MyApp> {
       //   Scaffold(
       //   body: Home(),
       // ):Login()
-      home: ProfilePage() ,
+      home: ProfilePage(),
+
     );
   } 
 }
