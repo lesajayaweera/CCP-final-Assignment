@@ -43,6 +43,7 @@ dependencies:
   font_awesome_flutter: ^10.5.0
   image_picker: ^1.1.2
   file_picker: ^10.2.0
+  salomon_bottom_bar: ^3.3.2
   
 
 dev_dependencies:

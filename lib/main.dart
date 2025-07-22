@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/Login.dart';
 import 'package:sport_ignite/pages/home.dart';
+import 'package:sport_ignite/pages/messageing.dart';
 import 'package:sport_ignite/pages/profile.dart';
 import 'package:sport_ignite/widget/common/post_create.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -53,7 +54,7 @@ class _MyAppState extends State<MyApp> {
       //   Scaffold(
       //   body: Home(),
       // ):Login()
-      home: ProfilePage(),
+      home: SocialFeedScreen(),
 
     );
   } 
