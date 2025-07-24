@@ -53,7 +53,7 @@ class Athlete {
         showSnackBar(context, "Athlete Sucessfully Registered", Colors.green);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SocialFeedScreen()),
+          MaterialPageRoute(builder: (context) => SocialFeedScreen(role: this.role,)),
         );
       }
     } on FirebaseAuthException catch (e) {

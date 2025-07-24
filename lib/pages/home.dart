@@ -276,11 +276,10 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-
-
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
-  const SocialFeedScreen({Key? key}) : super(key: key);
+  final String role;
+  const SocialFeedScreen({Key? key,required this.role}) : super(key: key);
 
   @override
   State<SocialFeedScreen> createState() => _SocialFeedScreenState();
@@ -289,17 +288,23 @@ class SocialFeedScreen extends StatefulWidget {
 class _SocialFeedScreenState extends State<SocialFeedScreen> {
   List<bool> likedPosts = [false, false];
 
+  int _currentIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: LinkedInAppBar(),
       backgroundColor: const Color(0xFFF5F5F5),
       body: ListView(
+        physics: BouncingScrollPhysics(
+
+        ),
         children: [
           // First Post - Swimmer
           SocialPost(
             userName: 'Stanislav Naida',
-            userAvatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+            userAvatar:
+                'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
             userRole: 'Swimmer',
             timeAgo: '1st',
             postText:
@@ -322,7 +327,8 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             userName: 'Vera Drozdova',
             userRole: 'Athlete',
             timeAgo: '2 st',
-            userAvatar: 'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
+            userAvatar:
+                'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
             postText: '',
             imageUrl: 'asset/image/background.png',
             likes: 45,
@@ -357,37 +363,14 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
           ),
         ],
       ),
-      drawer: Drawer(
-    child: ListView(
-      padding: EdgeInsets.zero,
-      children: <Widget>[
-        DrawerHeader(
-          decoration: BoxDecoration(
-            color: Colors.blue,
-          ),
-          child: Text(
-            'Drawer Header',
-            style: TextStyle(color: Colors.white, fontSize: 24),
-          ),
+      bottomNavigationBar: CustomBottomNavigation(currentIndex: _currentIndex, role: widget.role,
+       onTap: (index) {
+        setState(() {
+            _currentIndex = index;
+          });
+       }
+          
         ),
-        ListTile(
-          leading: Icon(Icons.home),
-          title: Text('Home'),
-          onTap: () {
-            // Navigate to home
-          },
-        ),
-        ListTile(
-          leading: Icon(Icons.settings),
-          title: Text('Settings'),
-          onTap: () {
-            // Navigate to settings
-          },
-        ),
-      ],
-    ),
-  ),
-     
     );
   }
 
