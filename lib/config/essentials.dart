@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 final List<String> sports = [
   'Football',
@@ -45,3 +48,11 @@ final List<String> sector =[
       ),
     );
   }
+
+
+// convert the image into base 64
+Future<String> convertImageToBase64(File imageFile) async {
+  List<int> imageBytes = await imageFile.readAsBytes();
+  String base64String = base64Encode(imageBytes);
+  return base64String;
+}

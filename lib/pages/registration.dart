@@ -1,6 +1,5 @@
 import 'dart:io';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:sport_ignite/config/essentials.dart';
 
 import 'package:flutter/material.dart';
@@ -18,27 +17,38 @@ class _RegistrationState extends State<Registration> {
   final PageController _pageController = PageController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _teleController = TextEditingController();
-  final TextEditingController _experienceController =TextEditingController(); // For Athlete
-  final TextEditingController _companyController =TextEditingController(); // For Sponsor
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController dobController = TextEditingController();
-  final TextEditingController cityController = TextEditingController();
+  // for Athlete
+  final TextEditingController _experienceController =
+      TextEditingController(); // experience
+  String? _selectedOrganization; // school or club
+  String? _slectedGender; // gender
+  String? _selectedSport; // selected sport
+
+  // sponsor
+  final TextEditingController _companyController =
+      TextEditingController(); // company Name
+  String? _selectedIntrested; // sport instrested
+  String? _selectedSector; // organization level
+
+  // common
+  DateTime? selectedDate;
+  String? _selectedRole; // role selected
+  String? _selectedProvince; // province selected
+  File? profileImage; // iser's profile picture
+  final TextEditingController _nameController =
+      TextEditingController(); // user name
+  final TextEditingController dobController =
+      TextEditingController(); // date of birth
+  final TextEditingController cityController = TextEditingController(); // city
+  final TextEditingController _emailController =
+      TextEditingController(); // email
+  final TextEditingController _passwordController =
+      TextEditingController(); // password
+  final TextEditingController _teleController =
+      TextEditingController(); // telephone number
 
   bool _isPasswordVisible = false;
   int _currentStep = 0;
-  File? profileImage;
-
-  DateTime? selectedDate;
-  String? _selectedRole;
-  String? _selectedProvince;
-  String? _slectedGender;
-  String? _selectedIntrested;
-  String? _selectedOrganization;
-  String? _selectedSector;
-  String? _selectedSport;
 
   Future<void> pickImage() async {
     final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
@@ -72,8 +82,45 @@ class _RegistrationState extends State<Registration> {
   }
 
   void _submitForm() async {
-    if (_formKey.currentState!.validate()) {}
-      
+    if (_formKey.currentState!.validate()) {
+      if (_selectedRole == 'Athlete') {
+        //
+        int experience = int.tryParse(_experienceController.text.trim()) ?? 0;
+        // Check required non-null dropdown fields (you can add extra validation if needed)
+        if (_selectedSport == null ||
+            _selectedOrganization == null ||
+            _slectedGender == null) {
+          showSnackBar(
+            context,
+            "Please select sport, organization, and gender",
+            Colors.red,
+          );
+          return;
+        }
+
+        // Build Athlete object
+        Athlete athlete = Athlete(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _selectedRole!, 
+          _passwordController.text,
+          _teleController.text.trim(),
+          cityController.text.trim(),
+          _selectedProvince ?? '',
+          dobController.text.trim(),
+          _selectedSport!,
+          experience,
+          _selectedOrganization!,
+          _slectedGender!,
+          profileImage
+        );
+
+        athlete.Register(context);
+      }
+      if (_selectedRole == 'Sponsor') {
+        showSnackBar(context, "Please Select a Role", Colors.red);
+      }
+    }
   }
 
   @override
@@ -113,11 +160,7 @@ class _RegistrationState extends State<Registration> {
                       child: PageView(
                         controller: _pageController,
                         physics: const NeverScrollableScrollPhysics(),
-                        children: [
-                          _buildStep1(),
-                          _buildStep2(),
-                          _buildStep3(),
-                        ],
+                        children: [_buildStep1(), _buildStep2(), _buildStep3()],
                       ),
                     ),
 
