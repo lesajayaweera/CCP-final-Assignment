@@ -43,6 +43,7 @@ class Athlete {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> Register(BuildContext context) async {
+    showLoadingDialog(context);
     try {
       UserCredential userCredentials = await _auth
           .createUserWithEmailAndPassword(email: email, password: pass);
@@ -61,29 +62,46 @@ class Athlete {
   }
 
   Future<bool> writeData(BuildContext context) async {
-    String image = profile != null ? await convertImageToBase64(profile!) : '';
-    print('image : ' + image);
-    try {
-      await _firestore.collection('users').doc(_auth.currentUser?.uid).set({
-        "name": name,
-        "email": email,
-        "role": role,
-        "tel": tel,
-        "province": province,
-        "city": city,
-        "date": date,
-        "sport": sport,
-        "experience": experience,
-        "institute": institute,
-        "gender": gender,
-        'profile': image,
-      });
-      return true;
-    } on FirebaseException catch (e) {
-      showSnackBar(context, "Database Error !", Colors.red);
-      return false;
+  try {
+    String? imageUrl;
+
+    // Step 1: Upload image if it exists
+    if (profile != null) {
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_images')
+          .child('${_auth.currentUser!.uid}.jpg');
+
+      // Upload image
+      await storageRef.putFile(profile!);
+
+      // Step 2: Get the download URL
+      imageUrl = await storageRef.getDownloadURL();
     }
+
+    // Step 3: Save user data in Firestore
+    await _firestore.collection('users').doc(_auth.currentUser?.uid).set({
+      "name": name,
+      "email": email,
+      "role": role,
+      "tel": tel,
+      "province": province,
+      "city": city,
+      "date": date,
+      "sport": sport,
+      "experience": experience,
+      "institute": institute,
+      "gender": gender,
+      'profile': imageUrl ?? '', // Save image URL or empty string
+    });
+
+    return true;
+  } on FirebaseException catch (e) {
+    showSnackBar(context, "Database Error: ${e.message}", Colors.red);
+    return false;
   }
+}
+
 
 //   @override
 //   void Login(BuildContext context, String email, String password) async {

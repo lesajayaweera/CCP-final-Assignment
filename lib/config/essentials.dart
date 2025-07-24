@@ -50,9 +50,18 @@ final List<String> sector =[
   }
 
 
-// convert the image into base 64
-Future<String> convertImageToBase64(File imageFile) async {
-  List<int> imageBytes = await imageFile.readAsBytes();
-  String base64String = base64Encode(imageBytes);
-  return base64String;
+void showLoadingDialog(BuildContext context) {
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (BuildContext context) {
+      return const AlertDialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        content: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    },
+  );
 }

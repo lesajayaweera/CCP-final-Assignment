@@ -13,12 +13,8 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         children: [
           // LinkedIn logo
-          const Text('SportIgnite',style:TextStyle(
-            fontFamily: 'poppins',
-            fontSize: 24
-          ) ,),
           const SizedBox(width: 10),
-          
+
           // Search bar
           Expanded(
             child: Container(
@@ -28,15 +24,12 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
                 color: Colors.grey[200],
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Row(
-                children: const [
-                  Icon(Icons.search, color: Colors.grey, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    "Search",
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ],
+              child: TextField(
+                decoration: InputDecoration(
+                  icon: Icon(Icons.search),
+                  border: InputBorder.none,
+                  hint: Text('Search here'),
+                ),
               ),
             ),
           ),
