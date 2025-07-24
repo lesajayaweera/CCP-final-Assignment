@@ -1,8 +1,11 @@
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:sport_ignite/config/essentials.dart';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:sport_ignite/model/Athlete.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -68,13 +71,9 @@ class _RegistrationState extends State<Registration> {
     }
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Save registration data
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Registration submitted!")));
-    }
+  void _submitForm() async {
+    if (_formKey.currentState!.validate()) {}
+      
   }
 
   @override

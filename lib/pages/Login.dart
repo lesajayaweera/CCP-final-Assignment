@@ -249,6 +249,7 @@ class _LoginState extends State<Login> {
 
                     // Remember Me + Forgot
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Checkbox(
                           value: _rememberMe,

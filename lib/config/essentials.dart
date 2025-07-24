@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 final List<String> sports = [
   'Football',
   'Cricket',
@@ -33,3 +34,14 @@ final List<String> sector =[
   'Private',
   'Government'
 ];
+
+
+/// 🔁 Reusable SnackBar method
+  void showSnackBar(BuildContext context, String message, Color bgColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: bgColor,
+      ),
+    );
+  }

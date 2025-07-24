@@ -301,7 +301,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             userName: 'Stanislav Naida',
             userAvatar: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
             userRole: 'Swimmer',
-            timeAgo: '1 st',
+            timeAgo: '1st',
             postText:
                 'Hello, I am looking for a Sponsorship opportunity and would appreciate your support. Thanks in advance for any contact recommendation, advice or... see more',
             likes: 77,

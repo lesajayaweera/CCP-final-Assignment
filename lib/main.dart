@@ -54,7 +54,7 @@ class _MyAppState extends State<MyApp> {
       //   Scaffold(
       //   body: Home(),
       // ):Login()
-      home: SocialFeedScreen(),
+      home:Login (),
 
     );
   } 
