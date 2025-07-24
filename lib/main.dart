@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/Login.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:sport_ignite/pages/home.dart';
 import 'firebase_options.dart';
 
 void main() async {

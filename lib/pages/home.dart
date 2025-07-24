@@ -345,10 +345,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
             imageUrl: 'asset/image/background.png',
             likes: 45,
             comments: 8,
-            isLiked: likedPosts[1],
+            isLiked: likedPosts[0],
             onLike: () {
               setState(() {
-                likedPosts[1] = !likedPosts[1];
+                likedPosts[0] = !likedPosts[0];
               });
             },
             onComment: () => _showSnackBar(context, 'Comment tapped'),
