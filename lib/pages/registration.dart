@@ -5,6 +5,7 @@ import 'package:sport_ignite/config/essentials.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
+import 'package:sport_ignite/model/Sponsor.dart';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -102,7 +103,7 @@ class _RegistrationState extends State<Registration> {
         Athlete athlete = Athlete(
           _nameController.text.trim(),
           _emailController.text.trim(),
-          _selectedRole!, 
+          _selectedRole!,
           _passwordController.text,
           _teleController.text.trim(),
           cityController.text.trim(),
@@ -112,13 +113,37 @@ class _RegistrationState extends State<Registration> {
           experience,
           _selectedOrganization!,
           _slectedGender!,
-          profileImage
+          profileImage,
         );
 
         athlete.Register(context);
       }
       if (_selectedRole == 'Sponsor') {
-        showSnackBar(context, "Please Select a Role", Colors.red);
+        if (_selectedIntrested == null || _selectedSector == null) {
+          showSnackBar(
+            context,
+            "Please select Sport you are Intrested and Your Organization details",
+            Colors.red,
+          );
+          return;
+        }
+
+        Sponsor sponsor = Sponsor(
+          _nameController.text.trim(),
+          _emailController.text.trim(),
+          _selectedRole!,
+          _passwordController.text,
+          _teleController.text.trim(),
+          cityController.text.trim(),
+          _selectedProvince ?? '',
+          dobController.text.trim(),
+          _companyController.text.trim()!,
+          _selectedIntrested!,
+          _selectedSector!,
+          profileImage,
+        );
+
+        sponsor.Register(context);
       }
     }
   }
