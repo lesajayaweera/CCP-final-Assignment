@@ -1,27 +1,40 @@
-import 'package:flutter/foundation.dart';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-
+import 'package:sport_ignite/model/Athlete.dart';
+import 'package:sport_ignite/model/CertificateInput.dart';
 import 'dart:typed_data';
-
 import 'package:sport_ignite/widget/common/appbar.dart';
 
 class ProfilePage extends StatefulWidget {
-
   final String role;
   const ProfilePage({required this.role});
-
-
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+
   List<CertificateInput> certificateInputs = [CertificateInput()];
   List<CertificateInput> submittedCertificates = [];
 
+  Map<String, dynamic>? athleteData;
 
+
+
+  @override
+  void initState() {
+    super.initState();
+    loadUserData();
+  }
+
+  void loadUserData() async {
+    var data = await Athlete.getAthleteDetails(context);
+    setState(() {
+      athleteData = data;
+    });
+  }
 
   // method to show the Certification add  Dialog Box
   void _showAddCertificatesDialog() {
@@ -156,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                    onPressed: () {
+                    onPressed: ()async {
                       setState(() {
                         submittedCertificates.addAll(
                           certificateInputs.where(
@@ -166,8 +179,12 @@ class _ProfilePageState extends State<ProfilePage> {
                                 c.referenceLetterImage != null &&
                                 c.certificateImage != null,
                           ),
+
                         );
+
                       });
+
+                      await Athlete.uploadCertificates(context, certificateInputs);
                       Navigator.of(context).pop();
                     },
                     child: Text("Save"),
@@ -181,51 +198,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildCertificateCard(CertificateInput cert) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      child: Padding(
-        padding: EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Title: ${cert.title}",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 4),
-            Text("Issued by: ${cert.issuer}"),
-            SizedBox(height: 8),
-            if (cert.referenceLetterImage != null) ...[
-              Text(
-                "Reference Letter:",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 4),
-              Image.memory(cert.referenceLetterImage!, height: 100),
-            ],
-            if (cert.certificateImage != null) ...[
-              SizedBox(height: 12),
-              Text(
-                "Certificate:",
-                style: TextStyle(fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 4),
-              Image.memory(cert.certificateImage!, height: 100),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: LinkedInAppBar(page: false,role: widget.role,),
+      appBar: LinkedInAppBar(page: true, role: widget.role),
       body: SafeArea(
         child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
+          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -237,12 +216,37 @@ class _ProfilePageState extends State<ProfilePage> {
                     Container(
                       margin: const EdgeInsets.only(bottom: 50),
                       decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage('asset/image/background.png'),
-                          fit: BoxFit.cover,
-                        ),
+                        color:
+                            (athleteData?['background'] != null &&
+                                athleteData!['background']
+                                    .toString()
+                                    .isNotEmpty)
+                            ? null
+                            : Colors.blueGrey,
+                        image:
+                            (athleteData?['background'] != null &&
+                                athleteData!['background']
+                                    .toString()
+                                    .isNotEmpty)
+                            ? DecorationImage(
+                                image: NetworkImage(athleteData!['background']),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
                       ),
+                      child:
+                          (athleteData?['background'] != null &&
+                              athleteData!['background'].toString().isNotEmpty)
+                          ? null
+                          : const Center(
+                              child: Icon(
+                                Icons.person,
+                                size: 60,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
+
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Align(
@@ -254,15 +258,38 @@ class _ProfilePageState extends State<ProfilePage> {
                             fit: StackFit.expand,
                             children: [
                               Container(
-                                decoration: const BoxDecoration(
-                                  color: Colors.black,
+                                width: 100, // adjust size as needed
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color:
+                                      Colors.grey.shade300, // gray background
                                   shape: BoxShape.circle,
-                                  image: DecorationImage(
-                                    fit: BoxFit.cover,
-                                    image: AssetImage('asset/image/profile.jpg'),
-                                  ),
+                                  image:
+                                      (athleteData?['profile'] != null &&
+                                          athleteData!['profile']
+                                              .toString()
+                                              .isNotEmpty)
+                                      ? DecorationImage(
+                                          fit: BoxFit.cover,
+                                          image: NetworkImage(
+                                            athleteData!['profile'],
+                                          ),
+                                        )
+                                      : null,
                                 ),
+                                child:
+                                    (athleteData?['profile'] == null ||
+                                        athleteData!['profile']
+                                            .toString()
+                                            .isEmpty)
+                                    ? const Icon(
+                                        Icons.person,
+                                        size: 50,
+                                        color: Colors.white70,
+                                      )
+                                    : null,
                               ),
+
                               Positioned(
                                 bottom: 0,
                                 right: 0,
@@ -302,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Richie Lorie",
+                                  athleteData?['name'] ?? "Guest",
                                   style: Theme.of(context)
                                       .textTheme
                                       .headlineMedium
@@ -313,9 +340,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          Text("Cricketer"),
+                          Text(athleteData?['sport'] ?? ''),
                           Text(
-                            "Central College Anuradhapura\nAnuradhapura, Sri Lanka",
+                            "${athleteData?['city'] ?? 'city'}\n${athleteData?['province'] ?? 'province'}, Sri Lanka",
                             textAlign: TextAlign.left,
                             style: TextStyle(color: Colors.grey[700]),
                           ),
@@ -325,7 +352,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     SizedBox(height: 10),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                              
+
                       children: [
                         OutlinedButton(
                           onPressed: _showAddCertificatesDialog,
@@ -338,26 +365,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                    if (submittedCertificates.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Divider(),
-                            Text(
-                              "Certificates",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ...submittedCertificates
-                                .map(_buildCertificateCard)
-                                .toList(),
-                          ],
-                        ),
-                      ),
+                    
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -376,7 +384,11 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                               Row(
                                 children: const [
-                                  Icon(Icons.star, size: 18, color: Colors.grey),
+                                  Icon(
+                                    Icons.star,
+                                    size: 18,
+                                    color: Colors.grey,
+                                  ),
                                   SizedBox(width: 4),
                                   Text(
                                     'ALL-STAR',
@@ -404,7 +416,10 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: const [
-                                StatItem(value: '2,279,545', label: 'Total Runs'),
+                                StatItem(
+                                  value: '2,279,545',
+                                  label: 'Total Runs',
+                                ),
                                 VerticalDivider(),
                                 StatItem(
                                   value: '279,545',
@@ -415,7 +430,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 16,),
+                          const SizedBox(height: 16),
                           CertificateBanner(
                             issuedBy: 'Government',
                             competition: "100 Meters run",
@@ -435,12 +450,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-class CertificateInput {
-  String title = '';
-  String issuer = '';
-  Uint8List? referenceLetterImage;
-  Uint8List? certificateImage;
-}
 
 class StatItem extends StatelessWidget {
   final String value;
@@ -496,9 +505,19 @@ class CertificateBanner extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16,),
-          CredentialCard(title: '100m Long Run',platformLogoUrl: 'asset/image/governmentLogo.png',issuer: 'Government', issueDate: 'Today',),
-          CredentialCard(title: '100m Long Run',platformLogoUrl: 'asset/image/governmentLogo.png',issuer: 'Government', issueDate: 'Today',)
+          const SizedBox(height: 16),
+          CredentialCard(
+            title: '100m Long Run',
+            platformLogoUrl: 'asset/image/governmentLogo.png',
+            issuer: 'Government',
+            issueDate: 'Today',
+          ),
+          CredentialCard(
+            title: '100m Long Run',
+            platformLogoUrl: 'asset/image/governmentLogo.png',
+            issuer: 'Government',
+            issueDate: 'Today',
+          ),
         ],
       ),
     );

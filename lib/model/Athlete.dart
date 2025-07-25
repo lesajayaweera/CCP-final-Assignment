@@ -4,8 +4,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sport_ignite/pages/profile.dart';
 
 class Athlete {
   late String sport;
@@ -40,8 +42,6 @@ class Athlete {
   );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
- 
 
   Future<void> Register(BuildContext context) async {
     showLoadingDialog(context);
@@ -128,5 +128,101 @@ class Athlete {
       return false;
     }
   }
+
+  // Get the Athlete data
+
+  static Future<Map<String, dynamic>?> getAthleteDetails(BuildContext context) async {
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+
+      if (uid == null) {
+        showSnackBar(context,"User not logged in.",Colors.red);
+        return null;
+      }
+
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection('athlete')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        return doc.data() as Map<String, dynamic>;
+      } else {
+        showSnackBar(context,"No athlete data found for this user.",Colors.red);
+        return null;
+      }
+    } on FirebaseException catch (e) {
+      showSnackBar(context,"Error fetching athlete data: ${e.message}",Colors.red);
+      return null;
+    }
+  }
+
+
+  // Add certificate
+
+  static Future<void> uploadCertificates(
+    BuildContext context, List<CertificateInput> certificateInputs) async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) {
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   const SnackBar(content: Text("User not logged in.")),
+    // );
+    showSnackBar(context, "User not logged in.", Colors.red);
+    return;
+  }
+
+  for (int i = 0; i < certificateInputs.length; i++) {
+    final cert = certificateInputs[i];
+
+    // Skip if incomplete
+    if (cert.title.isEmpty ||
+        cert.issuer.isEmpty ||
+        cert.certificateImage == null ||
+        cert.referenceLetterImage == null) {
+      continue;
+    }
+
+    try {
+      // Upload certificate image
+      final String certPath =
+          'certificates/$uid/${DateTime.now().millisecondsSinceEpoch}_cert_$i.jpg';
+      final certRef = FirebaseStorage.instance.ref(certPath);
+      final certUpload = await certRef.putData(cert.certificateImage!);
+      final String certUrl = await certUpload.ref.getDownloadURL();
+
+      // Upload reference letter image
+      final String refPath =
+          'certificates/$uid/${DateTime.now().millisecondsSinceEpoch}_ref_$i.jpg';
+      final refRef = FirebaseStorage.instance.ref(refPath);
+      final refUpload = await refRef.putData(cert.referenceLetterImage!);
+      final String refUrl = await refUpload.ref.getDownloadURL();
+
+      // Save metadata to Firestore
+      await FirebaseFirestore.instance
+          .collection('certificates')
+          .doc(uid)
+          .collection('certificates')
+          .add({
+        'title': cert.title,
+        'issuedBy': cert.issuer,
+        'certificateImageUrl': certUrl,
+        'referenceLetterImageUrl': refUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+        'status':'false'
+      });
+    } catch (e) {
+     
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(content: Text("Failed to upload certificate ${i + 1}")),
+      // );
+      showSnackBar(context, "Failed to upload certificate ${i + 1}", Colors.red);
+    }
+  }
+
+  showSnackBar(context, "✅ Certificates uploaded successfully", Colors.green);
+  // ScaffoldMessenger.of(context).showSnackBar(
+  //   const SnackBar(content: Text("✅ Certificates uploaded successfully")),
+  // );
+}
 
 }

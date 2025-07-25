@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
@@ -81,8 +84,18 @@ Future<String?> getUserUidFromLocal() async {
 
 
 // removing the uid
-
 Future<void> removeUserUid() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.remove('uid');
+}
+
+
+// method to pick image
+Future<Uint8List?> pickImage() async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  if (pickedFile != null) {
+    return await pickedFile.readAsBytes();
+  }
+  return null;
 }
