@@ -1,3 +1,4 @@
+// ignore_for_file: unused_field
 
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -15,13 +16,11 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-
   List<CertificateInput> certificateInputs = [CertificateInput()];
   List<CertificateInput> submittedCertificates = [];
 
   Map<String, dynamic>? athleteData;
-
-
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -164,31 +163,75 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                       child: Text("Add Another"),
                     ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
-                    onPressed: ()async {
-                      setState(() {
-                        submittedCertificates.addAll(
-                          certificateInputs.where(
-                            (c) =>
-                                c.title.isNotEmpty &&
-                                c.issuer.isNotEmpty &&
-                                c.referenceLetterImage != null &&
-                                c.certificateImage != null,
+
+                  _isSaving
+                      ? const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16),
+                          child: CircularProgressIndicator(),
+                        )
+                      : ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
                           ),
+                          onPressed: () async {
+                            bool allValid = certificateInputs.every(
+                              (c) =>
+                                  c.title.trim().isNotEmpty &&
+                                  c.issuer.trim().isNotEmpty &&
+                                  c.referenceLetterImage != null &&
+                                  c.certificateImage != null,
+                            );
 
-                        );
+                            if (!allValid) {
+                              showDialog(
+                                context: context,
+                                useRootNavigator: true,
+                                builder: (context) => AlertDialog(
+                                  title: const Text("Incomplete Fields"),
+                                  content: const Text(
+                                    "Please fill out all fields and upload both files for each certificate.",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: const Text("OK"),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              return;
+                            }
 
-                      });
+                            // ✅ Show loading
+                            setState(() {
+                              _isSaving = true;
+                            });
+                            setStateDialog(() {}); // ✅ Rebuild dialog
 
-                      await Athlete.uploadCertificates(context, certificateInputs);
-                      Navigator.of(context).pop();
-                    },
-                    child: Text("Save"),
-                  ),
+                            try {
+                              setState(() {
+                                submittedCertificates.addAll(certificateInputs);
+                              });
+
+                              await Athlete.uploadCertificates(
+                                context,
+                                certificateInputs,
+                              );
+
+                              Navigator.of(context).pop(); // Close dialog
+                            } finally {
+                              // ✅ Hide loading
+                              setState(() {
+                                _isSaving = false;
+                              });
+                              setStateDialog(() {});
+                            }
+                          },
+
+                          child: Text("Save"),
+                        ),
                 ],
               ),
             ],
@@ -204,7 +247,6 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: LinkedInAppBar(page: true, role: widget.role),
       body: SafeArea(
         child: SingleChildScrollView(
-          
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -365,7 +407,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                    
+
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -449,7 +491,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
 
 class StatItem extends StatelessWidget {
   final String value;
