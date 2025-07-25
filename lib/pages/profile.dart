@@ -1,11 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+
 import 'dart:typed_data';
 
 import 'package:sport_ignite/widget/common/appbar.dart';
 
 class ProfilePage extends StatefulWidget {
+
+  final String role;
+  const ProfilePage({required this.role});
+
+
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -13,6 +20,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   List<CertificateInput> certificateInputs = [CertificateInput()];
   List<CertificateInput> submittedCertificates = [];
+
+
 
   // method to show the Certification add  Dialog Box
   void _showAddCertificatesDialog() {
@@ -213,9 +222,10 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: LinkedInAppBar(),
+      appBar: LinkedInAppBar(page: false,role: widget.role,),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

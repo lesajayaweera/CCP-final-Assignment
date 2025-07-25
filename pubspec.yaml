@@ -45,6 +45,7 @@ dependencies:
   file_picker: ^10.2.0
   salomon_bottom_bar: ^3.3.2
   firebase_database: ^11.3.10
+  shared_preferences: ^2.2.2
   
   
   

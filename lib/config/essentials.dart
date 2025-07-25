@@ -1,5 +1,5 @@
-import 'dart:convert';
-import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 import 'package:flutter/material.dart';
 final List<String> sports = [
@@ -39,7 +39,7 @@ final List<String> sector =[
 ];
 
 
-/// 🔁 Reusable SnackBar method
+//Reusable SnackBar method
   void showSnackBar(BuildContext context, String message, Color bgColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -49,7 +49,7 @@ final List<String> sector =[
     );
   }
 
-
+//  Loading indicator
 void showLoadingDialog(BuildContext context) {
   showDialog(
     barrierDismissible: false,
@@ -64,4 +64,25 @@ void showLoadingDialog(BuildContext context) {
       );
     },
   );
+}
+
+
+//  to save the uid to the local storage
+Future<void> saveUserUidLocally(String uid) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('uid', uid);
+}
+
+// Get the uid
+Future<String?> getUserUidFromLocal() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('uid');
+}
+
+
+// removing the uid
+
+Future<void> removeUserUid() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('uid');
 }

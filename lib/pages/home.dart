@@ -1,6 +1,112 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/common/bottomNavigation.dart';
+
+
+
+
+// Main Screen
+class SocialFeedScreen extends StatefulWidget {
+  final String role;
+  const SocialFeedScreen({Key? key,required this.role}) : super(key: key);
+
+  @override
+  State<SocialFeedScreen> createState() => _SocialFeedScreenState();
+}
+
+class _SocialFeedScreenState extends State<SocialFeedScreen> {
+  List<bool> likedPosts = [false, false];
+
+  int _currentIndex = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: LinkedInAppBar(page: false,role: widget.role,),
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: ListView(
+        physics: BouncingScrollPhysics(
+
+        ),
+        children: [
+          // First Post - Swimmer
+          SocialPost(
+            userName: 'Stanislav Naida',
+            userAvatar:
+                'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+            userRole: 'Swimmer',
+            timeAgo: '1st',
+            postText:
+                'Hello, I am looking for a Sponsorship opportunity and would appreciate your support. Thanks in advance for any contact recommendation, advice or... see more',
+            likes: 77,
+            comments: 11,
+            isLiked: likedPosts[0],
+            onLike: () {
+              setState(() {
+                likedPosts[0] = !likedPosts[0];
+              });
+            },
+            onComment: ()=>showSnackBar(context, 'User has clicked the comments', Colors.black),
+            onShare: ()=>showSnackBar(context, 'User has clicked the share', Colors.black),
+            onSend: ()=>showSnackBar(context, 'User has clicked the send', Colors.black),
+          ),
+
+          // Second Post - Athlete with Medal
+          SocialPost(
+            userName: 'Vera Drozdova',
+            userRole: 'Athlete',
+            timeAgo: '2 st',
+            userAvatar:
+                'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
+            postText: '',
+            imageUrl: 'asset/image/background.png',
+            likes: 45,
+            comments: 8,
+            isLiked: likedPosts[1],
+            onLike: () {
+              setState(() {
+                likedPosts[1] = !likedPosts[1];
+              });
+            },
+            onComment: ()=>showSnackBar(context, 'User has clicked the comments', Colors.black),
+            onShare: ()=>showSnackBar(context, 'User has clicked the share', Colors.black),
+            onSend: ()=>showSnackBar(context, 'User has clicked the send', Colors.black),
+          ),
+          SocialPost(
+            userName: 'Vera Drozdova',
+            userRole: 'Athlete',
+            timeAgo: '2 st',
+            postText: '',
+            imageUrl: 'asset/image/background.png',
+            likes: 45,
+            comments: 8,
+            isLiked: likedPosts[0],
+            onLike: () {
+              setState(() {
+                likedPosts[0] = !likedPosts[0];
+              });
+            },
+            onComment: ()=>showSnackBar(context, 'User has clicked the comments', Colors.black),
+            onShare: ()=>showSnackBar(context, 'User has clicked the share', Colors.black),
+            onSend: ()=>showSnackBar(context, 'User has clicked the send', Colors.black),
+           
+          ),
+        ],
+      ),
+      bottomNavigationBar: CustomBottomNavigation(currentIndex: _currentIndex, role: widget.role,
+       onTap: (index) {
+        setState(() {
+            _currentIndex = index;
+          });
+       }
+          
+        ),
+    );
+  }
+
+  
+}
 
 // Main Post Widget - Reusable
 class SocialPost extends StatelessWidget {
@@ -276,107 +382,4 @@ class _ActionButton extends StatelessWidget {
   }
 }
 
-// Main Screen
-class SocialFeedScreen extends StatefulWidget {
-  final String role;
-  const SocialFeedScreen({Key? key,required this.role}) : super(key: key);
 
-  @override
-  State<SocialFeedScreen> createState() => _SocialFeedScreenState();
-}
-
-class _SocialFeedScreenState extends State<SocialFeedScreen> {
-  List<bool> likedPosts = [false, false];
-
-  int _currentIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: LinkedInAppBar(),
-      backgroundColor: const Color(0xFFF5F5F5),
-      body: ListView(
-        physics: BouncingScrollPhysics(
-
-        ),
-        children: [
-          // First Post - Swimmer
-          SocialPost(
-            userName: 'Stanislav Naida',
-            userAvatar:
-                'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-            userRole: 'Swimmer',
-            timeAgo: '1st',
-            postText:
-                'Hello, I am looking for a Sponsorship opportunity and would appreciate your support. Thanks in advance for any contact recommendation, advice or... see more',
-            likes: 77,
-            comments: 11,
-            isLiked: likedPosts[0],
-            onLike: () {
-              setState(() {
-                likedPosts[0] = !likedPosts[0];
-              });
-            },
-            onComment: () => _showSnackBar(context, 'Comment tapped'),
-            onShare: () => _showSnackBar(context, 'Share tapped'),
-            onSend: () => _showSnackBar(context, 'Send tapped'),
-          ),
-
-          // Second Post - Athlete with Medal
-          SocialPost(
-            userName: 'Vera Drozdova',
-            userRole: 'Athlete',
-            timeAgo: '2 st',
-            userAvatar:
-                'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
-            postText: '',
-            imageUrl: 'asset/image/background.png',
-            likes: 45,
-            comments: 8,
-            isLiked: likedPosts[1],
-            onLike: () {
-              setState(() {
-                likedPosts[1] = !likedPosts[1];
-              });
-            },
-            onComment: () => _showSnackBar(context, 'Comment tapped'),
-            onShare: () => _showSnackBar(context, 'Share tapped'),
-            onSend: () => _showSnackBar(context, 'Send tapped'),
-          ),
-          SocialPost(
-            userName: 'Vera Drozdova',
-            userRole: 'Athlete',
-            timeAgo: '2 st',
-            postText: '',
-            imageUrl: 'asset/image/background.png',
-            likes: 45,
-            comments: 8,
-            isLiked: likedPosts[0],
-            onLike: () {
-              setState(() {
-                likedPosts[0] = !likedPosts[0];
-              });
-            },
-            onComment: () => _showSnackBar(context, 'Comment tapped'),
-            onShare: () => _showSnackBar(context, 'Share tapped'),
-            onSend: () => _showSnackBar(context, 'Send tapped'),
-          ),
-        ],
-      ),
-      bottomNavigationBar: CustomBottomNavigation(currentIndex: _currentIndex, role: widget.role,
-       onTap: (index) {
-        setState(() {
-            _currentIndex = index;
-          });
-       }
-          
-        ),
-    );
-  }
-
-  void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-}
