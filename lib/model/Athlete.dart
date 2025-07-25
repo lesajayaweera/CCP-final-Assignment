@@ -7,7 +7,6 @@ import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sport_ignite/pages/profile.dart';
 
 class Athlete {
   late String sport;

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
-import 'dart:typed_data';
 import 'package:sport_ignite/widget/common/appbar.dart';
 
 class ProfilePage extends StatefulWidget {

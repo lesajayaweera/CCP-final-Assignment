@@ -137,7 +137,7 @@ class _RegistrationState extends State<Registration> {
           cityController.text.trim(),
           _selectedProvince ?? '',
           dobController.text.trim(),
-          _companyController.text.trim()!,
+          _companyController.text.trim(),
           _selectedIntrested!,
           _selectedSector!,
           profileImage,
