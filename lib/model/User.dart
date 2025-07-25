@@ -1,26 +1,49 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-abstract class User {
-  late String name;
-  late String email;
-  late String pass;
-  late String tel;
-  late String role;
-  late String province;
-  late String city;
-  late String date;
+import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/pages/home.dart';
+ class Users {
 
-  User(
-    this.name,
-    this.email,
-    this.role,
-    this.pass,
-    this.tel,
-    this.city,
-    this.province,
-    this.date,
-  );
+ 
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  Future<void> Login(BuildContext context, String email, String password) async {
+  showLoadingDialog(context); // Show loading spinner
 
-  void Register(BuildContext context);
+  try {
+    // Step 1: Firebase Authentication
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-  void Login(BuildContext context);
+    User? user = userCredential.user;
+
+    if (user != null) {
+      // Step 2: Fetch user role from Firestore
+      DocumentSnapshot userDoc =
+          await _firestore.collection('users').doc(user.uid).get();
+
+      if (userDoc.exists) {
+        String role = userDoc['role'];
+
+        // Step 3: Navigate to the correct page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SocialFeedScreen(role: role)),
+        );
+      } else {
+        showSnackBar(context, "User data not found", Colors.red);
+      }
+    }
+  } on FirebaseAuthException catch (e) {
+    showSnackBar(context, "Login failed: ${e.message}", Colors.red);
+  } catch (e) {
+    showSnackBar(context, "Something went wrong: $e", Colors.red);
+  }
+}
+
+
+  
 }

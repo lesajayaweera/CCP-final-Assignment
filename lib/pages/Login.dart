@@ -139,7 +139,9 @@
 //   }
 // }
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/registration.dart';
 
 class Login extends StatefulWidget {
@@ -284,7 +286,7 @@ class _LoginState extends State<Login> {
                         ),
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
-                            // TODO: Add login logic
+                            Users().Login(context, _emailController.text.trim(), _passwordController.text.trim());
                           }
                         },
                         child: const Text(
