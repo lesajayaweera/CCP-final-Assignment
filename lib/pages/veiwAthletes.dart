@@ -59,7 +59,7 @@ class _AthletesScreenState extends State<AthletesScreen> {
 }
 
 class AthleteCard extends StatelessWidget {
-  final Athlete athlete;
+  final Athletes athlete;
 
   const AthleteCard({Key? key, required this.athlete}) : super(key: key);
 
@@ -200,14 +200,14 @@ class AthleteCard extends StatelessWidget {
   }
 }
 
-class Athlete {
+class Athletes {
   final String name;
   final String sport;
   final String club;
   final String imagePath;
   final String clubLogo;
 
-  Athlete({
+  Athletes({
     required this.name,
     required this.sport,
     required this.club,
@@ -217,43 +217,43 @@ class Athlete {
 }
 
 // Sample data
-final List<Athlete> athletes = [
-  Athlete(
+final List<Athletes> athletes = [
+  Athletes(
     name: 'Veronica Symo...',
     sport: 'Foot ball player',
     club: 'Lomonosov Moscow State',
     imagePath: 'asset/image/profile.jpg',
     clubLogo: 'asset/image/background.png',
   ),
-  Athlete(
+  Athletes(
     name: 'Veronica Symo...',
     sport: 'Foot ball player',
     club: 'Lomonosov Moscow State',
     imagePath: 'asset/image/profile.jpg',
     clubLogo: 'asset/image/background.png',
   ),
-  Athlete(
+  Athletes(
     name: 'Veronica Symo...',
     sport: 'Foot ball player',
     club: 'Lomonosov Moscow State',
     imagePath: 'asset/image/profile.jpg',
     clubLogo: 'asset/image/background.png',
   ),
-  Athlete(
+  Athletes(
     name: 'Alexey Makovs...',
     sport: 'Junior football player',
     club: 'Lomonosov Moscow State',
     imagePath: 'asset/image/profile.jpg',
     clubLogo: 'asset/image/background.png',
   ),
-  Athlete(
+  Athletes(
     name: 'Michael Riley',
     sport: 'Foot ball player',
     club: 'Local Club',
     imagePath: 'asset/image/profile.jpg',
     clubLogo: 'asset/image/background.png',
   ),
-  Athlete(
+  Athletes(
     name: 'Daniel Jenkins',
     sport: 'National level Batsman',
     club: 'Cricket Academy',

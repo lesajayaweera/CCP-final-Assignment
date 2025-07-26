@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/config/essentials.dart' hide gender;
 import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +22,7 @@ class Sponsor {
   late String date;
   late File? profile;
 
+
   Sponsor(
     this.name,
     this.email,
@@ -35,6 +36,7 @@ class Sponsor {
     this.intrestedSport,
     this.orgSector,
     this.profile,
+
   );
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -101,6 +103,7 @@ class Sponsor {
         "email": email,
         "role": role,
         "tel": tel,
+        'createdAt':FieldValue.serverTimestamp()
       });
       // Step 3: Save user data in Firestore
       await _firestore.collection('sponsor').doc(_auth.currentUser?.uid).set({
@@ -115,7 +118,6 @@ class Sponsor {
         "sportIntrested": intrestedSport,
         "company": companyname,
         "orgStructure": orgSector,
-        "gender": gender,
         'profile': imageUrl ?? '', // Save image URL or empty string
       });
 

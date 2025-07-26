@@ -103,6 +103,7 @@ class Athlete {
         "email": email,
         "role": role,
         "tel": tel,
+        'createdAt':FieldValue.serverTimestamp()
       });
       // Step 3: Save user data in Firestore
       await _firestore.collection('athlete').doc(_auth.currentUser?.uid).set({
@@ -110,6 +111,7 @@ class Athlete {
         "email": email,
         "role": role,
         "tel": tel,
+        
 
         "province": province,
         "city": city,

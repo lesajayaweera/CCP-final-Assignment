@@ -141,6 +141,9 @@ class _RegistrationState extends State<Registration> {
           _selectedIntrested!,
           _selectedSector!,
           profileImage,
+          
+
+
         );
 
         sponsor.Register(context);

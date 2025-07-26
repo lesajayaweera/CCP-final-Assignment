@@ -1,14 +1,18 @@
 // ignore_for_file: unused_field
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
+import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 
 class ProfilePage extends StatefulWidget {
   final String role;
-  const ProfilePage({required this.role});
+  late String? uid;
+  ProfilePage({super.key, required this.role, this.uid});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -18,7 +22,7 @@ class _ProfilePageState extends State<ProfilePage> {
   List<CertificateInput> certificateInputs = [CertificateInput()];
   List<CertificateInput> submittedCertificates = [];
 
-  Map<String, dynamic>? athleteData;
+  Map<String, dynamic>? userData;
   bool _isSaving = false;
 
   @override
@@ -28,13 +32,27 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void loadUserData() async {
-    var data = await Athlete.getAthleteDetails(context);
-    setState(() {
-      athleteData = data;
-    });
+    if (widget.uid != null) {
+      var data = await Users().getUserDetailsByUIDAndRole(
+        context,
+        widget.uid!,
+        widget.role,
+      );
+      setState(() {
+        userData = data;
+      });
+    } else {
+      var data = await Users().getUserDetails(context, widget.role);
+      setState(() {
+        userData = data;
+      });
+    }
+    // var data = await Users().getUserDetails(context, widget.role);
+    // setState(() {
+    //   userData = data;
+    // });
   }
 
-  // method to show the Certification add  Dialog Box
   void _showAddCertificatesDialog() {
     certificateInputs = [CertificateInput()];
     showDialog(
@@ -101,43 +119,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         if (certificateInputs[index].referenceLetterImage !=
                             null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Reference Letter Preview:",
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                SizedBox(height: 4),
-                                Image.memory(
-                                  certificateInputs[index]
-                                      .referenceLetterImage!,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              ],
-                            ),
+                          Image.memory(
+                            certificateInputs[index].referenceLetterImage!,
+                            height: 80,
+                            fit: BoxFit.cover,
                           ),
                         if (certificateInputs[index].certificateImage != null)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Certificate Preview:",
-                                  style: TextStyle(fontWeight: FontWeight.w500),
-                                ),
-                                SizedBox(height: 4),
-                                Image.memory(
-                                  certificateInputs[index].certificateImage!,
-                                  height: 80,
-                                  fit: BoxFit.cover,
-                                ),
-                              ],
-                            ),
+                          Image.memory(
+                            certificateInputs[index].certificateImage!,
+                            height: 80,
+                            fit: BoxFit.cover,
                           ),
                         Divider(),
                       ],
@@ -162,17 +153,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                       child: Text("Add Another"),
                     ),
-
                   _isSaving
                       ? const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           child: CircularProgressIndicator(),
                         )
                       : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
                           onPressed: () async {
                             bool allValid = certificateInputs.every(
                               (c) =>
@@ -185,17 +171,16 @@ class _ProfilePageState extends State<ProfilePage> {
                             if (!allValid) {
                               showDialog(
                                 context: context,
-                                useRootNavigator: true,
                                 builder: (context) => AlertDialog(
-                                  title: const Text("Incomplete Fields"),
-                                  content: const Text(
+                                  title: Text("Incomplete Fields"),
+                                  content: Text(
                                     "Please fill out all fields and upload both files for each certificate.",
                                   ),
                                   actions: [
                                     TextButton(
                                       onPressed: () =>
                                           Navigator.of(context).pop(),
-                                      child: const Text("OK"),
+                                      child: Text("OK"),
                                     ),
                                   ],
                                 ),
@@ -203,11 +188,10 @@ class _ProfilePageState extends State<ProfilePage> {
                               return;
                             }
 
-                            // ✅ Show loading
                             setState(() {
                               _isSaving = true;
                             });
-                            setStateDialog(() {}); // ✅ Rebuild dialog
+                            setStateDialog(() {});
 
                             try {
                               setState(() {
@@ -219,16 +203,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                 certificateInputs,
                               );
 
-                              Navigator.of(context).pop(); // Close dialog
+                              Navigator.of(context).pop();
                             } finally {
-                              // ✅ Hide loading
                               setState(() {
                                 _isSaving = false;
                               });
                               setStateDialog(() {});
                             }
                           },
-
                           child: Text("Save"),
                         ),
                 ],
@@ -257,37 +239,28 @@ class _ProfilePageState extends State<ProfilePage> {
                     Container(
                       margin: const EdgeInsets.only(bottom: 50),
                       decoration: BoxDecoration(
-                        color:
-                            (athleteData?['background'] != null &&
-                                athleteData!['background']
-                                    .toString()
-                                    .isNotEmpty)
-                            ? null
-                            : Colors.blueGrey,
+                        color: Colors.blueGrey,
                         image:
-                            (athleteData?['background'] != null &&
-                                athleteData!['background']
-                                    .toString()
-                                    .isNotEmpty)
+                            (userData?['background'] != null &&
+                                userData!['background'].toString().isNotEmpty)
                             ? DecorationImage(
-                                image: NetworkImage(athleteData!['background']),
+                                image: NetworkImage(userData!['background']),
                                 fit: BoxFit.cover,
                               )
                             : null,
                       ),
                       child:
-                          (athleteData?['background'] != null &&
-                              athleteData!['background'].toString().isNotEmpty)
-                          ? null
-                          : const Center(
+                          (userData?['background'] == null ||
+                              userData!['background'].toString().isEmpty)
+                          ? const Center(
                               child: Icon(
                                 Icons.person,
                                 size: 60,
                                 color: Colors.white,
                               ),
-                            ),
+                            )
+                          : null,
                     ),
-
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Align(
@@ -296,33 +269,27 @@ class _ProfilePageState extends State<ProfilePage> {
                           width: 150,
                           height: 150,
                           child: Stack(
-                            fit: StackFit.expand,
                             children: [
                               Container(
-                                width: 100, // adjust size as needed
-                                height: 100,
                                 decoration: BoxDecoration(
-                                  color:
-                                      Colors.grey.shade300, // gray background
+                                  color: Colors.grey.shade300,
                                   shape: BoxShape.circle,
                                   image:
-                                      (athleteData?['profile'] != null &&
-                                          athleteData!['profile']
+                                      (userData?['profile'] != null &&
+                                          userData!['profile']
                                               .toString()
                                               .isNotEmpty)
                                       ? DecorationImage(
                                           fit: BoxFit.cover,
                                           image: NetworkImage(
-                                            athleteData!['profile'],
+                                            userData!['profile'],
                                           ),
                                         )
                                       : null,
                                 ),
                                 child:
-                                    (athleteData?['profile'] == null ||
-                                        athleteData!['profile']
-                                            .toString()
-                                            .isEmpty)
+                                    (userData?['profile'] == null ||
+                                        userData!['profile'].toString().isEmpty)
                                     ? const Icon(
                                         Icons.person,
                                         size: 50,
@@ -330,7 +297,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                       )
                                     : null,
                               ),
-
                               Positioned(
                                 bottom: 0,
                                 right: 0,
@@ -356,107 +322,83 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              Container(
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          userData?['name'] ?? "Guest",
+                          style: Theme.of(context).textTheme.headlineMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        Text('Ignited'),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    widget.role == 'Sponsor'
+                        ? Text("${userData?['company']} - ${userData?['role']}" ?? '')
+                        : Text(userData?['sport'] ?? ''),
+                    Text(
+                      "${userData?['city'] ?? 'city'}\n${userData?['province'] ?? 'province'}, Sri Lanka",
+                      style: TextStyle(color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 10),
+                    if (widget.role != 'Sponsor')
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  athleteData?['name'] ?? "Guest",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headlineMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                                Text('Ignited'),
-                              ],
-                            ),
+                          OutlinedButton(
+                            onPressed: _showAddCertificatesDialog,
+                            child: Text("Add Certificates"),
                           ),
-                          const SizedBox(height: 16),
-                          Text(athleteData?['sport'] ?? ''),
-                          Text(
-                            "${athleteData?['city'] ?? 'city'}\n${athleteData?['province'] ?? 'province'}, Sri Lanka",
-                            textAlign: TextAlign.left,
-                            style: TextStyle(color: Colors.grey[700]),
+                          const SizedBox(width: 10),
+                          OutlinedButton(
+                            onPressed: () {},
+                            child: Text("Add Sections"),
                           ),
                         ],
                       ),
-                    ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-
-                      children: [
-                        OutlinedButton(
-                          onPressed: _showAddCertificatesDialog,
-                          child: Text("Add Certificates"),
-                        ),
-                        const SizedBox(width: 10),
-                        OutlinedButton(
-                          onPressed: () {},
-                          child: Text("Add Sections"),
-                        ),
-                      ],
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    if (widget.role == 'Sponsor')
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Header row
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Your Dashboard',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
+                          ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AthletesScreen(),
                                 ),
-                              ),
-                              Row(
-                                children: const [
-                                  Icon(
-                                    Icons.star,
-                                    size: 18,
-                                    color: Colors.grey,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    'ALL-STAR',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.grey,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
+                              );
+                            },
+                            child: Text("View Athlete"),
                           ),
-                          const SizedBox(height: 16),
-                          // Stats card
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 20,
-                              horizontal: 16,
-                            ),
-                            child: Row(
+                          const SizedBox(width: 10),
+
+                          OutlinedButton(
+                            onPressed: () {},
+                            child: Text("Add Sections"),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 16),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 20,
+                        horizontal: 16,
+                      ),
+                      child: widget.role != 'Sponsor'
+                          ? Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: const [
+                              children: [
                                 StatItem(
                                   value: '2,279,545',
                                   label: 'Total Runs',
@@ -469,17 +411,27 @@ class _ProfilePageState extends State<ProfilePage> {
                                 VerticalDivider(),
                                 StatItem(value: '279,545', label: '100 s'),
                               ],
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                StatItem(
+                                  value: 'Rs.0.00',
+                                  label: 'Total Sponsored',
+                                ),
+                                VerticalDivider(),
+                                StatItem(value: '0', label: 'Total Athletes'),
+                               
+                              ],
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          CertificateBanner(
-                            issuedBy: 'Government',
-                            competition: "100 Meters run",
-                            date: DateTime.now(),
-                          ),
-                        ],
-                      ),
                     ),
+                    const SizedBox(height: 16),
+                    if (widget.role != 'Sponsor')
+                      CertificateBanner(
+                        issuedBy: 'Government',
+                        competition: "100 Meters run",
+                        date: DateTime.now(),
+                      ),
                   ],
                 ),
               ),
@@ -516,50 +468,35 @@ class StatItem extends StatelessWidget {
   }
 }
 
-// to display the certificates
 class CertificateBanner extends StatelessWidget {
   final String issuedBy;
-  // final Image logo;
   final String competition;
   final DateTime date;
+
   const CertificateBanner({
     required this.issuedBy,
     required this.competition,
     required this.date,
     super.key,
   });
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const Text(
-                'Certificates and Competition',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          CredentialCard(
-            title: '100m Long Run',
-            platformLogoUrl: 'asset/image/governmentLogo.png',
-            issuer: 'Government',
-            issueDate: 'Today',
-          ),
-          CredentialCard(
-            title: '100m Long Run',
-            platformLogoUrl: 'asset/image/governmentLogo.png',
-            issuer: 'Government',
-            issueDate: 'Today',
-          ),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Certificates and Competition',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 16),
+        CredentialCard(
+          title: '100m Long Run',
+          platformLogoUrl: 'asset/image/governmentLogo.png',
+          issuer: issuedBy,
+          issueDate: 'Today',
+        ),
+      ],
     );
   }
 }
@@ -586,7 +523,6 @@ class CredentialCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
