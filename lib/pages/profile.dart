@@ -1,5 +1,6 @@
 // ignore_for_file: unused_field
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -8,6 +9,7 @@ import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
   final String role;
@@ -340,7 +342,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 16),
                     widget.role == 'Sponsor'
-                        ? Text("${userData?['company']} - ${userData?['role']}" ?? '')
+                        ? Text(
+                            "${userData?['company']} - ${userData?['role']}" ??
+                                '',
+                          )
                         : Text(userData?['sport'] ?? ''),
                     Text(
                       "${userData?['city'] ?? 'city'}\n${userData?['province'] ?? 'province'}, Sri Lanka",
@@ -421,16 +426,30 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 VerticalDivider(),
                                 StatItem(value: '0', label: 'Total Athletes'),
-                               
                               ],
                             ),
                     ),
                     const SizedBox(height: 16),
                     if (widget.role != 'Sponsor')
-                      CertificateBanner(
-                        issuedBy: 'Government',
-                        competition: "100 Meters run",
-                        date: DateTime.now(),
+                      FutureBuilder<List<Map<String, dynamic>>>(
+                        future: Athlete.getApprovedCertificates(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Text('Error: ${snapshot.error}');
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
+                            return const Text('No certificates found.');
+                          }
+
+                          return CertificateBanner(
+                            certificates: snapshot.data!,
+                          );
+                        },
                       ),
                   ],
                 ),
@@ -469,19 +488,16 @@ class StatItem extends StatelessWidget {
 }
 
 class CertificateBanner extends StatelessWidget {
-  final String issuedBy;
-  final String competition;
-  final DateTime date;
+  final List<Map<String, dynamic>> certificates;
 
-  const CertificateBanner({
-    required this.issuedBy,
-    required this.competition,
-    required this.date,
-    super.key,
-  });
+  const CertificateBanner({super.key, required this.certificates});
 
   @override
   Widget build(BuildContext context) {
+    if (certificates.isEmpty) {
+      return const Text('No approved certificates found.');
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -490,29 +506,48 @@ class CertificateBanner extends StatelessWidget {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
-        CredentialCard(
-          title: '100m Long Run',
-          platformLogoUrl: 'asset/image/governmentLogo.png',
-          issuer: issuedBy,
-          issueDate: 'Today',
-        ),
+        ...certificates.map((cert) {
+          final createdAt = cert['createdAt'];
+          String date = 'Unknown Date';
+          if (createdAt != null) {
+            date = (createdAt as Timestamp).toDate().toLocal().toString().split(
+              ' ',
+            )[0];
+          }
+
+          return CredentialCard(
+            imageUrl: cert['certificateImageUrl'] ?? '',
+            title: cert['title'] ?? 'Untitled',
+            issuer: cert['issuedBy'] ?? 'Unknown',
+            issueDate: date,
+            onViewPressed: () {
+              final url = cert['certificateImageUrl'];
+              if (url != null) {
+                // open in browser or use `url_launcher`
+                launchUrl(Uri.parse(url));
+              }
+            },
+          );
+        }).toList(),
       ],
     );
   }
 }
 
 class CredentialCard extends StatelessWidget {
-  final String platformLogoUrl;
+  final String imageUrl;
   final String title;
   final String issuer;
   final String issueDate;
+  final VoidCallback? onViewPressed;
 
   const CredentialCard({
     super.key,
-    required this.platformLogoUrl,
+    required this.imageUrl,
     required this.title,
     required this.issuer,
     required this.issueDate,
+    this.onViewPressed,
   });
 
   @override
@@ -527,7 +562,17 @@ class CredentialCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Image.asset(platformLogoUrl, width: 32, height: 32),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: Image.network(
+                    imageUrl,
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) =>
+                        const Icon(Icons.broken_image),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
@@ -549,7 +594,7 @@ class CredentialCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: onViewPressed,
               icon: const Icon(Icons.open_in_new),
               label: const Text('Show credential'),
               style: ElevatedButton.styleFrom(
