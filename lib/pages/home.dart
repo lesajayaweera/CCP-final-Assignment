@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
-import 'package:sport_ignite/widget/common/appbar.dart';
-import 'package:sport_ignite/widget/common/bottomNavigation.dart';
 
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {

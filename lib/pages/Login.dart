@@ -148,19 +148,19 @@ class _LoginState extends State<Login> {
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                         onPressed: () async {
-  if (_formKey.currentState?.validate() ?? false) {
-    bool success = await Users().Login(
-      context,
-      _emailController.text.trim(),
-      _passwordController.text.trim(),
-    );
+                          if (_formKey.currentState?.validate() ?? false) {
+                            bool success = await Users().Login(
+                              context,
+                              _emailController.text.trim(),
+                              _passwordController.text.trim(),
+                            );
 
-    if (success) {
-      _emailController.clear();
-      _passwordController.clear();
-    }
-  }
-},
+                            if (success) {
+                              _emailController.clear();
+                              _passwordController.clear();
+                            }
+                          }
+                        },
                         child: const Text(
                           "Sign In",
                           style: TextStyle(
