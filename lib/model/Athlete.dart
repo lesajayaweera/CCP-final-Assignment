@@ -258,4 +258,21 @@ class Athlete {
 
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
+  static Future<List<Map<String, dynamic>>> getApprovedCertificatesBYuid(String uid) async {
+    if (uid == null) {
+      throw Exception("User not logged in.");
+    }
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('certificates')
+        .doc(uid)
+        .collection('certificates')
+        .where(
+          'status',
+          isEqualTo: "true",
+        ) // or 'true' if your field is a string
+        .get();
+
+    return querySnapshot.docs.map((doc) => doc.data()).toList();
+  }
 }

@@ -47,9 +47,17 @@ dependencies:
   firebase_database: ^11.3.10
   shared_preferences: ^2.2.2
   url_launcher: ^6.1.7
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
   
-  
-  
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "asset/image/Logo.png"  # your logo
+
+
+
+ 
 
 dev_dependencies:
   flutter_test:

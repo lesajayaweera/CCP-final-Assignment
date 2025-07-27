@@ -114,41 +114,40 @@ class Users {
     }
   }
 
-  Future<Map<String, dynamic>?> getUserDetailsByUIDAndRole(BuildContext context,
-    String uid,
-    String role,
-  ) async {
-    try {
-      // Determine the correct collection based on the role
-      String collectionName;
+  Future<Map<String, dynamic>?> getUserDetailsByUIDAndRole(
+  BuildContext context,
+  String uid,
+  String role,
+) async {
+  try {
+    String collectionName;
 
-      switch (role.toLowerCase()) {
-        case 'athlete':
-          collectionName = 'athletes';
-          break;
-        case 'sponsor':
-          collectionName = 'sponsors';
-          break;
-        default:
-          throw Exception("Invalid role: $role");
-      }
+    switch (role.toLowerCase()) {
+      case 'athlete':
+        collectionName = 'athlete';
+        break;
+      case 'sponsor':
+        collectionName = 'sponsor';
+        break;
+      default:
+        throw Exception("Invalid role: $role");
+    }
 
-      // Query the collection by UID
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
-          .collection(collectionName)
-          .where('uid', isEqualTo: uid)
-          .limit(1)
-          .get();
+    DocumentSnapshot doc = await FirebaseFirestore.instance
+        .collection(collectionName)
+        .doc(uid)
+        .get();
 
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.data() as Map<String, dynamic>;
-      } else {
-        showSnackBar(context,'User not found',Colors.red);
-        return null;
-      }
-    } catch (e) {
-      showSnackBar(context,'Error fetching user details: $e',Colors.red);
+    if (doc.exists) {
+      return doc.data() as Map<String, dynamic>;
+    } else {
+      showSnackBar(context, 'User not found', Colors.red);
       return null;
     }
+  } catch (e) {
+    showSnackBar(context, 'Error fetching user details: $e', Colors.red);
+    return null;
   }
+}
+
 }

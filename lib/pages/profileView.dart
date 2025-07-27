@@ -1,31 +1,24 @@
 // ignore_for_file: unused_field
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
-import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
-import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfileView extends StatefulWidget {
   final String role;
   final String? uid;
-  ProfilePage({super.key, required this.role, required this.uid});
+
+  ProfileView({super.key, required this.role, required this.uid});
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  _ProfileViewState createState() => _ProfileViewState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
-  List<CertificateInput> certificateInputs = [CertificateInput()];
-  List<CertificateInput> submittedCertificates = [];
-
+class _ProfileViewState extends State<ProfileView> {
   Map<String, dynamic>? userData;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -49,13 +42,19 @@ class _ProfilePageState extends State<ProfilePage> {
         userData = data;
       });
     }
-    // var data = await Users().getUserDetails(context, widget.role);
-    // setState(() {
-    //   userData = data;
-    // });
   }
 
-  
+  Future<List<Map<String, dynamic>>> loadCertificates() async {
+    if (widget.uid != null) {
+      try {
+        return await Athlete.getApprovedCertificatesBYuid(widget.uid!);
+      } catch (e) {
+        print('Error loading certificates: $e');
+      }
+    }
+    return [];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,6 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Background and profile image section
               Container(
                 height: 190,
                 child: Stack(
@@ -74,8 +74,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       margin: const EdgeInsets.only(bottom: 50),
                       decoration: BoxDecoration(
                         color: Colors.blueGrey,
-                        image:
-                            (userData?['background'] != null &&
+                        image: (userData?['background'] != null &&
                                 userData!['background'].toString().isNotEmpty)
                             ? DecorationImage(
                                 image: NetworkImage(userData!['background']),
@@ -83,8 +82,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               )
                             : null,
                       ),
-                      child:
-                          (userData?['background'] == null ||
+                      child: (userData?['background'] == null ||
                               userData!['background'].toString().isEmpty)
                           ? const Center(
                               child: Icon(
@@ -108,22 +106,21 @@ class _ProfilePageState extends State<ProfilePage> {
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade300,
                                   shape: BoxShape.circle,
-                                  image:
-                                      (userData?['profile'] != null &&
+                                  image: (userData?['profile'] != null &&
                                           userData!['profile']
                                               .toString()
                                               .isNotEmpty)
                                       ? DecorationImage(
                                           fit: BoxFit.cover,
-                                          image: NetworkImage(
-                                            userData!['profile'],
-                                          ),
+                                          image:
+                                              NetworkImage(userData!['profile']),
                                         )
                                       : null,
                                 ),
-                                child:
-                                    (userData?['profile'] == null ||
-                                        userData!['profile'].toString().isEmpty)
+                                child: (userData?['profile'] == null ||
+                                        userData!['profile']
+                                            .toString()
+                                            .isEmpty)
                                     ? const Icon(
                                         Icons.person,
                                         size: 50,
@@ -136,9 +133,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 right: 0,
                                 child: CircleAvatar(
                                   radius: 20,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).scaffoldBackgroundColor,
+                                  backgroundColor:
+                                      Theme.of(context).scaffoldBackgroundColor,
                                   child: Container(
                                     margin: const EdgeInsets.all(8.0),
                                     decoration: const BoxDecoration(
@@ -156,37 +152,31 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
+
+              // Name, city, and other info
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          userData?['name'] ?? "Guest",
-                          style: Theme.of(context).textTheme.headlineMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
-                       
-                      ],
+                    Text(
+                      userData?['name'] ?? "Guest",
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
                     widget.role == 'Sponsor'
                         ? Text(
-                            "${userData?['company']} - ${userData?['role']}" ??
-                                '',
-                          )
+                            "${userData?['company']} - ${userData?['role']}" ?? '')
                         : Text(userData?['sport'] ?? ''),
                     Text(
                       "${userData?['city'] ?? 'city'}\n${userData?['province'] ?? 'province'}, Sri Lanka",
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 10),
-                    
-                    
-                    
+
+                    // Stats
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,
@@ -199,52 +189,41 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: widget.role != 'Sponsor'
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                StatItem(
-                                  value: '2,279,545',
-                                  label: 'Total Runs',
-                                ),
+                              children: const [
+                                StatItem(value: '2,279,545', label: 'Total Runs'),
                                 VerticalDivider(),
-                                StatItem(
-                                  value: '279,545',
-                                  label: 'Total Matches',
-                                ),
+                                StatItem(value: '279,545', label: 'Total Matches'),
                                 VerticalDivider(),
                                 StatItem(value: '279,545', label: '100 s'),
                               ],
                             )
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                StatItem(
-                                  value: 'Rs.0.00',
-                                  label: 'Total Sponsored',
-                                ),
+                              children: const [
+                                StatItem(value: 'Rs.0.00', label: 'Total Sponsored'),
                                 VerticalDivider(),
                                 StatItem(value: '0', label: 'Total Athletes'),
                               ],
                             ),
                     ),
                     const SizedBox(height: 16),
+
+                    // Certificates
                     if (widget.role != 'Sponsor')
                       FutureBuilder<List<Map<String, dynamic>>>(
-                        future: Athlete.getApprovedCertificates(),
+                        future: loadCertificates(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
                             return const Center(
                               child: CircularProgressIndicator(),
                             );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                             return const Text('No certificates found.');
                           }
 
-                          return CertificateBanner(
-                            certificates: snapshot.data!,
-                          );
+                          return CertificateBanner(certificates: snapshot.data!);
                         },
                       ),
                   ],
@@ -258,6 +237,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
+// Stat display widget
 class StatItem extends StatelessWidget {
   final String value;
   final String label;
@@ -283,6 +263,7 @@ class StatItem extends StatelessWidget {
   }
 }
 
+// Certificate display widget
 class CertificateBanner extends StatelessWidget {
   final List<Map<String, dynamic>> certificates;
 
@@ -306,9 +287,7 @@ class CertificateBanner extends StatelessWidget {
           final createdAt = cert['createdAt'];
           String date = 'Unknown Date';
           if (createdAt != null) {
-            date = (createdAt as Timestamp).toDate().toLocal().toString().split(
-              ' ',
-            )[0];
+            date = (createdAt as Timestamp).toDate().toLocal().toString().split(' ')[0];
           }
 
           return CredentialCard(
@@ -319,7 +298,6 @@ class CertificateBanner extends StatelessWidget {
             onViewPressed: () {
               final url = cert['certificateImageUrl'];
               if (url != null) {
-                // open in browser or use `url_launcher`
                 launchUrl(Uri.parse(url));
               }
             },
@@ -330,6 +308,7 @@ class CertificateBanner extends StatelessWidget {
   }
 }
 
+// Certificate card UI
 class CredentialCard extends StatelessWidget {
   final String imageUrl;
   final String title;
