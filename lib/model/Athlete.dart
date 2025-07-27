@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
+import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -61,7 +62,7 @@ class Athlete {
         if (await writeData(context)) {
           showSnackBar(
             context,
-            "Sponsor Successfully Registered",
+            "Athlete Successfully Registered",
             Colors.green,
           );
 
@@ -69,7 +70,7 @@ class Athlete {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => SocialFeedScreen(role: this.role),
+              builder: (context) => Dashboard(role: this.role),
             ),
           );
         }
@@ -240,19 +241,21 @@ class Athlete {
   }
 
   static Future<List<Map<String, dynamic>>> getApprovedCertificates() async {
-  final uid = FirebaseAuth.instance.currentUser?.uid;
-  if (uid == null) {
-    throw Exception("User not logged in.");
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) {
+      throw Exception("User not logged in.");
+    }
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('certificates')
+        .doc(uid)
+        .collection('certificates')
+        .where(
+          'status',
+          isEqualTo: "true",
+        ) // or 'true' if your field is a string
+        .get();
+
+    return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
-
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('certificates')
-      .doc(uid)
-      .collection('certificates')
-      .where('status', isEqualTo: "true") // or 'true' if your field is a string
-      .get();
-
-  return querySnapshot.docs.map((doc) => doc.data()).toList();
-}
-
 }

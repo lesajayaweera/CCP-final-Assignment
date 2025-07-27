@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -45,7 +46,7 @@ class Users {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => SocialFeedScreen(role: role),
+              builder: (context) => Dashboard(role: role),
             ),
           );
         } else {

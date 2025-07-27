@@ -13,8 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
   final String role;
-  late String? uid;
-  ProfilePage({super.key, required this.role, this.uid});
+  final String? uid;
+  ProfilePage({super.key, required this.role, required this.uid});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -55,175 +55,7 @@ class _ProfilePageState extends State<ProfilePage> {
     // });
   }
 
-  void _showAddCertificatesDialog() {
-    certificateInputs = [CertificateInput()];
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) => AlertDialog(
-            title: Text("Add Certificates (Max 10)"),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 400,
-              child: ListView.builder(
-                itemCount: certificateInputs.length,
-                itemBuilder: (context, index) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Certificate ${index + 1}"),
-                        TextField(
-                          decoration: InputDecoration(labelText: "Title"),
-                          onChanged: (value) =>
-                              certificateInputs[index].title = value,
-                        ),
-                        TextField(
-                          decoration: InputDecoration(labelText: "Issued By"),
-                          onChanged: (value) =>
-                              certificateInputs[index].issuer = value,
-                        ),
-                        TextButton.icon(
-                          onPressed: () async {
-                            FilePickerResult? result = await FilePicker.platform
-                                .pickFiles(
-                                  type: FileType.image,
-                                  withData: true,
-                                );
-                            if (result != null) {
-                              setStateDialog(() {
-                                certificateInputs[index].referenceLetterImage =
-                                    result.files.single.bytes;
-                              });
-                            }
-                          },
-                          icon: Icon(Icons.upload_file),
-                          label: Text("Upload Reference Letter"),
-                        ),
-                        TextButton.icon(
-                          onPressed: () async {
-                            FilePickerResult? result = await FilePicker.platform
-                                .pickFiles(
-                                  type: FileType.image,
-                                  withData: true,
-                                );
-                            if (result != null) {
-                              setStateDialog(() {
-                                certificateInputs[index].certificateImage =
-                                    result.files.single.bytes;
-                              });
-                            }
-                          },
-                          icon: Icon(Icons.upload_file),
-                          label: Text("Upload Certificate"),
-                        ),
-                        if (certificateInputs[index].referenceLetterImage !=
-                            null)
-                          Image.memory(
-                            certificateInputs[index].referenceLetterImage!,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        if (certificateInputs[index].certificateImage != null)
-                          Image.memory(
-                            certificateInputs[index].certificateImage!,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        Divider(),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            actions: [
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text("Cancel"),
-                  ),
-                  if (certificateInputs.length < 10)
-                    TextButton(
-                      onPressed: () {
-                        setStateDialog(() {
-                          certificateInputs.add(CertificateInput());
-                        });
-                      },
-                      child: Text("Add Another"),
-                    ),
-                  _isSaving
-                      ? const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: CircularProgressIndicator(),
-                        )
-                      : ElevatedButton(
-                          onPressed: () async {
-                            bool allValid = certificateInputs.every(
-                              (c) =>
-                                  c.title.trim().isNotEmpty &&
-                                  c.issuer.trim().isNotEmpty &&
-                                  c.referenceLetterImage != null &&
-                                  c.certificateImage != null,
-                            );
-
-                            if (!allValid) {
-                              showDialog(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: Text("Incomplete Fields"),
-                                  content: Text(
-                                    "Please fill out all fields and upload both files for each certificate.",
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () =>
-                                          Navigator.of(context).pop(),
-                                      child: Text("OK"),
-                                    ),
-                                  ],
-                                ),
-                              );
-                              return;
-                            }
-
-                            setState(() {
-                              _isSaving = true;
-                            });
-                            setStateDialog(() {});
-
-                            try {
-                              setState(() {
-                                submittedCertificates.addAll(certificateInputs);
-                              });
-
-                              await Athlete.uploadCertificates(
-                                context,
-                                certificateInputs,
-                              );
-
-                              Navigator.of(context).pop();
-                            } finally {
-                              setState(() {
-                                _isSaving = false;
-                              });
-                              setStateDialog(() {});
-                            }
-                          },
-                          child: Text("Save"),
-                        ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -337,7 +169,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        Text('Ignited'),
+                       
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -352,45 +184,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 10),
-                    if (widget.role != 'Sponsor')
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          OutlinedButton(
-                            onPressed: _showAddCertificatesDialog,
-                            child: Text("Add Certificates"),
-                          ),
-                          const SizedBox(width: 10),
-                          OutlinedButton(
-                            onPressed: () {},
-                            child: Text("Add Sections"),
-                          ),
-                        ],
-                      ),
-                    if (widget.role == 'Sponsor')
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AthletesScreen(role: widget.role),
-                                ),
-                              );
-                            },
-                            child: Text("View Athlete"),
-                          ),
-                          const SizedBox(width: 10),
-
-                          OutlinedButton(
-                            onPressed: () {},
-                            child: Text("Add Sections"),
-                          ),
-                        ],
-                      ),
-                    const SizedBox(height: 16),
+                    
+                    
+                    
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.white,

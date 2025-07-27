@@ -1,59 +1,87 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:sport_ignite/widget/common/bottomNavigation.dart';
+import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/model/Sponsor.dart';
+import 'package:sport_ignite/model/userData.dart';
 
 class AthletesScreen extends StatefulWidget {
-
-  const AthletesScreen({Key? key}) : super(key: key);
+  final String role;
+  // final bool fromProfile;
+  const AthletesScreen({Key? key, required this.role}) : super(key: key);
 
   @override
   State<AthletesScreen> createState() => _AthletesScreenState();
 }
 
 class _AthletesScreenState extends State<AthletesScreen> {
-  int _currentIndex = 0;
+  List<Athletes> verifiedAthletes = [];
+  List<String> verifiedUids = [];
 
   @override
+  void initState() {
+    super.initState();
+    fetchVerifiedAthletes();
+  }
+
+  void fetchVerifiedAthletes() async {
+    final uids = await Sponsor.getUidsWithApprovedCertificates();
+
+    if (!mounted) return; // to avoid setState after widget disposed
+
+    final List<Athletes> fetchedAthletes = [];
+
+    for (final uid in uids) {
+      final doc = await FirebaseFirestore.instance
+          .collection('athlete')
+          .doc(uid)
+          .get();
+      if (doc.exists) {
+        fetchedAthletes.add(Athletes.fromFirestore(doc));
+      }
+    }
+
+    setState(() {
+      verifiedUids = uids;
+      verifiedAthletes = fetchedAthletes;
+    });
+
+    print('Verified UIDs: $uids');
+    print('Fetched Athletes Count: ${fetchedAthletes.length}');
+  }
+
+  @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Athletes you may know from',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.w500,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (verifiedAthletes.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text('Athletes you May Know'),
           ),
+
+        Expanded(
+          child: verifiedAthletes.isNotEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                          childAspectRatio: 0.7,
+                        ),
+                    itemCount: verifiedAthletes.length,
+                    itemBuilder: (context, index) {
+                      return AthleteCard(athlete: verifiedAthletes[index]);
+                    },
+                  ),
+                )
+              : const Center(child: Text('No Verified Athletes at the moment')),
         ),
-        leading: const SizedBox(), // Remove back button
-      ),
-      body: Column(
-        children: [
-          Text('Athletes you May Know'),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 0.7,
-              ),
-              itemCount: athletes.length,
-              itemBuilder: (context, index) {
-                return AthleteCard(athlete: athletes[index]);
-              },
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: CustomBottomNavigation(currentIndex:_currentIndex, role: 'Sponsor', onTap:(index) {
-        setState(() {
-             _currentIndex= index;
-          });
-       }),
+      ],
     );
   }
 }
@@ -84,7 +112,8 @@ class AthleteCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: AssetImage(athlete.imagePath),
+                      image: NetworkImage(athlete.imagePath),
+                      // image: AssetImage(athlete.imagePath), // Use this if you have local images
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -117,17 +146,17 @@ class AthleteCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 18,
-                      height: 18,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        image: DecorationImage(
-                          image: AssetImage(athlete.clubLogo),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
+                    // Container(
+                    //   width: 18,
+                    //   height: 18,
+                    //   decoration: BoxDecoration(
+                    //     shape: BoxShape.circle,
+                    //     image: DecorationImage(
+                    //       image: AssetImage(athlete.clubLogo),
+                    //       fit: BoxFit.cover,
+                    //     ),
+                    //   ),
+                    // ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
@@ -146,11 +175,16 @@ class AthleteCard extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Connected with ${athlete.name}'),
-                          duration: const Duration(seconds: 2),
-                        ),
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   SnackBar(
+                      //     content: Text('Connected with ${athlete.name}'),
+                      //     duration: const Duration(seconds: 2),
+                      //   ),
+                      // );
+                      showSnackBar(
+                        context,
+                        'Connected with ${athlete.name}',
+                        Colors.green,
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -200,64 +234,4 @@ class AthleteCard extends StatelessWidget {
   }
 }
 
-class Athletes {
-  final String name;
-  final String sport;
-  final String club;
-  final String imagePath;
-  final String clubLogo;
-
-  Athletes({
-    required this.name,
-    required this.sport,
-    required this.club,
-    required this.imagePath,
-    required this.clubLogo,
-  });
-}
-
 // Sample data
-final List<Athletes> athletes = [
-  Athletes(
-    name: 'Veronica Symo...',
-    sport: 'Foot ball player',
-    club: 'Lomonosov Moscow State',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-  Athletes(
-    name: 'Veronica Symo...',
-    sport: 'Foot ball player',
-    club: 'Lomonosov Moscow State',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-  Athletes(
-    name: 'Veronica Symo...',
-    sport: 'Foot ball player',
-    club: 'Lomonosov Moscow State',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-  Athletes(
-    name: 'Alexey Makovs...',
-    sport: 'Junior football player',
-    club: 'Lomonosov Moscow State',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-  Athletes(
-    name: 'Michael Riley',
-    sport: 'Foot ball player',
-    club: 'Local Club',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-  Athletes(
-    name: 'Daniel Jenkins',
-    sport: 'National level Batsman',
-    club: 'Cricket Academy',
-    imagePath: 'asset/image/profile.jpg',
-    clubLogo: 'asset/image/background.png',
-  ),
-];
