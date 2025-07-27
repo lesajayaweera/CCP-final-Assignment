@@ -5,7 +5,6 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart' hide gender;
 import 'package:sport_ignite/pages/dashboard.dart';
-import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Sponsor {

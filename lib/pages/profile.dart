@@ -1,13 +1,13 @@
 // ignore_for_file: unused_field
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
-import 'package:sport_ignite/pages/veiwAthletes.dart';
+
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:url_launcher/url_launcher.dart';
 
