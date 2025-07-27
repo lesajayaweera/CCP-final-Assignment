@@ -166,7 +166,7 @@ class _RegistrationState extends State<Registration> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.sports, size: 48, color: Colors.blue),
+                     Image.asset('asset/image/Logo.png', width: 100),
                     const SizedBox(height: 8),
                     Text(
                       "Sign Up",
