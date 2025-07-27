@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/pages/dashboard.dart';
-import 'package:sport_ignite/pages/home.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Users {
@@ -12,53 +11,52 @@ class Users {
 
   // login method
 
-  Future<void> Login(
-    BuildContext context,
-    String email,
-    String password,
-  ) async {
-    showLoadingDialog(context); // Show loading spinner
+  Future<bool> Login(
+  BuildContext context,
+  String email,
+  String password,
+) async {
+  showLoadingDialog(context); // Show loading spinner
 
-    try {
-      // Step 1: Firebase Authentication
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+  try {
+    UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-      User? user = userCredential.user;
+    User? user = userCredential.user;
 
-      if (user != null) {
-        // ✅ Save UID to local storage
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('uid', user.uid);
+    if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('uid', user.uid);
 
-        // Step 2: Fetch user role from Firestore
-        DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .get();
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .get();
 
-        if (userDoc.exists) {
-          String role = userDoc['role'];
-
-          // Step 3: Navigate to the correct page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => Dashboard(role: role),
-            ),
-          );
-        } else {
-          showSnackBar(context, "User data not found", Colors.red);
-        }
+      if (userDoc.exists) {
+        String role = userDoc['role'];
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => Dashboard(role: role)),
+        );
+        return true;
+      } else {
+        showSnackBar(context, "User data not found", Colors.red);
+        return false;
       }
-    } on FirebaseAuthException catch (e) {
-      showSnackBar(context, "Login failed: ${e.message}", Colors.red);
-    } catch (e) {
-      showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
+    return false;
+  } on FirebaseAuthException catch (e) {
+    showSnackBar(context, "Login failed: ${e.message}", Colors.red);
+    return false;
+  } catch (e) {
+    showSnackBar(context, "Something went wrong: $e", Colors.red);
+    return false;
   }
+}
+
 
   //  get the user profile image
   Future<String?> getUserProfileImage(String role) async {

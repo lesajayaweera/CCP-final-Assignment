@@ -168,7 +168,7 @@ class _ProfileViewState extends State<ProfileView> {
                     const SizedBox(height: 16),
                     widget.role == 'Sponsor'
                         ? Text(
-                            "${userData?['company']} - ${userData?['role']}" ?? '')
+                            "${userData?['company']} - ${userData?['role']}" ?? 'Sponsor',)
                         : Text(userData?['sport'] ?? ''),
                     Text(
                       "${userData?['city'] ?? 'city'}\n${userData?['province'] ?? 'province'}, Sri Lanka",

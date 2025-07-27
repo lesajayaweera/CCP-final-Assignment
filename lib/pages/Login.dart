@@ -25,7 +25,9 @@ class _LoginState extends State<Login> {
         child: SingleChildScrollView(
           child: Card(
             elevation: 10,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             margin: const EdgeInsets.symmetric(horizontal: 24),
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -38,7 +40,8 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 8),
                     Text(
                       "Welcome to SportIgnite",
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),
@@ -46,9 +49,9 @@ class _LoginState extends State<Login> {
                     const SizedBox(height: 6),
                     Text(
                       "Login to ignite your sporting journey!",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Colors.grey[700],
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700]),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -95,7 +98,9 @@ class _LoginState extends State<Login> {
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                            _isPasswordVisible
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                           ),
                           onPressed: () {
                             setState(() {
@@ -125,7 +130,7 @@ class _LoginState extends State<Login> {
                             // TODO: Add forgot password logic
                           },
                           child: const Text("Forgot Password?"),
-                        )
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -142,14 +147,26 @@ class _LoginState extends State<Login> {
                           ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onPressed: () {
-                          if (_formKey.currentState?.validate() ?? false) {
-                            Users().Login(context, _emailController.text.trim(), _passwordController.text.trim());
-                          }
-                        },
+                        onPressed: () async {
+  if (_formKey.currentState?.validate() ?? false) {
+    bool success = await Users().Login(
+      context,
+      _emailController.text.trim(),
+      _passwordController.text.trim(),
+    );
+
+    if (success) {
+      _emailController.clear();
+      _passwordController.clear();
+    }
+  }
+},
                         child: const Text(
                           "Sign In",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
@@ -175,7 +192,6 @@ class _LoginState extends State<Login> {
 
                     // Google Sign In Button (UI only)
                     SizedBox(
-                      
                       width: double.infinity,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -214,10 +230,15 @@ class _LoginState extends State<Login> {
                         const Text("Don't have an account?"),
                         TextButton(
                           onPressed: () {
-                            Navigator.push(context,MaterialPageRoute(builder: (context)=>Registration()));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Registration(),
+                              ),
+                            );
                           },
                           child: const Text("Register Now"),
-                        )
+                        ),
                       ],
                     ),
                   ],
