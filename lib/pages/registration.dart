@@ -87,7 +87,6 @@ class _RegistrationState extends State<Registration> {
       if (_selectedRole == 'Athlete') {
         //
         int experience = int.tryParse(_experienceController.text.trim()) ?? 0;
-        // Check required non-null dropdown fields (you can add extra validation if needed)
         if (_selectedSport == null ||
             _selectedOrganization == null ||
             _slectedGender == null) {
@@ -141,9 +140,6 @@ class _RegistrationState extends State<Registration> {
           _selectedIntrested!,
           _selectedSector!,
           profileImage,
-          
-
-
         );
 
         sponsor.Register(context);
@@ -488,6 +484,7 @@ class _RegistrationState extends State<Registration> {
               if (number < 0) {
                 return 'Experience can’t be negative';
               }
+
               return null;
             },
           ),
