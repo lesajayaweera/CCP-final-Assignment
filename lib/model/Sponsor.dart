@@ -42,7 +42,7 @@ class Sponsor {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> Register(BuildContext context) async {
-    showLoadingDialog(context);
+    showLoadingDialog(context); // Show the loading spinner
 
     try {
       // Step 1: Create user with Firebase Auth
@@ -56,25 +56,42 @@ class Sponsor {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
 
-        // Step 2: Write additional user data to Firestore (if implemented in writeData)
-        if (await writeData(context)) {
+        // Step 2: Write additional user data to Firestore
+        bool writeSuccess = await writeData(context);
+
+        Navigator.pop(
+          context,
+        ); // ✅ Dismiss loading dialog after Firestore write
+
+        if (writeSuccess) {
           showSnackBar(
             context,
             "Sponsor Successfully Registered",
             Colors.green,
           );
 
-          // Step 3: Navigate to the SocialFeedScreen
+          // Step 3: Navigate to the Dashboard
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => Dashboard(role: this.role),
-            ),
+            MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
           );
+        } else {
+          showSnackBar(context, "Failed to save user data.", Colors.red);
         }
+      } else {
+        Navigator.pop(context); // ✅ Dismiss loading if user is null
+        showSnackBar(
+          context,
+          "Registration failed. Please try again.",
+          Colors.red,
+        );
       }
     } on FirebaseAuthException catch (e) {
+      Navigator.pop(context); // ✅ Dismiss loading on auth error
       showSnackBar(context, e.message.toString(), Colors.red);
+    } catch (e) {
+      Navigator.pop(context); // ✅ Dismiss loading on unknown error
+      showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
   }
 
@@ -124,50 +141,6 @@ class Sponsor {
     } on FirebaseException catch (e) {
       showSnackBar(context, "Database Error: ${e.message}", Colors.red);
       return false;
-    }
-  }
-
-  Future<void> Login(
-    BuildContext context,
-    String email,
-    String password,
-  ) async {
-    showLoadingDialog(context); // Show loading spinner
-
-    try {
-      // Step 1: Firebase Authentication
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-
-      User? user = userCredential.user;
-
-      if (user != null) {
-        // Step 2: Fetch user role from Firestore
-        DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (userDoc.exists) {
-          String role = userDoc['role'];
-
-          // Step 3: Navigate to the correct page
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SocialFeedScreen(role: role),
-            ),
-          );
-        } else {
-          showSnackBar(context, "User data not found", Colors.red);
-        }
-      }
-    } on FirebaseAuthException catch (e) {
-      showSnackBar(context, "Login failed: ${e.message}", Colors.red);
-    } catch (e) {
-      showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
   }
 

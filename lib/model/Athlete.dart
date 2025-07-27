@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/pages/dashboard.dart';
-import 'package:sport_ignite/pages/home.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Athlete {
@@ -44,7 +44,7 @@ class Athlete {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> Register(BuildContext context) async {
-    showLoadingDialog(context);
+    showLoadingDialog(context); // Show loading spinner
 
     try {
       // Step 1: Create user with Firebase Auth
@@ -58,25 +58,34 @@ class Athlete {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
 
-        // Step 2: Write additional user data to Firestore (if implemented in writeData)
+        // Step 2: Write additional user data to Firestore
         if (await writeData(context)) {
+          Navigator.pop(context); // ✅ Dismiss loading
+
           showSnackBar(
             context,
             "Athlete Successfully Registered",
             Colors.green,
           );
 
-          // Step 3: Navigate to the SocialFeedScreen
+          // Step 3: Navigate to the dashboard
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(
-              builder: (context) => Dashboard(role: this.role),
-            ),
+            MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
           );
+          return;
         }
       }
+
+      Navigator.pop(
+        context,
+      ); // ✅ Dismiss loading if user is null or writeData failed
     } on FirebaseAuthException catch (e) {
+      Navigator.pop(context); // ✅ Dismiss loading on error
       showSnackBar(context, e.message.toString(), Colors.red);
+    } catch (e) {
+      Navigator.pop(context); // ✅ Dismiss loading on unknown error
+      showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
   }
 
@@ -258,7 +267,10 @@ class Athlete {
 
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
-  static Future<List<Map<String, dynamic>>> getApprovedCertificatesBYuid(String uid) async {
+
+  static Future<List<Map<String, dynamic>>> getApprovedCertificatesBYuid(
+    String uid,
+  ) async {
     if (uid == null) {
       throw Exception("User not logged in.");
     }
