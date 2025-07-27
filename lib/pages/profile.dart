@@ -373,12 +373,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         children: [
                           ElevatedButton(
                             onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => AthletesScreen(role: widget.role),
-                                ),
-                              );
+                              
                             },
                             child: Text("View Athlete"),
                           ),
