@@ -44,23 +44,21 @@ class Sponsor {
     showLoadingDialog(context); // Show the loading spinner
 
     try {
-      // Step 1: Create user with Firebase Auth
+      
       UserCredential userCredentials = await _auth
           .createUserWithEmailAndPassword(email: email, password: pass);
 
       final User? user = userCredentials.user;
 
       if (user != null) {
-        // ✅ Save UID to local storage
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
 
-        // Step 2: Write additional user data to Firestore
         bool writeSuccess = await writeData(context);
 
         Navigator.pop(
           context,
-        ); // ✅ Dismiss loading dialog after Firestore write
+        );
 
         if (writeSuccess) {
           showSnackBar(
@@ -68,8 +66,6 @@ class Sponsor {
             "Sponsor Successfully Registered",
             Colors.green,
           );
-
-          // Step 3: Navigate to the Dashboard
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
@@ -78,7 +74,7 @@ class Sponsor {
           showSnackBar(context, "Failed to save user data.", Colors.red);
         }
       } else {
-        Navigator.pop(context); // ✅ Dismiss loading if user is null
+        Navigator.pop(context); 
         showSnackBar(
           context,
           "Registration failed. Please try again.",
@@ -86,10 +82,10 @@ class Sponsor {
         );
       }
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); // ✅ Dismiss loading on auth error
+      Navigator.pop(context); 
       showSnackBar(context, e.message.toString(), Colors.red);
     } catch (e) {
-      Navigator.pop(context); // ✅ Dismiss loading on unknown error
+      Navigator.pop(context);
       showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
   }

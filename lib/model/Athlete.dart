@@ -47,20 +47,20 @@ class Athlete {
     showLoadingDialog(context); // Show loading spinner
 
     try {
-      // Step 1: Create user with Firebase Auth
+      
       UserCredential userCredentials = await _auth
           .createUserWithEmailAndPassword(email: email, password: pass);
 
       final User? user = userCredentials.user;
 
       if (user != null) {
-        // ✅ Save UID to local storage
+       
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
 
-        // Step 2: Write additional user data to Firestore
+        
         if (await writeData(context)) {
-          Navigator.pop(context); // ✅ Dismiss loading
+          Navigator.pop(context); 
 
           showSnackBar(
             context,
@@ -68,7 +68,7 @@ class Athlete {
             Colors.green,
           );
 
-          // Step 3: Navigate to the dashboard
+          
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
@@ -79,12 +79,12 @@ class Athlete {
 
       Navigator.pop(
         context,
-      ); // ✅ Dismiss loading if user is null or writeData failed
+      ); 
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); // ✅ Dismiss loading on error
+      Navigator.pop(context); 
       showSnackBar(context, e.message.toString(), Colors.red);
     } catch (e) {
-      Navigator.pop(context); // ✅ Dismiss loading on unknown error
+      Navigator.pop(context);
       showSnackBar(context, "Something went wrong: $e", Colors.red);
     }
   }
@@ -93,21 +93,21 @@ class Athlete {
     try {
       String? imageUrl;
 
-      // Step 1: Upload image if it exists
+      
       if (profile != null) {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('profile_images')
             .child('${_auth.currentUser!.uid}.jpg');
 
-        // Upload image
+        
         await storageRef.putFile(profile!);
 
-        // Step 2: Get the download URL
+       
         imageUrl = await storageRef.getDownloadURL();
       }
 
-      // Step 3: Save user data in Firestore
+      
       await _firestore.collection('users').doc(_auth.currentUser?.uid).set({
         "name": name,
         "email": email,
@@ -115,7 +115,7 @@ class Athlete {
         "tel": tel,
         'createdAt': FieldValue.serverTimestamp(),
       });
-      // Step 3: Save user data in Firestore
+     
       await _firestore.collection('athlete').doc(_auth.currentUser?.uid).set({
         "name": name,
         "email": email,
@@ -185,9 +185,6 @@ class Athlete {
   ) async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid == null) {
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //   const SnackBar(content: Text("User not logged in.")),
-      // );
       showSnackBar(context, "User not logged in.", Colors.red);
       return;
     }
@@ -232,9 +229,6 @@ class Athlete {
               'status': 'false',
             });
       } catch (e) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(content: Text("Failed to upload certificate ${i + 1}")),
-        // );
         showSnackBar(
           context,
           "Failed to upload certificate ${i + 1}",
@@ -244,9 +238,7 @@ class Athlete {
     }
 
     showSnackBar(context, "✅ Certificates uploaded successfully", Colors.green);
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   const SnackBar(content: Text("✅ Certificates uploaded successfully")),
-    // );
+   
   }
 
   static Future<List<Map<String, dynamic>>> getApprovedCertificates() async {

@@ -35,7 +35,7 @@ class Users {
             .doc(user.uid)
             .get();
 
-        Navigator.pop(context); // ✅ Dismiss the loading dialog
+        Navigator.pop(context);
 
         if (userDoc.exists) {
           String role = userDoc['role'];
@@ -55,11 +55,11 @@ class Users {
       Navigator.pop(context); // fallback
       return false;
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); // ❗ Dismiss the dialog
+      Navigator.pop(context);
       showSnackBar(context, "Login failed: ${e.message}", Colors.red);
       return false;
     } catch (e) {
-      Navigator.pop(context); // ❗ Dismiss the dialog
+      Navigator.pop(context);
       showSnackBar(context, "Something went wrong: $e", Colors.red);
       return false;
     }
