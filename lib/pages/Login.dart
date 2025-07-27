@@ -24,6 +24,7 @@ class _LoginState extends State<Login> {
       body: Center(
         child: SingleChildScrollView(
           child: Card(
+            color: Colors.white,
             elevation: 10,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -36,7 +37,7 @@ class _LoginState extends State<Login> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.sports, size: 48, color: Colors.blue),
+                    Image.asset('asset/image/Logo.png', width: 100),
                     const SizedBox(height: 8),
                     Text(
                       "Welcome to SportIgnite",
