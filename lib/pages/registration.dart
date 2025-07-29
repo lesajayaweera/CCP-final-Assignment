@@ -358,6 +358,9 @@ class _RegistrationState extends State<Registration> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your Name';
               }
+              else if (value.length < 3) {
+                return 'Name must be at least 3 characters';
+              }
               return null;
             },
             decoration: const InputDecoration(
@@ -394,6 +397,9 @@ class _RegistrationState extends State<Registration> {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your City';
               }
+              else if (value.length < 2) {
+                return 'City must be at least 2 characters';
+              }
               return null;
             },
             decoration: const InputDecoration(
@@ -414,6 +420,16 @@ class _RegistrationState extends State<Registration> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Please select your Date of Birth';
+              }
+              if (selectedDate != null) {
+                final today = DateTime.now();
+                if (selectedDate!.isAfter(today)) {
+                  return 'Date of Birth cannot be in the future';
+                }
+              }
+              if (selectedDate != null &&
+                  selectedDate!.year < 1900) {
+                return 'Date of Birth cannot be before 1900';
               }
               return null;
             },
@@ -463,8 +479,17 @@ class _RegistrationState extends State<Registration> {
                 _selectedSport = newValue!;
               });
             },
-            validator: (value) =>
-                value == null || value.isEmpty ? 'Please select a sport' : null,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select a sport';
+              }
+              if (!sports.contains(value)) {
+                return 'Invalid sport selected';
+              }
+
+              return null;
+            },
+
           ),
           height(16),
           TextFormField(
@@ -476,6 +501,10 @@ class _RegistrationState extends State<Registration> {
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Enter your experience';
+              }
+              
+              if (value.length < 2) {
+                return 'Experience must be at least 2 digits';
               }
               final number = int.tryParse(value);
               if (number == null) {
