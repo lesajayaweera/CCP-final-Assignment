@@ -14,8 +14,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  
-
   int _currentIndex = 0;
 
   @override
@@ -23,15 +21,14 @@ class _DashboardState extends State<Dashboard> {
     final List<Widget> athleteScreens = [
       SocialFeedScreen(role: widget.role),
       Center(child: Text('Athlete My Network')),
-      SharePostSheet(scrollController: ScrollController()),
+      SocialFeedScreen(role: widget.role),
       Center(child: Text('Athlete Shorts')),
       Center(child: Text('Athlete Sponsorships')),
     ];
     final List<Widget> sponsorScreens = [
       SocialFeedScreen(role: widget.role),
-
       Center(child: Text('My Network')),
-      SharePostSheet(scrollController: ScrollController()),
+      SocialFeedScreen(role: widget.role),
       Center(child: Text('Shorts')),
       AthletesScreen(role: widget.role),
     ];
@@ -39,17 +36,21 @@ class _DashboardState extends State<Dashboard> {
     final screens = widget.role == 'Athlete' ? athleteScreens : sponsorScreens;
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: LinkedInAppBar(page: false, role: widget.role,),
+      appBar: LinkedInAppBar(page: false, role: widget.role),
       body: screens[_currentIndex],
       bottomNavigationBar: CustomBottomNavigation(
         currentIndex: _currentIndex,
         role: widget.role,
         onTap: (index) {
-          
+          if(index ==2){
+            openShareBottomSheet(context,widget.role);
+          }else{
             setState(() {
-              _currentIndex = index;
+              _currentIndex =index;
+              
             });
-          
+          }
+         
         },
       ),
     );

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/model/User.dart';
 
 
 
-class HomeScreen extends StatelessWidget {
-  void _openShareBottomSheet(BuildContext context) {
+void openShareBottomSheet(BuildContext context,String role) {
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Colors.white,
@@ -12,29 +12,16 @@ class HomeScreen extends StatelessWidget {
         expand: false,
         initialChildSize: 0.95,
         maxChildSize: 0.95,
-        builder: (_, controller) => SharePostSheet(scrollController: controller),
+        builder: (_, controller) => SharePostSheet(scrollController: controller, role: role),
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text('Demo')),
-      body: Center(
-        child: ElevatedButton(
-          onPressed: () => _openShareBottomSheet(context),
-          child: Text("Open Share Bottom Sheet"),
-        ),
-      ),
-    );
-  }
-}
 
 class SharePostSheet extends StatelessWidget {
   final ScrollController scrollController;
+  final String role;
 
-  const SharePostSheet({required this.scrollController});
+  const SharePostSheet({required this.scrollController,required this.role});
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +50,24 @@ class SharePostSheet extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 24,
-                backgroundImage: AssetImage('assets/user.jpg'), // your local asset
+              FutureBuilder<String?>(
+                future: Users().getUserProfileImage(role),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const CircleAvatar(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasData && snapshot.data != null) {
+                    return CircleAvatar(
+                      backgroundImage: NetworkImage(snapshot.data!),
+                    );
+                  } else {
+                    return const CircleAvatar(
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person),
+                    );
+                  }
+                },
               ),
               SizedBox(width: 12),
               Column(
