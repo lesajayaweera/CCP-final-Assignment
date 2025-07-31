@@ -711,11 +711,13 @@ class _ProfilePageState extends State<ProfilePage> {
                                 child:
                                     (userData?['profile'] == null ||
                                         userData!['profile'].toString().isEmpty)
-                                    ? const Icon(
-                                        Icons.person,
-                                        size: 50,
-                                        color: Colors.white70,
-                                      )
+                                    ? Center(
+                                      child: const Icon(
+                                          Icons.person,
+                                          size: 150,
+                                          color: Colors.white70,
+                                        ),
+                                    )
                                     : null,
                               ),
                               Positioned(

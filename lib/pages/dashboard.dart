@@ -43,7 +43,15 @@ class _DashboardState extends State<Dashboard> {
         role: widget.role,
         onTap: (index) {
           if(index ==2){
-            openShareBottomSheet(context,widget.role);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SharePostScreen(),
+              ),
+            ).then((value) {
+              // Refresh the current screen after creating a post
+              setState(() {});
+            });
           }else{
             setState(() {
               _currentIndex =index;

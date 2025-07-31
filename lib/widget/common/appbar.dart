@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/profile.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool page;
   final String role;
 
-  const LinkedInAppBar({super.key, required this.page,required this.role});
+  const LinkedInAppBar({super.key, required this.page, required this.role});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +24,9 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage(role: role,)),
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(role: role),
+                  ),
                 );
               },
               child: FutureBuilder<String?>(
@@ -35,7 +38,9 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
                     );
                   } else if (snapshot.hasData && snapshot.data != null) {
                     return CircleAvatar(
-                      backgroundImage: NetworkImage(snapshot.data!),
+                      backgroundImage: CachedNetworkImageProvider(
+                        snapshot.data!,
+                      ),
                     );
                   } else {
                     return const CircleAvatar(
