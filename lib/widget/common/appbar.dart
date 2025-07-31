@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/messageing.dart';
 import 'package:sport_ignite/pages/profile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -77,8 +78,14 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MessagingScreen()));
+          },
           icon: const Icon(Icons.message_rounded, color: Colors.black),
+        ),
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.notifications, color: Colors.black),
         ),
       ],
     );
