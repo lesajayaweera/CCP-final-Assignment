@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/home.dart';
+import 'package:sport_ignite/pages/manageMyNetwork.dart';
 import 'package:sport_ignite/pages/shorts.dart';
 import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
@@ -21,14 +22,14 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     final List<Widget> athleteScreens = [
       SocialFeedScreen(role: widget.role),
-      Center(child: Text('Athlete My Network')),
+      NetworkManagementScreen(role: widget.role),
       SocialFeedScreen(role: widget.role),
       ShortsPlayerScreen(),
       Center(child: Text('Athlete Sponsorships')),
     ];
     final List<Widget> sponsorScreens = [
       SocialFeedScreen(role: widget.role),
-      Center(child: Text('My Network')),
+      NetworkManagementScreen(role:widget.role),
       SocialFeedScreen(role: widget.role),
       ShortsPlayerScreen(),
       AthletesScreen(role: widget.role),
