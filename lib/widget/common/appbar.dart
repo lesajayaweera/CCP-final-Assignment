@@ -8,8 +8,14 @@ import 'package:sport_ignite/pages/search.dart';
 class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool page;
   final String role;
+  final VoidCallback? onTap;
 
-  const LinkedInAppBar({super.key, required this.page, required this.role});
+  const LinkedInAppBar({
+    super.key,
+    required this.page,
+    required this.role,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,14 +29,16 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
         children: [
           if (!page)
             GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfilePage(role: role),
-                  ),
-                );
-              },
+              onTap:
+                  onTap ??
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfilePage(role: role),
+                      ),
+                    );
+                  },
               child: FutureBuilder<String?>(
                 future: Users().getUserProfileImage(role),
                 builder: (context, snapshot) {
@@ -56,32 +64,54 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
           if (!page)
             const SizedBox(width: 10), // Add spacing only if avatar shown
           Expanded(
-            child: InkWell(
+            child: GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => SearchScreen()),
                 );
               },
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Search...',
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 15,
-                    vertical: 10,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.blue),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              child: Container(
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey),
+                ),
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Search...',
+                  style: TextStyle(color: Colors.grey),
                 ),
               ),
             ),
+            // child: GestureDetector(
+            //   onTap: () {
+            //     Navigator.push(
+            //       context,
+            //       MaterialPageRoute(builder: (context) => SearchScreen()),
+            //     );
+            //   },
+            //   child: TextField(
+            //     decoration: InputDecoration(
+            //       hintText: 'Search...',
+            //       contentPadding: const EdgeInsets.symmetric(
+            //         horizontal: 15,
+            //         vertical: 10,
+            //       ),
+            //       filled: true,
+            //       fillColor: Colors.grey[200],
+            //       border: OutlineInputBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //         borderSide: const BorderSide(color: Colors.blue),
+            //       ),
+            //       focusedBorder: OutlineInputBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //       ),
+            //     ),
+            //   ),
+            // ),
           ),
         ],
       ),

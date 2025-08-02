@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/config/essentials.dart';
 
 
 
@@ -12,30 +13,32 @@ class _SearchScreenState extends State<SearchScreen> {
   String selectedFilter = 'All';
   bool showFilters = false;
 
-  final List<String> filters = [
+   List<String> filters = [
     'All',
-    'Career',
-    'Technology',
-    'Lifestyle',
-    'Tips',
-    'Work',
+    'Athletes',
+    'Sponsors',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    filters.addAll(sports);
+  }
   final List<Map<String, dynamic>> searchSuggestions = [
     {
-      'title': 'interview tips',
-      'icon': Icons.work_outline,
-      'category': 'Career'
+      'title': 'Qualified Athletes',
+      'icon': Icons.run_circle_outlined,
+      'category': 'Athletes'
     },
     {
-      'title': 'latest in ai',
+      'title': 'Sponsors',
       'icon': Icons.smart_toy_outlined,
-      'category': 'Technology'
+      'category': 'Sponsors'
     },
     {
       'title': 'balancing work and personal life',
       'icon': Icons.balance_outlined,
-      'category': 'Lifestyle'
+      'category': 'Cricket'
     },
     {
       'title': 'remote work',

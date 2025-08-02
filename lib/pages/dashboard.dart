@@ -54,7 +54,19 @@ class _DashboardState extends State<Dashboard> {
               // Refresh the current screen after creating a post
               setState(() {});
             });
-          }else{
+          }else if(index==3){
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ShortsPlayerScreen(),
+              ),
+            ).then((value) {
+              // Refresh the current screen after creating a post
+              setState(() {});
+            });
+
+          }
+          else{
             setState(() {
               _currentIndex =index;
               
