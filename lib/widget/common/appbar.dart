@@ -3,6 +3,7 @@ import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/messageing.dart';
 import 'package:sport_ignite/pages/profile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sport_ignite/pages/search.dart';
 
 class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool page;
@@ -55,21 +56,29 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
           if (!page)
             const SizedBox(width: 10), // Add spacing only if avatar shown
           Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search...',
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 15,
-                  vertical: 10,
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.blue),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SearchScreen()),
+                );
+              },
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Search...',
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 15,
+                    vertical: 10,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[200],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
@@ -79,7 +88,10 @@ class LinkedInAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => MessagingScreen()));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MessagingScreen()),
+            );
           },
           icon: const Icon(Icons.message_rounded, color: Colors.black),
         ),
