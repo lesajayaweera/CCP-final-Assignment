@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/settings.dart';
 
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -759,6 +760,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         Text('Ignited'),
+                        IconButton(
+                          icon: const Icon(Icons.settings),
+                          onPressed: () {
+                            // Navigate to edit profile page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => SettingsScreen(
+                                  
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),

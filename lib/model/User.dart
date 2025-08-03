@@ -16,7 +16,7 @@ class Users {
     String email,
     String password,
   ) async {
-    showLoadingDialog(context); // Show the loading spinner
+    // showLoadingDialog(context); // Show the loading spinner
 
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -35,7 +35,7 @@ class Users {
             .doc(user.uid)
             .get();
 
-        Navigator.pop(context);
+        // Navigator.pop(context);
 
         if (userDoc.exists) {
           String role = userDoc['role'];
@@ -52,7 +52,7 @@ class Users {
         }
       }
 
-      Navigator.pop(context); // fallback
+      // Navigator.pop(context); // fallback
       return false;
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);

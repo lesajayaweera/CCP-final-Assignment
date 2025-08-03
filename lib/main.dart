@@ -9,9 +9,7 @@ import 'package:sport_ignite/pages/dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -50,11 +48,27 @@ class AuthWrapper extends StatelessWidget {
           final uid = snapshot.data!.uid;
 
           return FutureBuilder<DocumentSnapshot>(
-            future: FirebaseFirestore.instance.collection('users').doc(uid).get(),
+            future: FirebaseFirestore.instance
+                .collection('users')
+                .doc(uid)
+                .get(),
             builder: (context, roleSnapshot) {
               if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
+                return Scaffold(
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'asset/image/Logo.png',
+                          width: 100,
+                          height: 100,
+                        ),
+                        const SizedBox(height: 20),
+                        const CircularProgressIndicator(),
+                      ],
+                    ),
+                  ),
                 );
               }
 
