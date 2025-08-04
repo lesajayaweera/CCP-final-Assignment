@@ -799,9 +799,14 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Text("Add Certificates"),
                           ),
                           const SizedBox(width: 10),
-                          OutlinedButton(
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                            ),
                             onPressed: () {},
-                            child: Text("Add Sections"),
+                            child: Text("Connect"),
                           ),
                         ],
                       ),
@@ -815,9 +820,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(width: 10),
 
-                          OutlinedButton(
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              elevation: 2,
+                            ),
                             onPressed: () {},
-                            child: Text("Add Sections"),
+                            child: Text("Connect"),
                           ),
                         ],
                       ),
