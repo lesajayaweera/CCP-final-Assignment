@@ -70,501 +70,503 @@ class _ProfilePageState extends State<ProfilePage> {
               borderRadius: BorderRadius.circular(20),
             ),
             elevation: 16,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Colors.blue.shade50,
-                    Colors.white,
-                    Colors.indigo.shade50,
-                  ],
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
-                      ),
-                      gradient: LinearGradient(
-                        colors: [Colors.blue.shade600, Colors.indigo.shade600],
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.workspace_premium,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                "Add Certificates",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                "Maximum 10 certificates allowed",
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+            child: SingleChildScrollView(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.blue.shade50,
+                      Colors.white,
+                      Colors.indigo.shade50,
+                    ],
                   ),
-
-                  // Content
-                  SizedBox(
-                    width: double.maxFinite,
-                    height: 400,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: certificateInputs.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                            border: Border.all(
-                              color: Colors.grey.shade200,
-                              width: 1,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                        gradient: LinearGradient(
+                          colors: [Colors.blue.shade600, Colors.indigo.shade600],
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.workspace_premium,
+                              color: Colors.white,
+                              size: 24,
                             ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(20),
+                          const SizedBox(width: 16),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Certificate header
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 32,
-                                      height: 32,
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            Colors.blue.shade400,
-                                            Colors.indigo.shade400,
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          "${index + 1}",
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Text(
-                                      "Certificate ${index + 1}",
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey.shade800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Input fields
-                                TextField(
-                                  decoration: InputDecoration(
-                                    labelText: "Certificate Title",
-                                    prefixIcon: Icon(
-                                      Icons.title,
-                                      color: Colors.blue.shade600,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: Colors.blue.shade600,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
+                                const Text(
+                                  "Add Certificates",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  onChanged: (value) =>
-                                      certificateInputs[index].title = value,
                                 ),
-                                const SizedBox(height: 16),
-
-                                TextField(
-                                  decoration: InputDecoration(
-                                    labelText: "Issued By",
-                                    prefixIcon: Icon(
-                                      Icons.business,
-                                      color: Colors.blue.shade600,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                      borderSide: BorderSide(
-                                        color: Colors.blue.shade600,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade50,
+                                const SizedBox(height: 4),
+                                Text(
+                                  "Maximum 10 certificates allowed",
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 14,
                                   ),
-                                  onChanged: (value) =>
-                                      certificateInputs[index].issuer = value,
                                 ),
-                                const SizedBox(height: 20),
-
-                                // Upload buttons
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildUploadButton(
-                                        "Reference Letter",
-                                        Icons.description,
-                                        Colors.green,
-                                        certificateInputs[index]
-                                                .referenceLetterImage !=
-                                            null,
-                                        () async {
-                                          FilePickerResult? result =
-                                              await FilePicker.platform
-                                                  .pickFiles(
-                                                    type: FileType.image,
-                                                    withData: true,
-                                                  );
-                                          if (result != null) {
-                                            setStateDialog(() {
-                                              certificateInputs[index]
-                                                      .referenceLetterImage =
-                                                  result.files.single.bytes;
-                                            });
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildUploadButton(
-                                        "Certificate",
-                                        Icons.verified,
-                                        Colors.orange,
-                                        certificateInputs[index]
-                                                .certificateImage !=
-                                            null,
-                                        () async {
-                                          FilePickerResult? result =
-                                              await FilePicker.platform
-                                                  .pickFiles(
-                                                    type: FileType.image,
-                                                    withData: true,
-                                                  );
-                                          if (result != null) {
-                                            setStateDialog(() {
-                                              certificateInputs[index]
-                                                      .certificateImage =
-                                                  result.files.single.bytes;
-                                            });
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Image previews
-                                if (certificateInputs[index]
-                                            .referenceLetterImage !=
-                                        null ||
-                                    certificateInputs[index].certificateImage !=
-                                        null)
-                                  Row(
-                                    children: [
-                                      if (certificateInputs[index]
-                                              .referenceLetterImage !=
-                                          null)
-                                        Expanded(
-                                          child: _buildImagePreview(
-                                            certificateInputs[index]
-                                                .referenceLetterImage!,
-                                            "Reference Letter",
-                                          ),
-                                        ),
-                                      if (certificateInputs[index]
-                                                  .referenceLetterImage !=
-                                              null &&
-                                          certificateInputs[index]
-                                                  .certificateImage !=
-                                              null)
-                                        const SizedBox(width: 12),
-                                      if (certificateInputs[index]
-                                              .certificateImage !=
-                                          null)
-                                        Expanded(
-                                          child: _buildImagePreview(
-                                            certificateInputs[index]
-                                                .certificateImage!,
-                                            "Certificate",
-                                          ),
-                                        ),
-                                    ],
-                                  ),
                               ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-
-                  // Actions
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(20),
-                        bottomRight: Radius.circular(20),
+                        ],
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton.icon(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close),
-                          label: const Text("Cancel"),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.grey.shade600,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                        ),
-
-                        Column(
-                          children: [
-                            if (certificateInputs.length < 10)
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  setStateDialog(() {
-                                    certificateInputs.add(CertificateInput());
-                                  });
-                                },
-                                icon: const Icon(Icons.add),
-                                label: const Text("Add Another"),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey.shade600,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
+              
+                    // Content
+                    SizedBox(
+                      width: double.maxFinite,
+                      height: 400,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: certificateInputs.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
                                 ),
+                              ],
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1,
                               ),
-                            const SizedBox(width: 12),
-
-                            _isSaving
-                                ? Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.blue.shade600,
-                                          Colors.indigo.shade600,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        SizedBox(
-                                          width: 16,
-                                          height: 16,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor:
-                                                AlwaysStoppedAnimation<Color>(
-                                                  Colors.white,
-                                                ),
-                                          ),
-                                        ),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          "Saving...",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  )
-                                : ElevatedButton.icon(
-                                    onPressed: () async {
-                                      bool allValid = certificateInputs.every(
-                                        (c) =>
-                                            c.title.trim().isNotEmpty &&
-                                            c.issuer.trim().isNotEmpty &&
-                                            c.referenceLetterImage != null &&
-                                            c.certificateImage != null,
-                                      );
-
-                                      if (!allValid) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
-                                            ),
-                                            title: Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.warning_amber_rounded,
-                                                  color: Colors.orange.shade600,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                const Text("Incomplete Fields"),
-                                              ],
-                                            ),
-                                            content: const Text(
-                                              "Please fill out all fields and upload both files for each certificate.",
-                                            ),
-                                            actions: [
-                                              ElevatedButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context).pop(),
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.blue.shade600,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                          8,
-                                                        ),
-                                                  ),
-                                                ),
-                                                child: const Text(
-                                                  "OK",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                  ),
-                                                ),
-                                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Certificate header
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 32,
+                                        height: 32,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              Colors.blue.shade400,
+                                              Colors.indigo.shade400,
                                             ],
                                           ),
-                                        );
-                                        return;
-                                      }
-
-                                      setState(() {
-                                        _isSaving = true;
-                                      });
-                                      setStateDialog(() {});
-
-                                      try {
-                                        setState(() {
-                                          submittedCertificates.addAll(
-                                            certificateInputs,
-                                          );
-                                        });
-
-                                        await Athlete.uploadCertificates(
-                                          context,
-                                          certificateInputs,
-                                        );
-
-                                        Navigator.of(context).pop();
-                                      } finally {
-                                        setState(() {
-                                          _isSaving = false;
-                                        });
-                                        setStateDialog(() {});
-                                      }
-                                    },
-                                    icon: const Icon(Icons.save),
-                                    label: const Text("Save Certificates"),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.blue.shade600,
-                                      foregroundColor: Colors.white,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "${index + 1}",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        "Certificate ${index + 1}",
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade800,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+              
+                                  // Input fields
+                                  TextField(
+                                    decoration: InputDecoration(
+                                      labelText: "Certificate Title",
+                                      prefixIcon: Icon(
+                                        Icons.title,
+                                        color: Colors.blue.shade600,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.blue.shade600,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey.shade50,
+                                    ),
+                                    onChanged: (value) =>
+                                        certificateInputs[index].title = value,
+                                  ),
+                                  const SizedBox(height: 16),
+              
+                                  TextField(
+                                    decoration: InputDecoration(
+                                      labelText: "Issued By",
+                                      prefixIcon: Icon(
+                                        Icons.business,
+                                        color: Colors.blue.shade600,
+                                      ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.grey.shade300,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.blue.shade600,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey.shade50,
+                                    ),
+                                    onChanged: (value) =>
+                                        certificateInputs[index].issuer = value,
+                                  ),
+                                  const SizedBox(height: 20),
+              
+                                  // Upload buttons
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildUploadButton(
+                                          "Reference Letter",
+                                          Icons.description,
+                                          Colors.green,
+                                          certificateInputs[index]
+                                                  .referenceLetterImage !=
+                                              null,
+                                          () async {
+                                            FilePickerResult? result =
+                                                await FilePicker.platform
+                                                    .pickFiles(
+                                                      type: FileType.image,
+                                                      withData: true,
+                                                    );
+                                            if (result != null) {
+                                              setStateDialog(() {
+                                                certificateInputs[index]
+                                                        .referenceLetterImage =
+                                                    result.files.single.bytes;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildUploadButton(
+                                          "Certificate",
+                                          Icons.verified,
+                                          Colors.orange,
+                                          certificateInputs[index]
+                                                  .certificateImage !=
+                                              null,
+                                          () async {
+                                            FilePickerResult? result =
+                                                await FilePicker.platform
+                                                    .pickFiles(
+                                                      type: FileType.image,
+                                                      withData: true,
+                                                    );
+                                            if (result != null) {
+                                              setStateDialog(() {
+                                                certificateInputs[index]
+                                                        .certificateImage =
+                                                    result.files.single.bytes;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+              
+                                  // Image previews
+                                  if (certificateInputs[index]
+                                              .referenceLetterImage !=
+                                          null ||
+                                      certificateInputs[index].certificateImage !=
+                                          null)
+                                    Row(
+                                      children: [
+                                        if (certificateInputs[index]
+                                                .referenceLetterImage !=
+                                            null)
+                                          Expanded(
+                                            child: _buildImagePreview(
+                                              certificateInputs[index]
+                                                  .referenceLetterImage!,
+                                              "Reference Letter",
+                                            ),
+                                          ),
+                                        if (certificateInputs[index]
+                                                    .referenceLetterImage !=
+                                                null &&
+                                            certificateInputs[index]
+                                                    .certificateImage !=
+                                                null)
+                                          const SizedBox(width: 12),
+                                        if (certificateInputs[index]
+                                                .certificateImage !=
+                                            null)
+                                          Expanded(
+                                            child: _buildImagePreview(
+                                              certificateInputs[index]
+                                                  .certificateImage!,
+                                              "Certificate",
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+              
+                    // Actions
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close),
+                            label: const Text("Cancel"),
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.grey.shade600,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+              
+                          Column(
+                            children: [
+                              if (certificateInputs.length < 10)
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    setStateDialog(() {
+                                      certificateInputs.add(CertificateInput());
+                                    });
+                                  },
+                                  icon: const Icon(Icons.add),
+                                  label: const Text("Add Another"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.grey.shade600,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 20,
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(width: 12),
+              
+                              _isSaving
+                                  ? Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 24,
                                         vertical: 12,
                                       ),
-                                      shape: RoundedRectangleBorder(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Colors.blue.shade600,
+                                            Colors.indigo.shade600,
+                                          ],
+                                        ),
                                         borderRadius: BorderRadius.circular(10),
                                       ),
-                                      elevation: 3,
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor:
+                                                  AlwaysStoppedAnimation<Color>(
+                                                    Colors.white,
+                                                  ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            "Saving...",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : ElevatedButton.icon(
+                                      onPressed: () async {
+                                        bool allValid = certificateInputs.every(
+                                          (c) =>
+                                              c.title.trim().isNotEmpty &&
+                                              c.issuer.trim().isNotEmpty &&
+                                              c.referenceLetterImage != null &&
+                                              c.certificateImage != null,
+                                        );
+              
+                                        if (!allValid) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              title: Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.warning_amber_rounded,
+                                                    color: Colors.orange.shade600,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  const Text("Incomplete Fields"),
+                                                ],
+                                              ),
+                                              content: const Text(
+                                                "Please fill out all fields and upload both files for each certificate.",
+                                              ),
+                                              actions: [
+                                                ElevatedButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context).pop(),
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.blue.shade600,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            8,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                  child: const Text(
+                                                    "OK",
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                          return;
+                                        }
+              
+                                        setState(() {
+                                          _isSaving = true;
+                                        });
+                                        setStateDialog(() {});
+              
+                                        try {
+                                          setState(() {
+                                            submittedCertificates.addAll(
+                                              certificateInputs,
+                                            );
+                                          });
+              
+                                          await Athlete.uploadCertificates(
+                                            context,
+                                            certificateInputs,
+                                          );
+              
+                                          Navigator.of(context).pop();
+                                        } finally {
+                                          setState(() {
+                                            _isSaving = false;
+                                          });
+                                          setStateDialog(() {});
+                                        }
+                                      },
+                                      icon: const Icon(Icons.save),
+                                      label: const Text("Save Certificates"),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue.shade600,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 24,
+                                          vertical: 12,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        elevation: 3,
+                                      ),
                                     ),
-                                  ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
