@@ -59,7 +59,7 @@ class Users {
       showSnackBar(context, "Login failed: ${e.message}", Colors.red);
       return false;
     } catch (e) {
-      Navigator.pop(context);
+      // Navigator.pop(context);
       showSnackBar(context, "Something went wrong: $e", Colors.red);
       return false;
     }
