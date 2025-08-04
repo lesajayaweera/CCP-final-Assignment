@@ -9,9 +9,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/profileView.dart';
 import 'package:sport_ignite/pages/settings.dart';
 
 import 'package:sport_ignite/widget/common/appbar.dart';
+import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
+import 'package:sport_ignite/widget/profilePage/StarItem.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -903,151 +906,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 }
 
-class StatItem extends StatelessWidget {
-  final String value;
-  final String label;
 
-  const StatItem({required this.value, required this.label, super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      ],
-    );
-  }
-}
 
-class CertificateBanner extends StatelessWidget {
-  final List<Map<String, dynamic>> certificates;
-
-  const CertificateBanner({super.key, required this.certificates});
-
-  @override
-  Widget build(BuildContext context) {
-    if (certificates.isEmpty) {
-      return const Text('No approved certificates found.');
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Certificates and Competition',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 16),
-        ...certificates.map((cert) {
-          final createdAt = cert['createdAt'];
-          String date = 'Unknown Date';
-          if (createdAt != null) {
-            date = (createdAt as Timestamp).toDate().toLocal().toString().split(
-              ' ',
-            )[0];
-          }
-
-          return CredentialCard(
-            imageUrl: cert['certificateImageUrl'] ?? '',
-            title: cert['title'] ?? 'Untitled',
-            issuer: cert['issuedBy'] ?? 'Unknown',
-            issueDate: date,
-            onViewPressed: () {
-              final url = cert['certificateImageUrl'];
-              if (url != null) {
-                // open in browser or use `url_launcher`
-                launchUrl(Uri.parse(url));
-              }
-            },
-          );
-        }).toList(),
-      ],
-    );
-  }
-}
-
-class CredentialCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String issuer;
-  final String issueDate;
-  final VoidCallback? onViewPressed;
-
-  const CredentialCard({
-    super.key,
-    required this.imageUrl,
-    required this.title,
-    required this.issuer,
-    required this.issueDate,
-    this.onViewPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: Image.network(
-                    imageUrl,
-                    width: 48,
-                    height: 48,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const Icon(Icons.broken_image),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(issuer, style: const TextStyle(color: Colors.grey)),
-            const SizedBox(height: 4),
-            Text(
-              'Issued $issueDate',
-              style: const TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: onViewPressed,
-              icon: const Icon(Icons.open_in_new),
-              label: const Text('Show credential'),
-              style: ElevatedButton.styleFrom(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
