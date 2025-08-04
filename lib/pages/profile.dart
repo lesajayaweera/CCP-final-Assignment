@@ -1,14 +1,11 @@
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
-
 import 'package:sport_ignite/pages/settings.dart';
-
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
 import 'package:sport_ignite/widget/profilePage/StarItem.dart';
