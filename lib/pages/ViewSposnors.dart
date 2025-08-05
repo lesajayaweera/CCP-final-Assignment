@@ -5,16 +5,16 @@ import 'package:sport_ignite/model/Sponsor.dart';
 import 'package:sport_ignite/model/userData.dart';
 import 'package:sport_ignite/pages/profileView.dart';
 
-class AthletesScreen extends StatefulWidget {
+class SponsorScreen extends StatefulWidget {
   final String role;
   // final bool fromProfile;
-  const AthletesScreen({Key? key, required this.role}) : super(key: key);
+  const SponsorScreen({Key? key, required this.role}) : super(key: key);
 
   @override
-  State<AthletesScreen> createState() => _AthletesScreenState();
+  State<SponsorScreen> createState() => _SponsorScreenState();
 }
 
-class _AthletesScreenState extends State<AthletesScreen> {
+class _SponsorScreenState extends State<SponsorScreen> {
   List<Athletes> verifiedAthletes = [];
   List<String> verifiedUids = [];
 

@@ -1,14 +1,13 @@
 // ignore_for_file: unused_field
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/Athlete.dart';
+import 'package:sport_ignite/model/ConnectionService.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
-import 'package:sport_ignite/widget/profilePage/CertificateCard.dart';
+
 import 'package:sport_ignite/widget/profilePage/StarItem.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ProfileView extends StatefulWidget {
   final String role;
@@ -77,7 +76,8 @@ class _ProfileViewState extends State<ProfileView> {
                       margin: const EdgeInsets.only(bottom: 50),
                       decoration: BoxDecoration(
                         color: Colors.blueGrey,
-                        image: (userData?['background'] != null &&
+                        image:
+                            (userData?['background'] != null &&
                                 userData!['background'].toString().isNotEmpty)
                             ? DecorationImage(
                                 image: NetworkImage(userData!['background']),
@@ -85,7 +85,8 @@ class _ProfileViewState extends State<ProfileView> {
                               )
                             : null,
                       ),
-                      child: (userData?['background'] == null ||
+                      child:
+                          (userData?['background'] == null ||
                               userData!['background'].toString().isEmpty)
                           ? const Center(
                               child: Icon(
@@ -109,21 +110,22 @@ class _ProfileViewState extends State<ProfileView> {
                                 decoration: BoxDecoration(
                                   color: Colors.grey.shade300,
                                   shape: BoxShape.circle,
-                                  image: (userData?['profile'] != null &&
+                                  image:
+                                      (userData?['profile'] != null &&
                                           userData!['profile']
                                               .toString()
                                               .isNotEmpty)
                                       ? DecorationImage(
                                           fit: BoxFit.cover,
-                                          image:
-                                              NetworkImage(userData!['profile']),
+                                          image: NetworkImage(
+                                            userData!['profile'],
+                                          ),
                                         )
                                       : null,
                                 ),
-                                child: (userData?['profile'] == null ||
-                                        userData!['profile']
-                                            .toString()
-                                            .isEmpty)
+                                child:
+                                    (userData?['profile'] == null ||
+                                        userData!['profile'].toString().isEmpty)
                                     ? const Icon(
                                         Icons.person,
                                         size: 50,
@@ -136,8 +138,9 @@ class _ProfileViewState extends State<ProfileView> {
                                 right: 0,
                                 child: CircleAvatar(
                                   radius: 20,
-                                  backgroundColor:
-                                      Theme.of(context).scaffoldBackgroundColor,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).scaffoldBackgroundColor,
                                   child: Container(
                                     margin: const EdgeInsets.all(8.0),
                                     decoration: const BoxDecoration(
@@ -164,20 +167,27 @@ class _ProfileViewState extends State<ProfileView> {
                   children: [
                     Text(
                       userData?['name'] ?? "Guest",
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     widget.role == 'Sponsor'
-                        ? Text(
-                            "${userData?['company']} - ${userData?['role']}" ?? 'Sponsor',)
+                        ? Text("${userData?['company']} - ${userData?['role']}")
                         : Text(userData?['sport'] ?? ''),
                     Text(
                       "${userData?['city'] ?? 'city'}\n${userData?['province'] ?? 'province'}, Sri Lanka",
                       style: TextStyle(color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 10),
+
+                    Container(
+                      width: double.infinity,
+                      child: Row(children: [
+                        ElevatedButton(onPressed: () {
+                          ConnectionService.sendConnectionRequestUsingUID(context, widget.uid!);
+                        }, child: const Text("Connect"))
+                      ]),
+                    ),
 
                     // Stats
                     Container(
@@ -193,9 +203,15 @@ class _ProfileViewState extends State<ProfileView> {
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: const [
-                                StatItem(value: '2,279,545', label: 'Total Runs'),
+                                StatItem(
+                                  value: '2,279,545',
+                                  label: 'Total Runs',
+                                ),
                                 VerticalDivider(),
-                                StatItem(value: '279,545', label: 'Total Matches'),
+                                StatItem(
+                                  value: '279,545',
+                                  label: 'Total Matches',
+                                ),
                                 VerticalDivider(),
                                 StatItem(value: '279,545', label: '100 s'),
                               ],
@@ -203,7 +219,10 @@ class _ProfileViewState extends State<ProfileView> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: const [
-                                StatItem(value: 'Rs.0.00', label: 'Total Sponsored'),
+                                StatItem(
+                                  value: 'Rs.0.00',
+                                  label: 'Total Sponsored',
+                                ),
                                 VerticalDivider(),
                                 StatItem(value: '0', label: 'Total Athletes'),
                               ],
@@ -216,17 +235,21 @@ class _ProfileViewState extends State<ProfileView> {
                       FutureBuilder<List<Map<String, dynamic>>>(
                         future: loadCertificates(),
                         builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
                             return const Center(
                               child: CircularProgressIndicator(),
                             );
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          } else if (!snapshot.hasData ||
+                              snapshot.data!.isEmpty) {
                             return const Text('No certificates found.');
                           }
 
-                          return CertificateBanner(certificates: snapshot.data!);
+                          return CertificateBanner(
+                            certificates: snapshot.data!,
+                          );
                         },
                       ),
                   ],
