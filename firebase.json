@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"sportignite3","appId":"1:77184994425:android:0e7f250be47cb3920818a8","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"sportignite3","configurations":{"android":"1:77184994425:android:0e7f250be47cb3920818a8","ios":"1:77184994425:ios:fc906957dee89a3b0818a8","web":"1:77184994425:web:1bfdd452290934f90818a8"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sportignite3",
+          "appId": "1:77184994425:android:0e7f250be47cb3920818a8",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sportignite3",
+          "configurations": {
+            "android": "1:77184994425:android:0e7f250be47cb3920818a8",
+            "ios": "1:77184994425:ios:fc906957dee89a3b0818a8",
+            "web": "1:77184994425:web:1bfdd452290934f90818a8"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/pages/dashboard.dart';
@@ -60,21 +61,26 @@ class Athlete {
 
         
         if (await writeData(context)) {
+          PushNotificationService.initialize();
+
           Navigator.pop(context); 
 
           showSnackBar(
             context,
             "Athlete Successfully Registered",
             Colors.green,
-          );
+          ); 
 
           
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
           );
+
           return;
         }
+        
+
       }
 
       Navigator.pop(
