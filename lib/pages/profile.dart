@@ -5,7 +5,10 @@ import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/CertificateInput.dart';
 import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/dashboard.dart';
+import 'package:sport_ignite/pages/manageMyNetwork.dart';
 import 'package:sport_ignite/pages/settings.dart';
+import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
 import 'package:sport_ignite/widget/profilePage/StarItem.dart';
@@ -1417,8 +1420,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               foregroundColor: Colors.white,
                               elevation: 2,
                             ),
-                            onPressed: () {},
-                            child: Text("Connect"),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Dashboard(role: widget.role, initialIndex: 2),
+                                ),
+                              );
+                            },
+                            child: Text("Connect with Athletes"),
                           ),
                         ],
                       ),
@@ -1427,7 +1437,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Dashboard(role: widget.role, initialIndex: 4),
+                                ),
+                              );
+                            },
                             child: Text("View Athlete"),
                           ),
                           const SizedBox(width: 10),
@@ -1438,8 +1455,15 @@ class _ProfilePageState extends State<ProfilePage> {
                               foregroundColor: Colors.white,
                               elevation: 2,
                             ),
-                            onPressed: () {},
-                            child: Text("Connect"),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Dashboard(role: widget.role, initialIndex: 1),
+                                ),
+                              );
+                            },
+                            child: Text("Discover People"),
                           ),
                         ],
                       ),

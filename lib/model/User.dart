@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,7 +17,7 @@ class Users {
     String email,
     String password,
   ) async {
-    // showLoadingDialog(context); // Show the loading spinner
+    showLoadingDialog(context); // Show the loading spinner
 
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -29,37 +30,49 @@ class Users {
       if (user != null) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
+        await PushNotificationService.initialize();
 
         DocumentSnapshot userDoc = await _firestore
             .collection('users')
             .doc(user.uid)
             .get();
 
-        // Navigator.pop(context);
-
         if (userDoc.exists) {
-          String role = userDoc['role'];
+          final data = userDoc.data() as Map<String, dynamic>;
+          String? role = data['role'];
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => Dashboard(role: role)),
-          );
+          if (role != null) {
+            Navigator.pop(context); // Dismiss loading dialog immediately
 
-          return true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Dashboard(role: role)),
+              );
+            });
+
+            return true;
+          } else {
+            Navigator.pop(context);
+            showSnackBar(context, "User role not defined", Colors.red);
+            return false;
+          }
         } else {
+          Navigator.pop(context);
           showSnackBar(context, "User data not found", Colors.red);
           return false;
         }
       }
 
-      // Navigator.pop(context); // fallback
+      Navigator.pop(context);
+      showSnackBar(context, "Login failed", Colors.red);
       return false;
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);
       showSnackBar(context, "Login failed: ${e.message}", Colors.red);
       return false;
     } catch (e) {
-      // Navigator.pop(context);
+      Navigator.pop(context);
       showSnackBar(context, "Something went wrong: $e", Colors.red);
       return false;
     }

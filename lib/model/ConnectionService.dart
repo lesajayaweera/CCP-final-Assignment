@@ -9,44 +9,41 @@ class ConnectionService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static Future<void> sendConnectionRequestUsingUID(
-    BuildContext context, String receiverUID) async {
-  final String senderUID = FirebaseAuth.instance.currentUser?.uid ?? '';
-  if (senderUID.isNotEmpty && receiverUID.isNotEmpty) {
-    
-    // Check if request has already been sent
-    if (await hasSentRequest(senderUID, receiverUID) == false) {
-      // Store the request in receiver's subcollection
-      await _firestore
-          .collection('users')
-          .doc(receiverUID)
-          .collection('connection_requests')
-          .doc(senderUID)
-          .set({
-        'senderUID': senderUID,
-        'receiverUID': receiverUID,
-        'status': 'pending', // can be: pending, accepted, rejected
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+    BuildContext context,
+    String receiverUID,
+  ) async {
+    final String senderUID = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-      showSnackBar(context, 'Connection request sent', Colors.green);
+    if (senderUID.isNotEmpty && receiverUID.isNotEmpty) {
+
+      if (await hasSentRequest(senderUID, receiverUID) == false) {
+       
+        await _firestore.collection('connection_requests').add({
+          'senderUID': senderUID,
+          'receiverUID': receiverUID,
+          'status': 'pending', // can be: pending, accepted, rejected
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        showSnackBar(context, 'Connection request sent', Colors.green);
+      } else {
+        showSnackBar(context, 'Connection request already sent', Colors.orange);
+      }
     } else {
-      showSnackBar(context, 'Connection request already sent', Colors.orange);
+      showSnackBar(context, 'User not logged in', Colors.red);
     }
-  } else {
-    showSnackBar(context, 'User not logged in', Colors.red);
   }
-}
-
 
   /// Check if a connection request has been sent (pending)
   static Future<bool> hasSentRequest(String myUid, String toUid) async {
-    final doc = await _firestore
-        .collection('users')
-        .doc(toUid)
-        .collection('connection_requests')
-        .doc(myUid)
-        .get();
+  final querySnapshot = await _firestore
+      .collection('connection_requests')
+      .where('senderUID', isEqualTo: myUid)
+      .where('receiverUID', isEqualTo: toUid)
+      .limit(1)
+      .get();
 
-    return doc.exists;
-  }
+  return querySnapshot.docs.isNotEmpty;
+}
+
 }

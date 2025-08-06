@@ -10,7 +10,8 @@ import 'package:sport_ignite/widget/common/bottomNavigation.dart';
 
 class Dashboard extends StatefulWidget {
   final String role;
-  const Dashboard({super.key, required this.role});
+  final int initialIndex;
+  const Dashboard({super.key, required this.role, this.initialIndex = 0});
 
   @override
   State<Dashboard> createState() => _DashboardState();
@@ -19,6 +20,11 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _currentIndex = 0;
 
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
   @override
   Widget build(BuildContext context) {
     final List<Widget> athleteScreens = [
