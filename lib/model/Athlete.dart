@@ -285,4 +285,29 @@ class Athlete {
       return [];
     }
   }
+
+  // load the stats
+  static Future<Map<String, dynamic>?> loadUserStats(
+    String sport,
+    String email,
+  ) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('user_stats')
+          .doc(sport)
+          .collection('athletes')
+          .doc(email)
+          .get();
+
+      if (snapshot.exists) {
+        return snapshot.data();
+      } else {
+        return null;
+      }
+    } catch (e) {
+      // You can log or handle the error if needed
+      return null;
+    }
+  }
 }
