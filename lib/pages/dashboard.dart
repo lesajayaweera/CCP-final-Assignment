@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/pages/ViewSposnors.dart';
 import 'package:sport_ignite/pages/home.dart';
 import 'package:sport_ignite/pages/manageMyNetwork.dart';
 import 'package:sport_ignite/pages/post_create.dart';
@@ -32,7 +33,7 @@ class _DashboardState extends State<Dashboard> {
       NetworkManagementScreen(role: widget.role),
       SocialFeedScreen(role: widget.role),
       ShortsPlayerScreen(),
-      Center(child: Text('Athlete Sponsorships')),
+      SponsorScreen(role: widget.role),
     ];
     final List<Widget> sponsorScreens = [
       SocialFeedScreen(role: widget.role),

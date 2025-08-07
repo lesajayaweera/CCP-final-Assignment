@@ -48,30 +48,26 @@ class Athlete {
     showLoadingDialog(context); // Show loading spinner
 
     try {
-      
       UserCredential userCredentials = await _auth
           .createUserWithEmailAndPassword(email: email, password: pass);
 
       final User? user = userCredentials.user;
 
       if (user != null) {
-       
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('uid', user.uid);
 
-        
         if (await writeData(context)) {
           PushNotificationService.initialize();
 
-          Navigator.pop(context); 
+          Navigator.pop(context);
 
           showSnackBar(
             context,
             "Athlete Successfully Registered",
             Colors.green,
-          ); 
+          );
 
-          
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
@@ -79,15 +75,11 @@ class Athlete {
 
           return;
         }
-        
-
       }
 
-      Navigator.pop(
-        context,
-      ); 
+      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); 
+      Navigator.pop(context);
       showSnackBar(context, e.message.toString(), Colors.red);
     } catch (e) {
       Navigator.pop(context);
@@ -99,21 +91,17 @@ class Athlete {
     try {
       String? imageUrl;
 
-      
       if (profile != null) {
         final storageRef = FirebaseStorage.instance
             .ref()
             .child('profile_images')
             .child('${_auth.currentUser!.uid}.jpg');
 
-        
         await storageRef.putFile(profile!);
 
-       
         imageUrl = await storageRef.getDownloadURL();
       }
 
-      
       await _firestore.collection('users').doc(_auth.currentUser?.uid).set({
         "name": name,
         "email": email,
@@ -121,7 +109,7 @@ class Athlete {
         "tel": tel,
         'createdAt': FieldValue.serverTimestamp(),
       });
-     
+
       await _firestore.collection('athlete').doc(_auth.currentUser?.uid).set({
         "name": name,
         "email": email,
@@ -244,7 +232,6 @@ class Athlete {
     }
 
     showSnackBar(context, "✅ Certificates uploaded successfully", Colors.green);
-   
   }
 
   static Future<List<Map<String, dynamic>>> getApprovedCertificates() async {
@@ -284,5 +271,18 @@ class Athlete {
         .get();
 
     return querySnapshot.docs.map((doc) => doc.data()).toList();
+  }
+
+  static Future<List<String>> getAllSponsorUIDs() async {
+    try {
+      QuerySnapshot snapshot = await FirebaseFirestore.instance
+          .collection('sponsor')
+          .get();
+
+      return snapshot.docs.map((doc) => doc.id).toList();
+    } catch (e) {
+      print('Error fetching sponsor UIDs: $e');
+      return [];
+    }
   }
 }

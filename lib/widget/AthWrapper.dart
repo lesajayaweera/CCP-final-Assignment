@@ -47,6 +47,8 @@ class AuthWrapper extends StatelessWidget {
               }
 
               if (roleSnapshot.hasData && roleSnapshot.data!.exists) {
+
+                print(roleSnapshot.data!.data());
                 final role = roleSnapshot.data!['role'];
                 return Dashboard(role: role); 
               } else {

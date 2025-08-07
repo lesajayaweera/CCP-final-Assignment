@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/ConnectionService.dart';
 import 'package:sport_ignite/model/Sponsor.dart';
-import 'package:sport_ignite/model/userData.dart';
+import 'package:sport_ignite/model/userCardData.dart';
 import 'package:sport_ignite/pages/profileView.dart';
 
 class AthletesScreen extends StatefulWidget {
@@ -87,10 +88,49 @@ class _AthletesScreenState extends State<AthletesScreen> {
   }
 }
 
-class AthleteCard extends StatelessWidget {
+class AthleteCard extends StatefulWidget {
   final Athletes athlete;
 
   const AthleteCard({Key? key, required this.athlete}) : super(key: key);
+
+  @override
+  State<AthleteCard> createState() => _AthleteCardState();
+}
+
+class _AthleteCardState extends State<AthleteCard> {
+  String _connectionStatus = 'loading'; // 'loading', 'none', 'pending'
+
+  @override
+  void initState() {
+    super.initState();
+    _checkConnectionStatus();
+  }
+
+  Future<void> _checkConnectionStatus() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final hasSent = await ConnectionService.hasSentRequest(
+      currentUser.uid,
+      widget.athlete.uid,
+    );
+
+    if (mounted) {
+      setState(() {
+        _connectionStatus = hasSent ? 'pending' : 'none';
+      });
+    }
+  }
+
+  Future<void> _handleSendRequest() async {
+    await ConnectionService.sendConnectionRequestUsingUID(
+      context,
+      widget.athlete.uid,
+    );
+    setState(() {
+      _connectionStatus = 'pending';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +139,8 @@ class AthleteCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProfileView(role: 'Athlete', uid: athlete.uid),
+            builder: (context) =>
+                ProfileView(role: 'Athlete', uid: widget.athlete.uid),
           ),
         );
       },
@@ -113,7 +154,6 @@ class AthleteCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   // Profile Image
                   Container(
@@ -122,17 +162,16 @@ class AthleteCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                        image: NetworkImage(athlete.imagePath),
-                        // image: AssetImage(athlete.imagePath), // Use this if you have local images
+                        image: NetworkImage(widget.athlete.imagePath),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-      
+
                   // Name
                   Text(
-                    athlete.name,
+                    widget.athlete.name,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -143,35 +182,25 @@ class AthleteCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-      
-                  // Sport/Position
+
+                  // Sport
                   Text(
-                    athlete.sport,
+                    widget.athlete.sport,
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
-      
-                  // Club/Team info
+
+                  // Club
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Container(
-                      //   width: 18,
-                      //   height: 18,
-                      //   decoration: BoxDecoration(
-                      //     shape: BoxShape.circle,
-                      //     image: DecorationImage(
-                      //       image: AssetImage(athlete.clubLogo),
-                      //       fit: BoxFit.cover,
-                      //     ),
-                      //   ),
-                      // ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          athlete.club,
-                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                          widget.athlete.club,
+                          style:
+                              TextStyle(fontSize: 11, color: Colors.grey[600]),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -180,16 +209,18 @@ class AthleteCard extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
-      
+
                   // Connect Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        ConnectionService.sendConnectionRequestUsingUID(context, athlete.uid);
-                      },
+                      onPressed: _connectionStatus == 'pending'
+                          ? null
+                          : _handleSendRequest,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: _connectionStatus == 'pending'
+                            ? Colors.grey
+                            : Colors.white,
                         foregroundColor: Colors.blue[700],
                         side: BorderSide(color: Colors.blue[700]!),
                         shape: RoundedRectangleBorder(
@@ -197,9 +228,9 @@ class AthleteCard extends StatelessWidget {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 6),
                       ),
-                      child: const Text(
-                        'Connect',
-                        style: TextStyle(
+                      child: Text(
+                        _connectionStatus == 'pending' ? 'Pending' : 'Connect',
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -209,14 +240,14 @@ class AthleteCard extends StatelessWidget {
                 ],
               ),
             ),
-      
-            // Close button
+
+            // Close button (optional functionality)
             Positioned(
               top: 8,
               right: 8,
               child: GestureDetector(
                 onTap: () {
-                  // Optional: add remove logic
+                  // Optional remove from list
                 },
                 child: Container(
                   width: 22,
@@ -225,7 +256,8 @@ class AthleteCard extends StatelessWidget {
                     color: Colors.black54,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                  child:
+                      const Icon(Icons.close, color: Colors.white, size: 14),
                 ),
               ),
             ),
@@ -235,5 +267,4 @@ class AthleteCard extends StatelessWidget {
     );
   }
 }
-
 // Sample data

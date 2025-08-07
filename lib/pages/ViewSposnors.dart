@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/ConnectionService.dart';
-import 'package:sport_ignite/model/Sponsor.dart';
-import 'package:sport_ignite/model/userData.dart';
+import 'package:sport_ignite/model/userCardData.dart';
 import 'package:sport_ignite/pages/profileView.dart';
 
 class SponsorScreen extends StatefulWidget {
   final String role;
-  // final bool fromProfile;
   const SponsorScreen({Key? key, required this.role}) : super(key: key);
 
   @override
@@ -15,55 +15,54 @@ class SponsorScreen extends StatefulWidget {
 }
 
 class _SponsorScreenState extends State<SponsorScreen> {
-  List<Athletes> verifiedAthletes = [];
-  List<String> verifiedUids = [];
+  List<String> sponsorUids = [];
+  List<Athletes> fetchedSponsors = []; // ✅ Move this to class level
 
   @override
   void initState() {
     super.initState();
-    fetchVerifiedAthletes();
+    fetchSponsors();
   }
 
-  void fetchVerifiedAthletes() async {
-    final uids = await Sponsor.getUidsWithApprovedCertificates();
+  void fetchSponsors() async {
+    final uids = await Athlete.getAllSponsorUIDs();
 
-    if (!mounted) return; // to avoid setState after widget disposed
+    if (!mounted) return;
 
-    final List<Athletes> fetchedAthletes = [];
+    List<Athletes> fetched = [];
 
     for (final uid in uids) {
       final doc = await FirebaseFirestore.instance
-          .collection('athlete')
+          .collection('sponsor')
           .doc(uid)
           .get();
       if (doc.exists) {
-        fetchedAthletes.add(Athletes.fromFirestore(doc));
+        fetched.add(Athletes.fromFirestore(doc));
       }
     }
 
     setState(() {
-      verifiedUids = uids;
-      verifiedAthletes = fetchedAthletes;
+      sponsorUids = uids;
+      fetchedSponsors = fetched;
     });
 
-    print('Verified UIDs: $uids');
-    print('Fetched Athletes Count: ${fetchedAthletes.length}');
+    print('Sponsor UIDs: $uids');
+    print('Fetched Sponsors Count: ${fetched.length}');
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (verifiedAthletes.isNotEmpty)
+        if (fetchedSponsors.isNotEmpty)
           const Padding(
             padding: EdgeInsets.all(8.0),
-            child: Text('Athletes you May Know'),
+            child: Text('Sponsors you May Know'),
           ),
 
         Expanded(
-          child: verifiedAthletes.isNotEmpty
+          child: fetchedSponsors.isNotEmpty
               ? Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: GridView.builder(
@@ -74,9 +73,9 @@ class _SponsorScreenState extends State<SponsorScreen> {
                           mainAxisSpacing: 16,
                           childAspectRatio: 0.7,
                         ),
-                    itemCount: verifiedAthletes.length,
+                    itemCount: fetchedSponsors.length,
                     itemBuilder: (context, index) {
-                      return AthleteCard(athlete: verifiedAthletes[index]);
+                      return SponsorCard(athlete: fetchedSponsors[index]);
                     },
                   ),
                 )
@@ -87,10 +86,49 @@ class _SponsorScreenState extends State<SponsorScreen> {
   }
 }
 
-class AthleteCard extends StatelessWidget {
+class SponsorCard extends StatefulWidget {
   final Athletes athlete;
 
-  const AthleteCard({Key? key, required this.athlete}) : super(key: key);
+  const SponsorCard({Key? key, required this.athlete}) : super(key: key);
+
+  @override
+  State<SponsorCard> createState() => _SponsorCardState();
+}
+
+class _SponsorCardState extends State<SponsorCard> {
+  String _connectionStatus = 'loading'; // 'loading', 'none', 'pending'
+
+  @override
+  void initState() {
+    super.initState();
+    _checkConnectionStatus();
+  }
+
+  Future<void> _checkConnectionStatus() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    final hasSent = await ConnectionService.hasSentRequest(
+      currentUser.uid,
+      widget.athlete.uid,
+    );
+
+    if (mounted) {
+      setState(() {
+        _connectionStatus = hasSent ? 'pending' : 'none';
+      });
+    }
+  }
+
+  Future<void> _handleSendRequest() async {
+    await ConnectionService.sendConnectionRequestUsingUID(
+      context,
+      widget.athlete.uid,
+    );
+    setState(() {
+      _connectionStatus = 'pending';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +137,8 @@ class AthleteCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProfileView(role: 'Athlete', uid: athlete.uid),
+            builder: (context) =>
+                ProfileView(role: 'Sponsor', uid: widget.athlete.uid),
           ),
         );
       },
@@ -122,17 +161,16 @@ class AthleteCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       image: DecorationImage(
-                        image: NetworkImage(athlete.imagePath),
-                        // image: AssetImage(athlete.imagePath), // Use this if you have local images
+                        image: NetworkImage(widget.athlete.imagePath),
                         fit: BoxFit.cover,
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
-      
+
                   // Name
                   Text(
-                    athlete.name,
+                    widget.athlete.name,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -143,35 +181,27 @@ class AthleteCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-      
+
                   // Sport/Position
                   Text(
-                    athlete.sport,
+                    widget.athlete.sport,
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 6),
-      
+
                   // Club/Team info
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Container(
-                      //   width: 18,
-                      //   height: 18,
-                      //   decoration: BoxDecoration(
-                      //     shape: BoxShape.circle,
-                      //     image: DecorationImage(
-                      //       image: AssetImage(athlete.clubLogo),
-                      //       fit: BoxFit.cover,
-                      //     ),
-                      //   ),
-                      // ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          athlete.club,
-                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                          widget.athlete.club,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           textAlign: TextAlign.center,
@@ -180,16 +210,18 @@ class AthleteCard extends StatelessWidget {
                     ],
                   ),
                   const Spacer(),
-      
+
                   // Connect Button
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {
-                        ConnectionService.sendConnectionRequestUsingUID(context, athlete.uid);
-                      },
+                      onPressed: _connectionStatus == 'pending'
+                          ? null
+                          : _handleSendRequest,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
+                        backgroundColor: _connectionStatus == 'pending'
+                            ? Colors.grey
+                            : Colors.white,
                         foregroundColor: Colors.blue[700],
                         side: BorderSide(color: Colors.blue[700]!),
                         shape: RoundedRectangleBorder(
@@ -197,9 +229,9 @@ class AthleteCard extends StatelessWidget {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 6),
                       ),
-                      child: const Text(
-                        'Connect',
-                        style: TextStyle(
+                      child: Text(
+                        _connectionStatus == 'pending' ? 'Pending' : 'Connect',
+                        style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -209,14 +241,14 @@ class AthleteCard extends StatelessWidget {
                 ],
               ),
             ),
-      
-            // Close button
+
+            // Close button (optional functionality)
             Positioned(
               top: 8,
               right: 8,
               child: GestureDetector(
                 onTap: () {
-                  // Optional: add remove logic
+                  // Optional remove from list
                 },
                 child: Container(
                   width: 22,
@@ -236,4 +268,3 @@ class AthleteCard extends StatelessWidget {
   }
 }
 
-// Sample data
