@@ -1,80 +1,151 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class NotificationScreen extends StatelessWidget {
-  final List<NotificationItem> notifications = [
-    NotificationItem(
-      profileImage:
-          'https://images.unsplash.com/photo-1494790108755-2616b332c5cd?w=150',
-      name: 'Natalia Shostak',
-      additionalCount: '2,486 others',
-      action: 'reacted to your post',
-      time: '1m',
-      message:
-          'This is very wonderful news. I\'m looking forward to November...',
-      additionalInfo:
-          'In November, we are launching an internship program for UI/UX designers with ...',
-      reactions: '2,487',
-      comments: '275',
-    ),
-    NotificationItem(
-      profileImage:
-          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      name: 'Samson Kennedy',
-      additionalCount: '2,486 others',
-      action: 'reacted to your post',
-      time: '10m',
-      message:
-          'This is very wonderful news. I\'m looking forward to November...',
-      reactions: '2,487',
-      comments: '275',
-    ),
-    NotificationItem(
-      profileImage:
-          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-      name: 'Andrea Baker',
-      additionalCount: '2,486 others',
-      action: 'reacted to your post',
-      time: '56m',
-      message:
-          'This is very wonderful news. I\'m looking forward to November...',
-      reactions: '2,487',
-      comments: '275',
-    ),
-  ];
+class NotificationScreen extends StatefulWidget {
+  const NotificationScreen({super.key});
+
+  @override
+  State<NotificationScreen> createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  final String? userId = FirebaseAuth.instance.currentUser?.uid;
+
+  @override
+  void dispose() {
+    _markAllNotificationsAsRead(); // Marks as read when navigating away
+    super.dispose();
+  }
+
+  Future<void> _markAllNotificationsAsRead() async {
+    if (userId == null) return;
+
+    final notifCollection = FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications');
+
+    final snapshot = await notifCollection.where('isRead', isEqualTo: 'false').get();
+
+    for (final doc in snapshot.docs) {
+      await doc.reference.update({'isRead': 'true'});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (userId == null) {
+      return const Scaffold(
+        body: Center(child: Text('You must be logged in')),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: Text('Notifications'), centerTitle: true),
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
+      appBar: AppBar(
+        title: const Text('Notifications'),
+        centerTitle: true,
+        
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('notifications')
+            .orderBy('timestamp', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Error loading notifications.'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snapshot.data!.docs;
+
+          // Filter out read notifications
+          final unreadDocs = docs.where((doc) {
+            final data = doc.data() as Map<String, dynamic>;
+            return data['isRead'] == 'false';
+          }).toList();
+
+          if (unreadDocs.isEmpty) {
+            return const Center(child: Text("No unread notifications."));
+          }
+
+          final notifications = unreadDocs.map((doc) {
+            return NotificationItem.fromFirestore(doc.data() as Map<String, dynamic>);
+          }).toList();
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: notifications.length,
+            itemBuilder: (context, index) {
+              return NotificationCard(notification: notifications[index]);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class NotificationCard extends StatelessWidget {
+  final NotificationItem notification;
+
+  const NotificationCard({Key? key, required this.notification}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 3,
+      shadowColor: Colors.black12,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
           children: [
-            Expanded(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                itemCount: notifications.length,
-                itemBuilder: (context, index) {
-                  return NotificationCard(notification: notifications[index]);
-                },
-              ),
+            CircleAvatar(
+              backgroundColor: Colors.blue.shade100,
+              child: Icon(Icons.notifications, color: Colors.blue.shade800),
             ),
-            Container(
-              margin: EdgeInsets.all(16),
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1976D2),
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notification.message,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                child: Text(
-                  'See notification you missed',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Text(
+                        notification.type.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        notification.timestamp.toLocal().toString().split('.')[0],
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
@@ -84,170 +155,25 @@ class NotificationScreen extends StatelessWidget {
   }
 }
 
-class NotificationCard extends StatelessWidget {
-  final NotificationItem notification;
-
-  const NotificationCard({Key? key, required this.notification})
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 16),
-      padding: EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Profile Images Stack
-          Container(
-            width: 50,
-            height: 50,
-            child: Stack(
-              children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundImage: NetworkImage(notification.profileImage),
-                ),
-                // Reaction emoji overlay
-                Positioned(
-                  right: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 20,
-                    height: 20,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1),
-                    ),
-                    child: Center(
-                      child: Text('❤️', style: TextStyle(fontSize: 12)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: 12),
-          // Content
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header with name, action, and time
-                Row(
-                  children: [
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(color: Colors.black, fontSize: 14),
-                          children: [
-                            TextSpan(
-                              text: notification.name,
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            TextSpan(
-                              text: ' and ',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                            TextSpan(
-                              text: notification.additionalCount,
-                              style: TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                            TextSpan(
-                              text: ' ${notification.action}',
-                              style: TextStyle(color: Colors.grey[600]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Text(
-                      notification.time,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 6),
-                // Message content
-                Text(
-                  notification.message,
-                  style: TextStyle(
-                    color: Colors.grey[700],
-                    fontSize: 13,
-                    height: 1.3,
-                  ),
-                ),
-                if (notification.additionalInfo != null) ...[
-                  SizedBox(height: 4),
-                  Text(
-                    notification.additionalInfo!,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                      height: 1.3,
-                    ),
-                  ),
-                ],
-                SizedBox(height: 8),
-                // Stats
-                Row(
-                  children: [
-                    Text(
-                      '${notification.reactions} Reactions',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                    Text(
-                      ' • ',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 12),
-                    ),
-                    Text(
-                      '${notification.comments} Comments',
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class NotificationItem {
-  final String profileImage;
-  final String name;
-  final String additionalCount;
-  final String action;
-  final String time;
   final String message;
-  final String? additionalInfo;
-  final String reactions;
-  final String comments;
+  final String type;
+  final DateTime timestamp;
+  final bool isRead;
 
   NotificationItem({
-    required this.profileImage,
-    required this.name,
-    required this.additionalCount,
-    required this.action,
-    required this.time,
     required this.message,
-    this.additionalInfo,
-    required this.reactions,
-    required this.comments,
+    required this.type,
+    required this.timestamp,
+    required this.isRead,
   });
+
+  factory NotificationItem.fromFirestore(Map<String, dynamic> data) {
+    return NotificationItem(
+      message: data['message'] ?? '',
+      type: data['type'] ?? 'info',
+      timestamp: (data['timestamp'] as Timestamp).toDate(),
+      isRead: data['isRead'] == 'true',
+    );
+  }
 }
