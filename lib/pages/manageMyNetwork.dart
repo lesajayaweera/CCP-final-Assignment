@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/pages/manageInvititations.dart';
 
 class NetworkManagementScreen extends StatefulWidget {
   final String role;
@@ -12,9 +13,62 @@ class NetworkManagementScreen extends StatefulWidget {
 
 class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
   int selectedBottomNavIndex = 1; // My Network tab selected
+  String currentView = 'network'; // 'network' or 'invitations'
+
+  List<InvitationRequest> invitations = [
+    InvitationRequest(
+      id: '1',
+      profileImage:
+          'https://images.unsplash.com/photo-1494790108755-2616b332c5cd?w=150&h=150&fit=crop&crop=face',
+      name: 'Sarah Johnson',
+      title: 'Senior Software Engineer at Google',
+      mutualConnections: 12,
+      timeAgo: '1 week ago',
+      message: 'I\'d love to connect with you!',
+    ),
+    InvitationRequest(
+      id: '2',
+      profileImage:
+          'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
+      name: 'Michael Chen',
+      title: 'Product Manager at Microsoft',
+      mutualConnections: 5,
+      timeAgo: '3 days ago',
+      message: 'Let\'s connect and share insights about product development.',
+    ),
+    InvitationRequest(
+      id: '3',
+      profileImage:
+          'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
+      name: 'Emily Rodriguez',
+      title: 'UX Designer at Adobe',
+      mutualConnections: 8,
+      timeAgo: '5 days ago',
+      message: null,
+    ),
+    InvitationRequest(
+      id: '4',
+      profileImage:
+          'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
+      name: 'David Kumar',
+      title: 'Data Scientist at Netflix',
+      mutualConnections: 3,
+      timeAgo: '1 day ago',
+      message:
+          'Hi! I noticed we work in similar fields. Would love to connect.',
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
+    if (currentView == 'invitations') {
+      return _buildInvitationsView();
+    }
+
+    return _buildNetworkView();
+  }
+
+  Widget _buildNetworkView() {
     return Column(
       children: [
         // Top navigation options
@@ -28,9 +82,22 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
               ),
               const Divider(height: 1),
               _buildNavOption(
-                title: 'Invitation',
-                onTap: () => _navigateTo('invitation'),
+                title: 'Invitation (${invitations.length})',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => InvitationsScreen(
+                        invitations: invitations,
+                        onAccept: _handleAccept,
+                        onIgnore: _handleIgnore,
+                      ),
+                    ),
+                  );
+                },
+                hasNotification: invitations.isNotEmpty,
               ),
+
               const Divider(height: 1),
             ],
           ),
@@ -85,7 +152,82 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
     );
   }
 
-  Widget _buildNavOption({required String title, required VoidCallback onTap}) {
+  Widget _buildInvitationsView() {
+    return Scaffold(
+      backgroundColor: Color(0xFFF3F2EF),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        title: Text(
+          'Manage invitations',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => setState(() => currentView = 'network'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Handle "See all" action
+            },
+            child: Text(
+              'See all',
+              style: TextStyle(
+                color: Color(0xFF0A66C2),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: invitations.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people_outline, size: 80, color: Colors.grey[400]),
+                  SizedBox(height: 16),
+                  Text(
+                    'No pending invitations',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'When people send you invitations to connect,\nthey\'ll appear here.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            )
+          : ListView.builder(
+              padding: EdgeInsets.all(16),
+              itemCount: invitations.length,
+              itemBuilder: (context, index) {
+                return InvitationCard(
+                  invitation: invitations[index],
+                  onAccept: () => _handleAccept(invitations[index].id),
+                  onIgnore: () => _handleIgnore(invitations[index].id),
+                );
+              },
+            ),
+    );
+  }
+
+  Widget _buildNavOption({
+    required String title,
+    required VoidCallback onTap,
+    bool hasNotification = false,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -102,6 +244,16 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
                 ),
               ),
             ),
+            if (hasNotification)
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                margin: EdgeInsets.only(right: 8),
+              ),
             Icon(Icons.chevron_right, color: Colors.grey[600], size: 20),
           ],
         ),
@@ -139,6 +291,34 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
     );
   }
 
+  void _handleAccept(String invitationId) {
+    setState(() {
+      invitations.removeWhere((invitation) => invitation.id == invitationId);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Invitation accepted'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleIgnore(String invitationId) {
+    setState(() {
+      invitations.removeWhere((invitation) => invitation.id == invitationId);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Invitation ignored'),
+        backgroundColor: Colors.grey[600],
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _showMessageOptions() {
     showModalBottomSheet(
       context: context,
@@ -159,6 +339,170 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class InvitationCard extends StatelessWidget {
+  final InvitationRequest invitation;
+  final VoidCallback onAccept;
+  final VoidCallback onIgnore;
+
+  const InvitationCard({
+    Key? key,
+    required this.invitation,
+    required this.onAccept,
+    required this.onIgnore,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 2,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Profile Image
+              CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage(invitation.profileImage),
+                backgroundColor: Colors.grey[300],
+              ),
+              SizedBox(width: 12),
+              // User Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            invitation.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          invitation.timeAgo,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      invitation.title,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(Icons.people, size: 16, color: Colors.grey[500]),
+                        SizedBox(width: 4),
+                        Text(
+                          '${invitation.mutualConnections} mutual connections',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          // Message (if exists)
+          if (invitation.message != null) ...[
+            SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Color(0xFFF3F2EF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                invitation.message!,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[700],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
+          ],
+          SizedBox(height: 16),
+          // Action Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onIgnore,
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey[400]!),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  child: Text(
+                    'Ignore',
+                    style: TextStyle(
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: onAccept,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF0A66C2),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 10),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    'Accept',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -197,7 +541,7 @@ class SponsorCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     image: DecorationImage(
-                      image: AssetImage(sponsor.imagePath),
+                      image: NetworkImage(sponsor.imagePath),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -238,7 +582,7 @@ class SponsorCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: DecorationImage(
-                          image: AssetImage(sponsor.companyLogo),
+                          image: NetworkImage(sponsor.companyLogo),
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -305,6 +649,26 @@ class SponsorCard extends StatelessWidget {
   }
 }
 
+class InvitationRequest {
+  final String id;
+  final String profileImage;
+  final String name;
+  final String title;
+  final int mutualConnections;
+  final String timeAgo;
+  final String? message;
+
+  InvitationRequest({
+    required this.id,
+    required this.profileImage,
+    required this.name,
+    required this.title,
+    required this.mutualConnections,
+    required this.timeAgo,
+    this.message,
+  });
+}
+
 class Sponsor {
   final String name;
   final String title;
@@ -327,28 +691,36 @@ List<Sponsor> sponsors = [
     name: 'Veronica Symo...',
     title: 'Scout in Company',
     company: 'Lomonosov Moscow State',
-    imagePath: 'assets/images/veronica.jpg',
-    companyLogo: 'assets/images/moscow_logo.png',
+    imagePath:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=50&h=50&fit=crop',
   ),
   Sponsor(
     name: 'Alexey Makovs...',
     title: 'Private Sponsor',
     company: 'LIVERPOOL Moscow State',
-    imagePath: 'assets/images/alexey.jpg',
-    companyLogo: 'assets/images/liverpool_logo.png',
+    imagePath:
+        'https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50&h=50&fit=crop',
   ),
   Sponsor(
     name: 'Michael Riley',
     title: 'Company Sponsor',
     company: 'Tech Corp',
-    imagePath: 'assets/images/michael.jpg',
-    companyLogo: 'assets/images/tech_logo.png',
+    imagePath:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1560472355-536de3962603?w=50&h=50&fit=crop',
   ),
   Sponsor(
     name: 'Daniel Jenkins',
     title: 'company sponsor',
     company: 'Sports Academy',
-    imagePath: 'assets/images/daniel.jpg',
-    companyLogo: 'assets/images/sports_logo.png',
+    imagePath:
+        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=50&h=50&fit=crop',
   ),
 ];
