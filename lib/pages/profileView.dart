@@ -305,6 +305,7 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/ConnectionService.dart';
+import 'package:sport_ignite/model/MessagingService.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
@@ -660,7 +661,12 @@ class _ProfileViewState extends State<ProfileView>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
-          onTap: () {},
+          onTap: () {
+            MessagingService.startNewChat(
+              context,
+              widget.uid!,
+            );
+          },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Row(

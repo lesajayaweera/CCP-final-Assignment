@@ -694,11 +694,11 @@ class MessagesList extends StatelessWidget {
               index: index,
               onTap: () {
                 HapticFeedback.lightImpact();
-                Navigator.push(context,
-                  MaterialPageRoute(
-                    builder: (context) => ChatScreen(), // Replace with actual chat screen
-                  ),
-                );
+                // Navigator.push(context,
+                //   MaterialPageRoute(
+                //     builder: (context) => ChatScreen(), // Replace with actual chat screen
+                //   ),
+                // );
               },
             ),
           );

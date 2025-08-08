@@ -1,7 +1,5 @@
 // import 'package:flutter/material.dart';
 
-
-
 // class Message {
 //   final String text;
 //   final String time;
@@ -322,8 +320,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
-
 class Message {
   final String text;
   final String time;
@@ -343,6 +339,16 @@ class Message {
 }
 
 class ChatScreen extends StatefulWidget {
+  final String chatId;
+  final String currentID;
+  final String targetID;
+
+  ChatScreen({
+    Key? key,
+    required this.chatId,
+    required this.currentID,
+    required this.targetID,
+  }) : super(key: key);
   @override
   _ChatScreenState createState() => _ChatScreenState();
 }
@@ -356,31 +362,24 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
 
   List<Message> messages = [
     Message(
-      text: "Guess I'll go get something to eat at Speedy Chow, I'm just around the corner from your place 😊",
+      text:
+          "Guess I'll go get something to eat at Speedy Chow, I'm just around the corner from your place 😊",
       time: "16:09",
       isSent: false,
     ),
-    Message(
-      text: "Hi!",
-      time: "16:10",
-      isSent: true,
-    ),
+    Message(text: "Hi!", time: "16:10", isSent: true),
     Message(
       text: "Awesome thanks for letting me know! Can't wait for my delivery 😊",
       time: "16:11",
       isSent: true,
     ),
     Message(
-      text: "No problem at all! I'll be there in about 15 minutes.\n\nI'll text you when I arrive.",
+      text:
+          "No problem at all! I'll be there in about 15 minutes.\n\nI'll text you when I arrive.",
       time: "16:12",
-      isSent: false,
-    ),
-    Message(
-      text: "Great! 😊",
-      time: "16:15",
       isSent: true,
-      hasEmoji: true,
     ),
+    Message(text: "Great! 😊", time: "16:15", isSent: true, hasEmoji: true),
   ];
 
   @override
@@ -434,8 +433,14 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                icon: Icon(Icons.arrow_back_ios, color: Colors.black87, size: 20),
-                onPressed: () {},
+                icon: Icon(
+                  Icons.arrow_back_ios,
+                  color: Colors.black87,
+                  size: 20,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
               ),
             ),
             title: Row(
@@ -494,7 +499,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       Text(
                         _isTyping ? 'typing...' : 'Active now',
                         style: TextStyle(
-                          color: _isTyping ? Color(0xFF007AFF) : Colors.grey[600],
+                          color: _isTyping
+                              ? Color(0xFF007AFF)
+                              : Colors.grey[600],
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
@@ -504,12 +511,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            actions: [
-              _buildActionButton(Icons.videocam_rounded),
-              _buildActionButton(Icons.call_rounded),
-              _buildActionButton(Icons.more_vert_rounded),
-              SizedBox(width: 8),
-            ],
+            
           ),
         ),
       ),
@@ -524,17 +526,20 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   return SlideTransition(
-                    position: Tween<Offset>(
-                      begin: Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _fadeController,
-                      curve: Interval(
-                        (index * 0.1).clamp(0.0, 1.0),
-                        ((index * 0.1) + 0.3).clamp(0.0, 1.0),
-                        curve: Curves.easeOutCubic,
-                      ),
-                    )),
+                    position:
+                        Tween<Offset>(
+                          begin: Offset(0, 0.3),
+                          end: Offset.zero,
+                        ).animate(
+                          CurvedAnimation(
+                            parent: _fadeController,
+                            curve: Interval(
+                              (index * 0.1).clamp(0.0, 1.0),
+                              ((index * 0.1) + 0.3).clamp(0.0, 1.0),
+                              curve: Curves.easeOutCubic,
+                            ),
+                          ),
+                        ),
                     child: MessageBubble(message: messages[index]),
                   );
                 },
@@ -582,7 +587,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                icon: Icon(Icons.add_rounded, color: Color(0xFF007AFF), size: 24),
+                icon: Icon(
+                  Icons.add_rounded,
+                  color: Color(0xFF007AFF),
+                  size: 24,
+                ),
                 onPressed: () {
                   HapticFeedback.lightImpact();
                 },
@@ -594,10 +603,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   color: Color(0xFFF5F5F5),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(
-                    color: Colors.transparent,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: Colors.transparent, width: 1.5),
                 ),
                 child: TextField(
                   controller: _messageController,
@@ -614,12 +620,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       fontWeight: FontWeight.w400,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
                   ),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
                   maxLines: 4,
                   minLines: 1,
                 ),
@@ -632,8 +638,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               onTapCancel: () => _scaleController.reverse(),
               onTap: _sendMessage,
               child: ScaleTransition(
-                scale: Tween<double>(begin: 1.0, end: 0.95)
-                    .animate(_scaleController),
+                scale: Tween<double>(
+                  begin: 1.0,
+                  end: 0.95,
+                ).animate(_scaleController),
                 child: Container(
                   width: 44,
                   height: 44,
