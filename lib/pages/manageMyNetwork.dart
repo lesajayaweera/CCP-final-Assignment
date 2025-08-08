@@ -59,6 +59,48 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
     ),
   ];
 
+
+  // Sample data
+List<SponsorCardDetails> sponsors = [
+  SponsorCardDetails(
+    name: 'Veronica Symo...',
+    title: 'Scout in Company',
+    company: 'Lomonosov Moscow State',
+    imagePath:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=50&h=50&fit=crop',
+  ),
+  SponsorCardDetails(
+    name: 'Alexey Makovs...',
+    title: 'Private Sponsor',
+    company: 'LIVERPOOL Moscow State',
+    imagePath:
+        'https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50&h=50&fit=crop',
+  ),
+  SponsorCardDetails(
+    name: 'Michael Riley',
+    title: 'Company Sponsor',
+    company: 'Tech Corp',
+    imagePath:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1560472355-536de3962603?w=50&h=50&fit=crop',
+  ),
+  SponsorCardDetails(
+    name: 'Daniel Jenkins',
+    title: 'company sponsor',
+    company: 'Sports Academy',
+    imagePath:
+        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face',
+    companyLogo:
+        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=50&h=50&fit=crop',
+  ),
+];
+
+
   @override
   Widget build(BuildContext context) {
     if (currentView == 'invitations') {
@@ -82,17 +124,11 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
               ),
               const Divider(height: 1),
               _buildNavOption(
-                title: 'Invitation (${invitations.length})',
+                title: 'Invitation requests ',
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => InvitationsScreen(
-                        invitations: invitations,
-                        onAccept: _handleAccept,
-                        onIgnore: _handleIgnore,
-                      ),
-                    ),
+                    MaterialPageRoute(builder: (context)=> InvitationsScreen(onAccept: _handleAccept, onIgnore: _handleIgnore)),
                   );
                 },
                 hasNotification: invitations.isNotEmpty,
@@ -270,7 +306,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
     );
   }
 
-  void _connectWithSponsor(Sponsor sponsor) {
+  void _connectWithSponsor(SponsorCardDetails sponsor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Connected with ${sponsor.name}'),
@@ -344,172 +380,9 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
   }
 }
 
-class InvitationCard extends StatelessWidget {
-  final InvitationRequest invitation;
-  final VoidCallback onAccept;
-  final VoidCallback onIgnore;
-
-  const InvitationCard({
-    Key? key,
-    required this.invitation,
-    required this.onAccept,
-    required this.onIgnore,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 2,
-            offset: Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Profile Image
-              CircleAvatar(
-                radius: 30,
-                backgroundImage: NetworkImage(invitation.profileImage),
-                backgroundColor: Colors.grey[300],
-              ),
-              SizedBox(width: 12),
-              // User Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            invitation.name,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Text(
-                          invitation.timeAgo,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      invitation.title,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[700]),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Icon(Icons.people, size: 16, color: Colors.grey[500]),
-                        SizedBox(width: 4),
-                        Text(
-                          '${invitation.mutualConnections} mutual connections',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          // Message (if exists)
-          if (invitation.message != null) ...[
-            SizedBox(height: 12),
-            Container(
-              padding: EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Color(0xFFF3F2EF),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                invitation.message!,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[700],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          ],
-          SizedBox(height: 16),
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onIgnore,
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey[400]!),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  child: Text(
-                    'Ignore',
-                    style: TextStyle(
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: onAccept,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF0A66C2),
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 10),
-                    elevation: 0,
-                  ),
-                  child: Text(
-                    'Accept',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class SponsorCard extends StatelessWidget {
-  final Sponsor sponsor;
+  final SponsorCardDetails sponsor;
   final VoidCallback onConnect;
   final VoidCallback onDismiss;
 
@@ -649,34 +522,15 @@ class SponsorCard extends StatelessWidget {
   }
 }
 
-class InvitationRequest {
-  final String id;
-  final String profileImage;
-  final String name;
-  final String title;
-  final int mutualConnections;
-  final String timeAgo;
-  final String? message;
 
-  InvitationRequest({
-    required this.id,
-    required this.profileImage,
-    required this.name,
-    required this.title,
-    required this.mutualConnections,
-    required this.timeAgo,
-    this.message,
-  });
-}
-
-class Sponsor {
+class SponsorCardDetails {
   final String name;
   final String title;
   final String company;
   final String imagePath;
   final String companyLogo;
 
-  Sponsor({
+  SponsorCardDetails({
     required this.name,
     required this.title,
     required this.company,
@@ -685,42 +539,3 @@ class Sponsor {
   });
 }
 
-// Sample data
-List<Sponsor> sponsors = [
-  Sponsor(
-    name: 'Veronica Symo...',
-    title: 'Scout in Company',
-    company: 'Lomonosov Moscow State',
-    imagePath:
-        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face',
-    companyLogo:
-        'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=50&h=50&fit=crop',
-  ),
-  Sponsor(
-    name: 'Alexey Makovs...',
-    title: 'Private Sponsor',
-    company: 'LIVERPOOL Moscow State',
-    imagePath:
-        'https://images.unsplash.com/photo-1566492031773-4f4e44671d66?w=150&h=150&fit=crop&crop=face',
-    companyLogo:
-        'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50&h=50&fit=crop',
-  ),
-  Sponsor(
-    name: 'Michael Riley',
-    title: 'Company Sponsor',
-    company: 'Tech Corp',
-    imagePath:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face',
-    companyLogo:
-        'https://images.unsplash.com/photo-1560472355-536de3962603?w=50&h=50&fit=crop',
-  ),
-  Sponsor(
-    name: 'Daniel Jenkins',
-    title: 'company sponsor',
-    company: 'Sports Academy',
-    imagePath:
-        'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face',
-    companyLogo:
-        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=50&h=50&fit=crop',
-  ),
-];
