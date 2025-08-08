@@ -743,7 +743,7 @@ class _ProfileViewState extends State<ProfileView>
     if (userData == null || userStats == null) {
       return Center(
         child: Text(
-          'Failed to load stats',
+          'No stats available about this user',
           style: TextStyle(color: Colors.grey.shade600),
         ),
       );

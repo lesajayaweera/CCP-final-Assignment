@@ -18,6 +18,8 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
   List<InvitationRequest> invitations = [
     InvitationRequest(
       id: '1',
+      uid: '1',
+      role: 'Athlete',
       profileImage:
           'https://images.unsplash.com/photo-1494790108755-2616b332c5cd?w=150&h=150&fit=crop&crop=face',
       name: 'Sarah Johnson',
@@ -27,7 +29,9 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
       message: 'I\'d love to connect with you!',
     ),
     InvitationRequest(
-      id: '2',
+      id: '1',
+      uid: '1',
+      role: 'Athlete',
       profileImage:
           'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face',
       name: 'Michael Chen',
@@ -37,7 +41,9 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
       message: 'Let\'s connect and share insights about product development.',
     ),
     InvitationRequest(
-      id: '3',
+      id: '1',
+      uid: '1',
+      role: 'Athlete',
       profileImage:
           'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
       name: 'Emily Rodriguez',
@@ -47,7 +53,9 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen> {
       message: null,
     ),
     InvitationRequest(
-      id: '4',
+      id: '1',
+      uid: '1',
+      role: 'Athlete',
       profileImage:
           'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face',
       name: 'David Kumar',
@@ -103,9 +111,6 @@ List<SponsorCardDetails> sponsors = [
 
   @override
   Widget build(BuildContext context) {
-    if (currentView == 'invitations') {
-      return _buildInvitationsView();
-    }
 
     return _buildNetworkView();
   }
@@ -128,7 +133,7 @@ List<SponsorCardDetails> sponsors = [
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context)=> InvitationsScreen(onAccept: _handleAccept, onIgnore: _handleIgnore)),
+                    MaterialPageRoute(builder: (context)=> InvitationsScreen()),
                   );
                 },
                 hasNotification: invitations.isNotEmpty,
@@ -188,77 +193,7 @@ List<SponsorCardDetails> sponsors = [
     );
   }
 
-  Widget _buildInvitationsView() {
-    return Scaffold(
-      backgroundColor: Color(0xFFF3F2EF),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        title: Text(
-          'Manage invitations',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => setState(() => currentView = 'network'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Handle "See all" action
-            },
-            child: Text(
-              'See all',
-              style: TextStyle(
-                color: Color(0xFF0A66C2),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-      body: invitations.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.people_outline, size: 80, color: Colors.grey[400]),
-                  SizedBox(height: 16),
-                  Text(
-                    'No pending invitations',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'When people send you invitations to connect,\nthey\'ll appear here.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: EdgeInsets.all(16),
-              itemCount: invitations.length,
-              itemBuilder: (context, index) {
-                return InvitationCard(
-                  invitation: invitations[index],
-                  onAccept: () => _handleAccept(invitations[index].id),
-                  onIgnore: () => _handleIgnore(invitations[index].id),
-                );
-              },
-            ),
-    );
-  }
-
+  
   Widget _buildNavOption({
     required String title,
     required VoidCallback onTap,
@@ -327,33 +262,7 @@ List<SponsorCardDetails> sponsors = [
     );
   }
 
-  void _handleAccept(String invitationId) {
-    setState(() {
-      invitations.removeWhere((invitation) => invitation.id == invitationId);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Invitation accepted'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _handleIgnore(String invitationId) {
-    setState(() {
-      invitations.removeWhere((invitation) => invitation.id == invitationId);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Invitation ignored'),
-        backgroundColor: Colors.grey[600],
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
+  
 
   void _showMessageOptions() {
     showModalBottomSheet(

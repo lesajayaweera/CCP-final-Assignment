@@ -16,6 +16,8 @@ class Athlete {
   late String institute;
   late String gender;
 
+  late String fullName;
+
   late File? profile;
   late String name;
   late String email;
@@ -40,6 +42,7 @@ class Athlete {
     this.institute,
     this.gender,
     this.profile,
+    this.fullName
   );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -115,6 +118,7 @@ class Athlete {
         "email": email,
         "role": role,
         "tel": tel,
+        "fullName": fullName,
 
         "province": province,
         "city": city,

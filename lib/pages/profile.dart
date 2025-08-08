@@ -2129,7 +2129,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Dashboard(role: widget.role, initialIndex: 2),
+                              builder: (context) => Dashboard(role: widget.role, initialIndex: 1),
                             ),
                           );
                         },
@@ -2262,7 +2262,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     if (userData == null || userStats == null) {
       return Center(
         child: Text(
-          'Failed to load stats',
+          'We couldn\'t find your stats',
           style: TextStyle(color: Colors.grey.shade600),
         ),
       );
@@ -2312,8 +2312,8 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Assists'].toString() ?? '-', 
-          'Assists', 
+          userStats?['GamesPlayed'].toString() ?? '-', 
+          'Games Played', 
           Icons.handshake, 
           Colors.blue
         ),
@@ -2328,22 +2328,22 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     }else if (sport == 'Football') {
       statsWidgets = [
         _buildStatItem(
-          userStats?['MinutesPlayed'].toString() ?? '-', 
-          'Minutes Played', 
+          userStats?['FoulsSuffered'].toString() ?? '-', 
+          'Goals Saved', 
           Icons.sports_soccer, 
           Colors.orange
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['PassAccuracy'].toString() ?? '-', 
-          'Pass Accuracy', 
+          userStats?['Assists'].toString() ?? '-', 
+          'Assists', 
           Icons.handshake, 
           Colors.blue
         ),
         _buildVerticalDivider(),
         _buildStatItem(
           userStats?['Goals'].toString() ?? '-', 
-          'Goals', 
+          'Goals Scored', 
           Icons.sports, 
           Colors.green
         ),

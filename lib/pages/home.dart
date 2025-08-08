@@ -105,6 +105,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen> {
 }
 
 // Main Post Widget - Reusable
+// ignore: must_be_immutable
 class SocialPost extends StatelessWidget {
   final String userName;
   final String userRole;

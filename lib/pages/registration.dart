@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/Sponsor.dart';
 
+// need to add the athletes 's full name
 class Registration extends StatefulWidget {
   const Registration({super.key});
 
@@ -47,6 +48,9 @@ class _RegistrationState extends State<Registration> {
       TextEditingController(); // password
   final TextEditingController _teleController =
       TextEditingController(); // telephone number
+
+  final TextEditingController _fullNameController =
+      TextEditingController(); // full name
 
   bool _isPasswordVisible = false;
   int _currentStep = 0;
@@ -113,6 +117,7 @@ class _RegistrationState extends State<Registration> {
           _selectedOrganization!,
           _slectedGender!,
           profileImage,
+          _fullNameController.text.trim(),
         );
 
         athlete.Register(context);
@@ -166,7 +171,7 @@ class _RegistrationState extends State<Registration> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                     Image.asset('asset/image/Logo.png', width: 100),
+                    Image.asset('asset/image/Logo.png', width: 100),
                     const SizedBox(height: 8),
                     Text(
                       "Sign Up",
@@ -357,8 +362,7 @@ class _RegistrationState extends State<Registration> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your Name';
-              }
-              else if (value.length < 3) {
+              } else if (value.length < 3) {
                 return 'Name must be at least 3 characters';
               }
               return null;
@@ -396,8 +400,7 @@ class _RegistrationState extends State<Registration> {
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Please enter your City';
-              }
-              else if (value.length < 2) {
+              } else if (value.length < 2) {
                 return 'City must be at least 2 characters';
               }
               return null;
@@ -427,8 +430,7 @@ class _RegistrationState extends State<Registration> {
                   return 'Date of Birth cannot be in the future';
                 }
               }
-              if (selectedDate != null &&
-                  selectedDate!.year < 1900) {
+              if (selectedDate != null && selectedDate!.year < 1900) {
                 return 'Date of Birth cannot be before 1900';
               }
               return null;
@@ -489,7 +491,6 @@ class _RegistrationState extends State<Registration> {
 
               return null;
             },
-
           ),
           height(16),
           TextFormField(
@@ -502,7 +503,7 @@ class _RegistrationState extends State<Registration> {
               if (value == null || value.isEmpty) {
                 return 'Enter your experience';
               }
-              
+
               if (value.length < 2) {
                 return 'Experience must be at least 2 digits';
               }
@@ -517,6 +518,32 @@ class _RegistrationState extends State<Registration> {
               return null;
             },
           ),
+
+          TextFormField(
+            controller: _fullNameController,
+            decoration: const InputDecoration(
+              labelText: 'Full Name',
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Enter your full name';
+              }
+
+              if (value.trim().length < 2) {
+                return 'Full name must be at least 2 characters';
+              }
+
+              // Allow letters, spaces, periods, and ampersands
+              final nameRegExp = RegExp(r"^[a-zA-Z\s.&]+$");
+              if (!nameRegExp.hasMatch(value)) {
+                return 'Full name can only contain letters, spaces, ".", and "&"';
+              }
+
+              return null;
+            },
+          ),
+
           height(16),
           DropdownButtonFormField<String>(
             value: _selectedOrganization,

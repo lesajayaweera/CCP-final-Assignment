@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/pages/profileView.dart';
 
 class InvitationsScreen extends StatelessWidget {
-  final Function(String) onAccept;
-  final Function(String) onIgnore;
+
 
   const InvitationsScreen({
     Key? key,
-    required this.onAccept,
-    required this.onIgnore,
+
   }) : super(key: key);
 
   @override
@@ -68,10 +67,14 @@ class InvitationsScreen extends StatelessWidget {
                 itemCount: invitations.length,
                 itemBuilder: (context, index) {
                   final invitation = invitations[index];
-                  return InvitationCard(
-                    invitation: invitation,
-                    onAccept: () => onAccept(invitation.id),
-                    onIgnore: () => onIgnore(invitation.id),
+                  return GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileView(role: invitation.role,
+        uid: invitation.uid,)));
+                    },
+                    child: InvitationCard(
+                      invitation: invitation,
+                    ),
                   );
                 },
               );
@@ -109,54 +112,60 @@ class InvitationsScreen extends StatelessWidget {
   }
 
   Future<List<InvitationRequest>> _enrichInvitations(
-    List<QueryDocumentSnapshot> docs,
-  ) async {
-    List<Future<InvitationRequest>> futures = docs.map((doc) async {
-      final data = doc.data() as Map<String, dynamic>;
-      final senderUID = data['senderUID'];
-      final timestamp = data['timestamp'] as Timestamp;
+  List<QueryDocumentSnapshot> docs,
+) async {
+  List<Future<InvitationRequest>> futures = docs.map((doc) async {
+    final data = doc.data() as Map<String, dynamic>;
+    final senderUID = data['senderUID'];
+    final timestamp = data['timestamp'] as Timestamp;
 
-      // Try sponsor
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('sponsor')
+    DocumentSnapshot userDoc = await FirebaseFirestore.instance
+        .collection('sponsor')
+        .doc(senderUID)
+        .get();
+
+    String name = "";
+    String title = "";
+    String profileImage = "";
+    String role = "";
+
+    if (userDoc.exists) {
+      final user = userDoc.data() as Map<String, dynamic>;
+      name = user['name'];
+      title = '${user['sportIntrested']} Sponsor';
+      profileImage = user['profile'];
+      role = "sponsor";
+    } else {
+      userDoc = await FirebaseFirestore.instance
+          .collection('athlete')
           .doc(senderUID)
           .get();
-      String name = "";
-      String title = "";
-      String profileImage = "";
 
       if (userDoc.exists) {
         final user = userDoc.data() as Map<String, dynamic>;
         name = user['name'];
-        title = '${user['sportIntrested']} Sponsor';
+        title = '${user['sport']} Athlete';
         profileImage = user['profile'];
-      } else {
-        // Try athlete
-        userDoc = await FirebaseFirestore.instance
-            .collection('athlete')
-            .doc(senderUID)
-            .get();
-        if (userDoc.exists) {
-          final user = userDoc.data() as Map<String, dynamic>;
-          name = user['name'];
-          title = '${user['sport']} Athlete';
-          profileImage = user['profile'];
-        }
+        role = "athlete";
       }
+    }
 
-      return InvitationRequest(
-        id: doc.id,
-        profileImage: profileImage,
-        name: name,
-        title: title,
-        mutualConnections: 0,
-        timeAgo: _formatTimestamp(timestamp),
-        message: null,
-      );
-    }).toList();
+    return InvitationRequest(
+      id: doc.id,
+      uid: senderUID,
+      role: role,
+      profileImage: profileImage,
+      name: name,
+      title: title,
+      mutualConnections: 0,
+      timeAgo: _formatTimestamp(timestamp),
+      message: null,
+    );
+  }).toList();
 
-    return Future.wait(futures);
-  }
+  return Future.wait(futures);
+}
+
 
   String _formatTimestamp(Timestamp timestamp) {
     final now = DateTime.now();
@@ -172,6 +181,8 @@ class InvitationsScreen extends StatelessWidget {
 class InvitationRequest {
   final String id;
   final String profileImage;
+  final String uid; // <-- Add this
+  final String role; 
   final String name;
   final String title;
   final int mutualConnections;
@@ -180,6 +191,8 @@ class InvitationRequest {
 
   InvitationRequest({
     required this.id,
+    required this.uid, 
+    required this.role,
     required this.profileImage,
     required this.name,
     required this.title,
@@ -191,14 +204,11 @@ class InvitationRequest {
 
 class InvitationCard extends StatelessWidget {
   final InvitationRequest invitation;
-  final VoidCallback onAccept;
-  final VoidCallback onIgnore;
+  
 
   const InvitationCard({
     Key? key,
     required this.invitation,
-    required this.onAccept,
-    required this.onIgnore,
   }) : super(key: key);
 
   @override
@@ -305,7 +315,7 @@ class InvitationCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: onIgnore,
+                  onPressed: (){},
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey[400]!),
                     shape: RoundedRectangleBorder(
@@ -325,7 +335,7 @@ class InvitationCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: onAccept,
+                  onPressed: (){},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0A66C2),
                     foregroundColor: Colors.white,
