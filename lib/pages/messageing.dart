@@ -382,6 +382,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sport_ignite/pages/chatScreen.dart';
 
 // Data model for messages
 class MessageData {
@@ -693,7 +694,11 @@ class MessagesList extends StatelessWidget {
               index: index,
               onTap: () {
                 HapticFeedback.lightImpact();
-                print('Tapped on ${filteredMessages[index].name}');
+                Navigator.push(context,
+                  MaterialPageRoute(
+                    builder: (context) => ChatScreen(), // Replace with actual chat screen
+                  ),
+                );
               },
             ),
           );

@@ -309,7 +309,6 @@ import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
 
-
 class ProfileView extends StatefulWidget {
   final String role;
   final String? uid;
@@ -341,21 +340,13 @@ class _ProfileViewState extends State<ProfileView>
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
-    
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
     loadUserData();
     _animationController.forward();
     _fadeController.forward();
@@ -465,7 +456,7 @@ class _ProfileViewState extends State<ProfileView>
               ],
             ),
           ),
-          
+
           // Profile Picture with enhanced styling
           Positioned(
             bottom: 20,
@@ -477,10 +468,7 @@ class _ProfileViewState extends State<ProfileView>
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
-                    colors: [
-                      Colors.blue.shade400,
-                      Colors.purple.shade400,
-                    ],
+                    colors: [Colors.blue.shade400, Colors.purple.shade400],
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -496,7 +484,8 @@ class _ProfileViewState extends State<ProfileView>
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     shape: BoxShape.circle,
-                    image: userData?['profile'] != null &&
+                    image:
+                        userData?['profile'] != null &&
                             userData!['profile'].toString().isNotEmpty
                         ? DecorationImage(
                             fit: BoxFit.cover,
@@ -504,7 +493,8 @@ class _ProfileViewState extends State<ProfileView>
                           )
                         : null,
                   ),
-                  child: userData?['profile'] == null ||
+                  child:
+                      userData?['profile'] == null ||
                           userData!['profile'].toString().isEmpty
                       ? const Icon(
                           Icons.person,
@@ -516,9 +506,8 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
-          
+
           // Online Status Indicator
-          
         ],
       ),
     );
@@ -535,16 +524,16 @@ class _ProfileViewState extends State<ProfileView>
             Text(
               userData?['name'] ?? "Guest",
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: widget.role == 'Sponsor' 
-                    ? Colors.orange.shade100 
+                color: widget.role == 'Sponsor'
+                    ? Colors.orange.shade100
                     : Colors.blue.shade100,
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -553,8 +542,8 @@ class _ProfileViewState extends State<ProfileView>
                     ? "${userData?['company']} - ${userData?['role']}"
                     : userData?['sport'] ?? '',
                 style: TextStyle(
-                  color: widget.role == 'Sponsor' 
-                      ? Colors.orange.shade700 
+                  color: widget.role == 'Sponsor'
+                      ? Colors.orange.shade700
                       : Colors.blue.shade700,
                   fontWeight: FontWeight.w600,
                 ),
@@ -563,28 +552,20 @@ class _ProfileViewState extends State<ProfileView>
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.location_on, 
-                     color: Colors.grey.shade600, size: 16),
+                Icon(Icons.location_on, color: Colors.grey.shade600, size: 16),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     "${userData?['city'] ?? 'City'}, ${userData?['province'] ?? 'Province'}, Sri Lanka",
-                    style: TextStyle(
-                      color: Colors.grey.shade700,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildConnectButton(),
-                _buildMesageButton(),
-              ],
-            ),
+            _buildConnectButton(),
+            const SizedBox(height: 10),
+            _buildMesageButton(),
           ],
         ),
       ),
@@ -596,24 +577,26 @@ class _ProfileViewState extends State<ProfileView>
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _isConnecting ? null : () async {
-          setState(() {
-            _isConnecting = true;
-          });
-          
-          try {
-            await ConnectionService.sendConnectionRequestUsingUID(
-              context,
-              widget.uid!,
-            );
-          } finally {
-            if (mounted) {
-              setState(() {
-                _isConnecting = false;
-              });
-            }
-          }
-        },
+        onPressed: _isConnecting
+            ? null
+            : () async {
+                setState(() {
+                  _isConnecting = true;
+                });
+
+                try {
+                  await ConnectionService.sendConnectionRequestUsingUID(
+                    context,
+                    widget.uid!,
+                  );
+                } finally {
+                  if (mounted) {
+                    setState(() {
+                      _isConnecting = false;
+                    });
+                  }
+                }
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue.shade600,
           foregroundColor: Colors.white,
@@ -639,55 +622,76 @@ class _ProfileViewState extends State<ProfileView>
                   SizedBox(width: 8),
                   Text(
                     "Connect",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
       ),
     );
   }
+
   Widget _buildMesageButton() {
     return Container(
       width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed:(){},
-
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue.shade600,
-          foregroundColor: Colors.white,
-          elevation: 8,
-          shadowColor: Colors.blue.withOpacity(0.3),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+      height: 56,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        gradient: LinearGradient(
+          colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0xFF667eea).withOpacity(0.4),
+            spreadRadius: 0,
+            blurRadius: 20,
+            offset: Offset(0, 8),
+          ),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(28),
+          onTap: () {},
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.message_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  "Message",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: _isConnecting
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.person_add),
-                  SizedBox(width: 8),
-                  Text(
-                    "Message",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
@@ -713,7 +717,9 @@ class _ProfileViewState extends State<ProfileView>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.role == 'Sponsor' ? 'Sponsorship Stats' : 'Performance Stats',
+              widget.role == 'Sponsor'
+                  ? 'Sponsorship Stats'
+                  : 'Performance Stats',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -733,7 +739,12 @@ class _ProfileViewState extends State<ProfileView>
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _buildStatItem('Rs.0.00', 'Total Sponsored', Icons.monetization_on, Colors.green),
+          _buildStatItem(
+            'Rs.0.00',
+            'Total Sponsored',
+            Icons.monetization_on,
+            Colors.green,
+          ),
           _buildVerticalDivider(),
           _buildStatItem('0', 'Total Athletes', Icons.group, Colors.blue),
         ],
@@ -755,77 +766,77 @@ class _ProfileViewState extends State<ProfileView>
     if (sport == 'Cricket') {
       statsWidgets = [
         _buildStatItem(
-          userStats?['Runs'].toString() ?? '-', 
-          'Total Runs', 
-          Icons.sports_cricket, 
-          Colors.orange
+          userStats?['Runs'].toString() ?? '-',
+          'Total Runs',
+          Icons.sports_cricket,
+          Colors.orange,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['MatchesPlayed'].toString() ?? '-', 
-          'Matches', 
-          Icons.sports, 
-          Colors.blue
+          userStats?['MatchesPlayed'].toString() ?? '-',
+          'Matches',
+          Icons.sports,
+          Colors.blue,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Hundreds'].toString() ?? '-', 
-          '100s', 
-          Icons.star, 
-          Colors.amber
+          userStats?['Hundreds'].toString() ?? '-',
+          '100s',
+          Icons.star,
+          Colors.amber,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Fifties'].toString() ?? '-', 
-          '100s', 
-          Icons.star, 
-          Colors.amber
+          userStats?['Fifties'].toString() ?? '-',
+          '100s',
+          Icons.star,
+          Colors.amber,
         ),
       ];
     } else if (sport == 'Basketball') {
       statsWidgets = [
         _buildStatItem(
-          userStats?['Points'].toString() ?? '-', 
-          'Points', 
-          Icons.sports_basketball, 
-          Colors.orange
+          userStats?['Points'].toString() ?? '-',
+          'Points',
+          Icons.sports_basketball,
+          Colors.orange,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Assists'].toString() ?? '-', 
-          'Assists', 
-          Icons.handshake, 
-          Colors.blue
+          userStats?['Assists'].toString() ?? '-',
+          'Assists',
+          Icons.handshake,
+          Colors.blue,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Rebounds'].toString() ?? '-', 
-          'Rebounds', 
-          Icons.replay, 
-          Colors.green
+          userStats?['Rebounds'].toString() ?? '-',
+          'Rebounds',
+          Icons.replay,
+          Colors.green,
         ),
       ];
-    }else if (sport == 'Football') {
+    } else if (sport == 'Football') {
       statsWidgets = [
         _buildStatItem(
-          userStats?['MinutesPlayed'].toString() ?? '-', 
-          'Minutes Played', 
-          Icons.sports_soccer, 
-          Colors.orange
+          userStats?['MinutesPlayed'].toString() ?? '-',
+          'Minutes Played',
+          Icons.sports_soccer,
+          Colors.orange,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['PassAccuracy'].toString() ?? '-', 
-          'Pass Accuracy', 
-          Icons.handshake, 
-          Colors.blue
+          userStats?['PassAccuracy'].toString() ?? '-',
+          'Pass Accuracy',
+          Icons.handshake,
+          Colors.blue,
         ),
         _buildVerticalDivider(),
         _buildStatItem(
-          userStats?['Goals'].toString() ?? '-', 
-          'Goals', 
-          Icons.sports, 
-          Colors.green
+          userStats?['Goals'].toString() ?? '-',
+          'Goals',
+          Icons.sports,
+          Colors.green,
         ),
       ];
     } else {
@@ -843,7 +854,12 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Widget _buildStatItem(String value, String label, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String value,
+    String label,
+    IconData icon,
+    Color color,
+  ) {
     return Expanded(
       child: Column(
         children: [
@@ -866,10 +882,7 @@ class _ProfileViewState extends State<ProfileView>
           ),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -888,7 +901,7 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildCertificatesSection() {
     if (widget.role == 'Sponsor') return const SizedBox.shrink();
-    
+
     return FadeTransition(
       opacity: _fadeAnimation,
       child: Container(
@@ -896,7 +909,6 @@ class _ProfileViewState extends State<ProfileView>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-           
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
