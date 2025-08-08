@@ -15,9 +15,7 @@ class ConnectionService {
     final String senderUID = FirebaseAuth.instance.currentUser?.uid ?? '';
 
     if (senderUID.isNotEmpty && receiverUID.isNotEmpty) {
-
       if (await hasSentRequest(senderUID, receiverUID) == false) {
-       
         await _firestore.collection('connection_requests').add({
           'senderUID': senderUID,
           'receiverUID': receiverUID,
@@ -36,14 +34,28 @@ class ConnectionService {
 
   /// Check if a connection request has been sent (pending)
   static Future<bool> hasSentRequest(String myUid, String toUid) async {
-  final querySnapshot = await _firestore
-      .collection('connection_requests')
-      .where('senderUID', isEqualTo: myUid)
-      .where('receiverUID', isEqualTo: toUid)
-      .limit(1)
-      .get();
+    final querySnapshot = await _firestore
+        .collection('connection_requests')
+        .where('senderUID', isEqualTo: myUid)
+        .where('receiverUID', isEqualTo: toUid)
+        .limit(1)
+        .get();
 
-  return querySnapshot.docs.isNotEmpty;
-}
+    return querySnapshot.docs.isNotEmpty;
+  }
 
+  static Stream<QuerySnapshot> getPendingInvitations() {
+    final String myUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    if (myUid.isEmpty) {
+      return const Stream.empty(); // no logged in user
+    }
+
+    return _firestore
+        .collection('connection_requests')
+        .where('receiverUID', isEqualTo: myUid)
+        .where('status', isEqualTo: 'pending')
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
 }
