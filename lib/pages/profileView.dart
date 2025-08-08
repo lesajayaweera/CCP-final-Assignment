@@ -578,7 +578,13 @@ class _ProfileViewState extends State<ProfileView>
               ],
             ),
             const SizedBox(height: 20),
-            _buildConnectButton(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildConnectButton(),
+                _buildMesageButton(),
+              ],
+            ),
           ],
         ),
       ),
@@ -633,6 +639,48 @@ class _ProfileViewState extends State<ProfileView>
                   SizedBox(width: 8),
                   Text(
                     "Connect",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+  Widget _buildMesageButton() {
+    return Container(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        onPressed:(){},
+
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue.shade600,
+          foregroundColor: Colors.white,
+          elevation: 8,
+          shadowColor: Colors.blue.withOpacity(0.3),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
+          ),
+        ),
+        child: _isConnecting
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.person_add),
+                  SizedBox(width: 8),
+                  Text(
+                    "Message",
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -726,6 +774,13 @@ class _ProfileViewState extends State<ProfileView>
           Icons.star, 
           Colors.amber
         ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Fifties'].toString() ?? '-', 
+          '100s', 
+          Icons.star, 
+          Colors.amber
+        ),
       ];
     } else if (sport == 'Basketball') {
       statsWidgets = [
@@ -750,6 +805,36 @@ class _ProfileViewState extends State<ProfileView>
           Colors.green
         ),
       ];
+    }else if (sport == 'Football') {
+      statsWidgets = [
+        _buildStatItem(
+          userStats?['MinutesPlayed'].toString() ?? '-', 
+          'Minutes Played', 
+          Icons.sports_soccer, 
+          Colors.orange
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['PassAccuracy'].toString() ?? '-', 
+          'Pass Accuracy', 
+          Icons.handshake, 
+          Colors.blue
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Goals'].toString() ?? '-', 
+          'Goals', 
+          Icons.sports, 
+          Colors.green
+        ),
+      ];
+    } else {
+      return Center(
+        child: Text(
+          'No stats available for this sport',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+      );
     }
 
     return Row(

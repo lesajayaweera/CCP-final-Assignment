@@ -1552,7 +1552,6 @@ import 'package:sport_ignite/pages/settings.dart';
 import 'package:sport_ignite/pages/veiwAthletes.dart';
 import 'package:sport_ignite/widget/common/appbar.dart';
 import 'package:sport_ignite/widget/profilePage/CertificateBanner.dart';
-import 'package:sport_ignite/widget/profilePage/StarItem.dart';
 
 class ProfilePage extends StatefulWidget {
   final String role;
@@ -1566,6 +1565,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin {
   List<CertificateInput> certificateInputs = [CertificateInput()];
   List<CertificateInput> submittedCertificates = [];
+   Map<String, dynamic>? userStats;
 
   Map<String, dynamic>? userData;
   bool _isSaving = false;
@@ -1640,12 +1640,37 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
       setState(() {
         userData = data;
       });
+
+      if (data?['sport'] != null && data?['email'] != null) {
+        var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
+        setState(() {
+          userStats = stats;
+        });
+      }
     } else {
       var data = await Users().getUserDetails(context, widget.role);
       setState(() {
         userData = data;
       });
+
+      if (data?['sport'] != null && data?['email'] != null) {
+        var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
+        setState(() {
+          userStats = stats;
+        });
+      }
     }
+  }
+
+  Future<List<Map<String, dynamic>>> loadCertificates() async {
+    if (widget.uid != null) {
+      try {
+        return await Athlete.getApprovedCertificatesBYuid(widget.uid!);
+      } catch (e) {
+        print('Error loading certificates: $e');
+      }
+    }
+    return [];
   }
 
   Future<void> _updateCoverImage() async {
@@ -2187,59 +2212,154 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   }
 
   Widget _buildStatsCard() {
-    return SlideTransition(
-      position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: Container(
-          margin: const EdgeInsets.all(20),
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.role == 'Sponsor' ? 'Sponsorship Stats' : 'Performance Stats',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.role == 'Sponsor' ? 'Sponsorship Statistics' : 'Performance Statistics',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 20),
-              widget.role != 'Sponsor'
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatItem('2,279,545', 'Total Runs', Icons.sports_cricket, Colors.orange),
-                        _buildVerticalDivider(),
-                        _buildStatItem('279,545', 'Total Matches', Icons.sports, Colors.blue),
-                        _buildVerticalDivider(),
-                        _buildStatItem('279,545', '100s', Icons.star, Colors.amber),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildStatItem('Rs.0.00', 'Total Sponsored', Icons.monetization_on, Colors.green),
-                        _buildVerticalDivider(),
-                        _buildStatItem('0', 'Total Athletes', Icons.group, Colors.blue),
-                      ],
-                    ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 16),
+            buildStatsWidget(),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget buildStatsWidget() {
+    if (widget.role == 'Sponsor') {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _buildStatItem('Rs.0.00', 'Total Sponsored', Icons.monetization_on, Colors.green),
+          _buildVerticalDivider(),
+          _buildStatItem('0', 'Total Athletes', Icons.group, Colors.blue),
+        ],
+      );
+    }
+
+    if (userData == null || userStats == null) {
+      return Center(
+        child: Text(
+          'Failed to load stats',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+      );
+    }
+
+    String sport = userData!['sport'] ?? '';
+    List<Widget> statsWidgets = [];
+
+    if (sport == 'Cricket') {
+      statsWidgets = [
+        _buildStatItem(
+          userStats?['Runs'].toString() ?? '-', 
+          'Total Runs', 
+          Icons.sports_cricket, 
+          Colors.orange
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['MatchesPlayed'].toString() ?? '-', 
+          'Matches', 
+          Icons.sports, 
+          Colors.blue
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Hundreds'].toString() ?? '-', 
+          '100s', 
+          Icons.star, 
+          Colors.amber
+        ),
+        
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Wickets'].toString() ?? '-', 
+          'Wickets', 
+          Icons.score, 
+          Colors.green
+        ),
+      ];
+    } else if (sport == 'Basketball') {
+      statsWidgets = [
+        _buildStatItem(
+          userStats?['Points'].toString() ?? '-', 
+          'Points', 
+          Icons.sports_basketball, 
+          Colors.orange
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Assists'].toString() ?? '-', 
+          'Assists', 
+          Icons.handshake, 
+          Colors.blue
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Rebounds'].toString() ?? '-', 
+          'Rebounds', 
+          Icons.replay, 
+          Colors.green
+        ),
+      ];
+    }else if (sport == 'Football') {
+      statsWidgets = [
+        _buildStatItem(
+          userStats?['MinutesPlayed'].toString() ?? '-', 
+          'Minutes Played', 
+          Icons.sports_soccer, 
+          Colors.orange
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['PassAccuracy'].toString() ?? '-', 
+          'Pass Accuracy', 
+          Icons.handshake, 
+          Colors.blue
+        ),
+        _buildVerticalDivider(),
+        _buildStatItem(
+          userStats?['Goals'].toString() ?? '-', 
+          'Goals', 
+          Icons.sports, 
+          Colors.green
+        ),
+      ];
+    } else {
+      return Center(
+        child: Text(
+          'No stats available for this sport',
+          style: TextStyle(color: Colors.grey.shade600),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: statsWidgets,
     );
   }
 
@@ -2688,7 +2808,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
 
                     // Actions
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      width: double.maxFinite,
+                      padding: const EdgeInsets.all(5),
+                      
                       decoration: BoxDecoration(
                         color: Colors.grey.shade50,
                         borderRadius: const BorderRadius.only(
@@ -2697,6 +2819,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                         ),
                       ),
                       child: Row(
+
                         children: [
                           TextButton.icon(
                             onPressed: () => Navigator.of(context).pop(),
@@ -2710,8 +2833,13 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                               ),
                             ),
                           ),
-                          const Spacer(),
-                          if (certificateInputs.length < 10)
+                          
+                          
+                          Column(
+                            
+
+                            children: [
+                              if (certificateInputs.length < 10)
                             ElevatedButton.icon(
                               onPressed: () {
                                 setStateDialog(() {
@@ -2894,7 +3022,9 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                                     ),
                                     elevation: 3,
                                   ),
-                                ),
+                                )
+                            ],
+                          ),
                         ],
                       ),
                     ),
