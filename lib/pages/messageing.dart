@@ -709,62 +709,7 @@ class MessagesList extends StatelessWidget {
 
   List<MessageData> _getSampleMessages() {
     return [
-      MessageData(
-        name: 'Stuart Arnold',
-        message: 'Of course send your mail! I\'d be happy to review it.',
-        time: '10:07 AM',
-        hasUnreadIndicator: true,
-        unreadCount: 3,
-        isOnline: true,
-      ),
-      MessageData(
-        name: 'Thomas Simmons',
-        message: 'You: Perfect! Thanks for the update 👍',
-        time: 'Sat',
-        type: MessageType.sent,
-      ),
-      MessageData(
-        name: 'Sandra Hernandez',
-        message: 'You: I plunged headlong into QA testing today',
-        time: 'Fri',
-        type: MessageType.sent,
-        isOnline: true,
-      ),
-      MessageData(
-        name: 'Ray Willis',
-        message: 'You: I\'ll be able to read it later tonight',
-        time: 'Wed',
-        type: MessageType.sent,
-        isOnline: true,
-      ),
-      MessageData(
-        name: 'Mary Newman',
-        message: 'Hi, there is a suggestion I\'d like to share with you',
-        time: 'Tue',
-        type: MessageType.inMail,
-        hasUnreadIndicator: true,
-        unreadCount: 1,
-      ),
-      MessageData(
-        name: 'Sidney Snyder',
-        message: 'That\'s how LinkedIn works! 😄 Great networking',
-        time: 'Sun',
-        isOnline: true,
-      ),
-      MessageData(
-        name: 'Michael Dixon',
-        message: 'You: Sounds good, let\'s proceed with the plan',
-        time: 'Sun',
-        type: MessageType.sent,
-        isOnline: true,
-      ),
-      MessageData(
-        name: 'Joe Howard',
-        message: '👍 Absolutely love this idea!',
-        time: 'Oct 9',
-        hasUnreadIndicator: true,
-        unreadCount: 2,
-      ),
+      
       MessageData(
         name: 'Frederick White',
         message: 'You: Thank you for confirming my attendance...',

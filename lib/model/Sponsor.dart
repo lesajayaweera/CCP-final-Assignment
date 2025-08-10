@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart' hide gender;
 import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,6 +56,7 @@ class Sponsor {
         await prefs.setString('uid', user.uid);
 
         bool writeSuccess = await writeData(context);
+         PushNotificationService.initialize();
 
         Navigator.pop(
           context,
@@ -152,7 +154,6 @@ class Sponsor {
     for (var doc in querySnapshot.docs) {
       // doc.reference.parent.parent points to the UID document under 'certificates'
       final uid = doc.reference.parent.parent?.id;
-      print(uid);
       if (uid != null) {
         uniqueUids.add(uid);
       }

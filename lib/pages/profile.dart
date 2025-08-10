@@ -2418,14 +2418,6 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Certificates & Achievements',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(20),
