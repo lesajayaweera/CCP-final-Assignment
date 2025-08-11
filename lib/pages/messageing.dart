@@ -790,31 +790,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
             letterSpacing: -0.5,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.search_rounded, color: Colors.white, size: 20),
-            ),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.more_vert_rounded, color: Colors.white, size: 20),
-            ),
-            onPressed: () {},
-          ),
-          SizedBox(width: 8),
-        ],
+        
       ),
     );
   }
