@@ -23,9 +23,36 @@ class ConnectionService {
           'timestamp': FieldValue.serverTimestamp(),
         });
 
-        showSnackBar(context, 'Connection request sent', Colors.green);
+        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('Connection Request Sent'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
       } else {
-        showSnackBar(context, 'Connection request already sent', Colors.orange);
+        // showSnackBar(context, 'Connection request already sent', Colors.orange);
+        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('Connection request already sent'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color.fromARGB(255, 185, 123, 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ));
       }
     } else {
       showSnackBar(context, 'User not logged in', Colors.red);

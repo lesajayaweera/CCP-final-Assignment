@@ -42,7 +42,7 @@ class Athlete {
     this.institute,
     this.gender,
     this.profile,
-    this.fullName
+    this.fullName,
   );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -313,5 +313,19 @@ class Athlete {
       // You can log or handle the error if needed
       return null;
     }
+  }
+
+// GET THe athletes user data
+  static Stream<List<Map<String, dynamic>>> getAllAthletesStream() {
+    return FirebaseFirestore.instance
+        .collection('athlete')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => {'uid': doc.id, ...doc.data() as Map<String, dynamic>},
+              )
+              .toList(),
+        );
   }
 }

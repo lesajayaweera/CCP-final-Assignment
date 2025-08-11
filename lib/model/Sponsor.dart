@@ -161,4 +161,16 @@ class Sponsor {
 
     return uniqueUids.toList();
   }
+  static Stream<List<Map<String, dynamic>>> getAllSponsorsStream() {
+    return FirebaseFirestore.instance
+        .collection('sponsor')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => {'uid': doc.id, ...doc.data() as Map<String, dynamic>},
+              )
+              .toList(),
+        );
+  }
 }
