@@ -382,9 +382,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sport_ignite/model/MessagingService.dart';
 import 'package:sport_ignite/pages/chatScreen.dart';
 
-// Data model for messages
+// Import your MessagingService
+// import 'package:sport_ignite/services/messaging_service.dart';
+
+// Updated MessageData model to work with your Firestore data
 class MessageData {
   final String name;
   final String message;
@@ -394,6 +400,8 @@ class MessageData {
   final bool isOnline;
   final MessageType type;
   final int unreadCount;
+  final String chatId;
+  final String otherUserId;
 
   MessageData({
     required this.name,
@@ -404,12 +412,64 @@ class MessageData {
     this.isOnline = false,
     this.type = MessageType.received,
     this.unreadCount = 0,
+    required this.chatId,
+    required this.otherUserId,
   });
+
+  // Factory constructor to create MessageData from your Firestore data
+  factory MessageData.fromFirestore(Map<String, dynamic> data) {
+    final lastUpdated = data['lastUpdated'] as Timestamp?;
+    final timeString = lastUpdated != null 
+        ? _formatTimestamp(lastUpdated)
+        : 'Unknown';
+
+    return MessageData(
+      name: data['otherUserName'] ?? 'Unknown User',
+      message: data['lastMessage'] ?? 'No messages yet',
+      time: timeString,
+      avatar: data['otherUserProfilePic']?.isNotEmpty == true 
+          ? data['otherUserProfilePic'] 
+          : null,
+      hasUnreadIndicator: false, // You can implement unread logic here
+      isOnline: false, // You can implement online status logic here
+      type: MessageType.received, // You can determine this based on your logic
+      unreadCount: 0, // You can implement unread count logic here
+      chatId: data['chatId'] ?? '',
+      otherUserId: data['otherUserId'] ?? '',
+    );
+  }
+
+  // Helper method to format timestamp
+  static String _formatTimestamp(Timestamp timestamp) {
+    final dateTime = timestamp.toDate();
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays == 0) {
+      // Today - show time
+      final hour = dateTime.hour > 12 ? dateTime.hour - 12 : dateTime.hour;
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+      final amPm = dateTime.hour >= 12 ? 'PM' : 'AM';
+      final displayHour = hour == 0 ? 12 : hour;
+      return '$displayHour:$minute $amPm';
+    } else if (difference.inDays == 1) {
+      return 'Yesterday';
+    } else if (difference.inDays < 7) {
+      // This week - show day name
+      final weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      return weekdays[dateTime.weekday - 1];
+    } else {
+      // Older - show date
+      final month = dateTime.month.toString().padLeft(2, '0');
+      final day = dateTime.day.toString().padLeft(2, '0');
+      return '$month/$day';
+    }
+  }
 }
 
 enum MessageType { sent, received, inMail }
 
-// Main messaging screen with enhanced design
+// Updated MessagingScreen to use MessagingService
 class MessagingScreen extends StatefulWidget {
   @override
   _MessagingScreenState createState() => _MessagingScreenState();
@@ -420,6 +480,9 @@ class _MessagingScreenState extends State<MessagingScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   String _searchQuery = '';
+  
+  // Create instance of MessagingService
+  final MessagingService _messagingService = MessagingService();
 
   @override
   void initState() {
@@ -457,7 +520,10 @@ class _MessagingScreenState extends State<MessagingScreen>
               },
             ),
             Expanded(
-              child: MessagesList(searchQuery: _searchQuery),
+              child: MessagesList(
+                messagingService: _messagingService,
+                searchQuery: _searchQuery,
+              ),
             ),
           ],
         ),
@@ -467,6 +533,212 @@ class _MessagingScreenState extends State<MessagingScreen>
         backgroundColor: Color(0xFF6366F1),
         elevation: 4,
         child: Icon(Icons.edit_rounded, color: Colors.white, size: 24),
+      ),
+    );
+  }
+}
+
+// Updated MessagesList to use MessagingService
+class MessagesList extends StatelessWidget {
+  final MessagingService messagingService;
+  final String searchQuery;
+
+  const MessagesList({
+    Key? key, 
+    required this.messagingService,
+    this.searchQuery = ''
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(24),
+          topRight: Radius.circular(24),
+        ),
+      ),
+      child: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: messagingService.getUserChatsWithDetails(),
+        builder: (context, snapshot) {
+          // Handle loading state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF6366F1)),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading conversations...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Handle error state
+          if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Something went wrong',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Trigger rebuild to retry
+                      (context as Element).markNeedsBuild();
+                    },
+                    child: Text('Retry'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color(0xFF6366F1),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Handle empty state
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No conversations yet',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Start a new conversation to see it here',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Convert Firestore data to MessageData objects
+          final messageList = snapshot.data!
+              .map((data) => MessageData.fromFirestore(data))
+              .toList();
+
+          // Apply search filter
+          final filteredMessages = messageList.where((message) =>
+              message.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+              message.message.toLowerCase().contains(searchQuery.toLowerCase())).toList();
+
+          // Handle empty search results
+          if (filteredMessages.isEmpty && searchQuery.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No results found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Try searching with different keywords',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // Display the list of conversations
+          return ListView.builder(
+            padding: EdgeInsets.only(top: 8),
+            itemCount: filteredMessages.length,
+            itemBuilder: (context, index) {
+              return AnimatedContainer(
+                duration: Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                child: ModernMessageTile(
+                  messageData: filteredMessages[index],
+                  index: index,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _navigateToChat(context, filteredMessages[index]);
+                  },
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _navigateToChat(BuildContext context, MessageData messageData) {
+    // Navigate to ChatScreen using your existing navigation method
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(
+          chatId: messageData.chatId,
+          currentID: FirebaseAuth.instance.currentUser?.uid ?? '',
+          targetID: messageData.otherUserId,
+        ),
       ),
     );
   }
@@ -657,67 +929,6 @@ class _ModernSearchBarState extends State<ModernSearchBar>
         );
       },
     );
-  }
-}
-
-// Enhanced Messages List with animations
-class MessagesList extends StatelessWidget {
-  final List<MessageData>? messages;
-  final String searchQuery;
-
-  const MessagesList({Key? key, this.messages, this.searchQuery = ''}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final messageList = messages ?? _getSampleMessages();
-    final filteredMessages = messageList.where((message) =>
-        message.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
-        message.message.toLowerCase().contains(searchQuery.toLowerCase())).toList();
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(24),
-          topRight: Radius.circular(24),
-        ),
-      ),
-      child: ListView.builder(
-        padding: EdgeInsets.only(top: 8),
-        itemCount: filteredMessages.length,
-        itemBuilder: (context, index) {
-          return AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: ModernMessageTile(
-              messageData: filteredMessages[index],
-              index: index,
-              onTap: () {
-                HapticFeedback.lightImpact();
-                // Navigator.push(context,
-                //   MaterialPageRoute(
-                //     builder: (context) => ChatScreen(), // Replace with actual chat screen
-                //   ),
-                // );
-              },
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  List<MessageData> _getSampleMessages() {
-    return [
-      
-      MessageData(
-        name: 'Frederick White',
-        message: 'You: Thank you for confirming my attendance...',
-        time: 'Oct 6',
-        type: MessageType.sent,
-        isOnline: true,
-      ),
-    ];
   }
 }
 
@@ -930,7 +1141,7 @@ class EnhancedUserAvatar extends StatelessWidget {
               ),
             ],
           ),
-          child: avatar != null
+          child: avatar != null && avatar!.isNotEmpty
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(size / 2),
                   child: Image.network(
@@ -969,9 +1180,11 @@ class EnhancedUserAvatar extends StatelessWidget {
     List<String> names = name.split(' ');
     String initials = '';
     for (int i = 0; i < names.length && i < 2; i++) {
-      initials += names[i][0].toUpperCase();
+      if (names[i].isNotEmpty) {
+        initials += names[i][0].toUpperCase();
+      }
     }
-    return initials;
+    return initials.isNotEmpty ? initials : '?';
   }
 
   List<Color> _getGradientColors(String name) {
@@ -983,7 +1196,7 @@ class EnhancedUserAvatar extends StatelessWidget {
       [Color(0xFFEC4899), Color(0xBE185D)],
       [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
     ];
-    return gradients[name.hashCode % gradients.length];
+    return gradients[name.hashCode.abs() % gradients.length];
   }
 }
 

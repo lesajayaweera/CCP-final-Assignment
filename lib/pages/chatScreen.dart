@@ -362,10 +362,6 @@
 
 //   List<Message> messages = [];
 
-
-
-  
-
 //   // List<Message> messages = [
 //   //   Message(
 //   //     text:
@@ -401,11 +397,7 @@
 //     );
 //     _fadeController.forward();
 
-
-
 //   }
-
-  
 
 //   @override
 //   void dispose() {
@@ -522,7 +514,7 @@
 //                 ),
 //               ],
 //             ),
-            
+
 //           ),
 //         ),
 //       ),
@@ -928,7 +920,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       duration: Duration(milliseconds: 300),
       vsync: this,
     );
-    
+
     _messageController.addListener(() {
       setState(() {
         _isTyping = _messageController.text.trim().isNotEmpty;
@@ -1014,12 +1006,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         .collection('chats')
         .doc(widget.chatId)
         .update({
-      'lastMessage': text,
-      'lastUpdated': FieldValue.serverTimestamp(),
-    });
+          'lastMessage': text,
+          'lastUpdated': FieldValue.serverTimestamp(),
+        });
 
     _messageController.clear();
-    
+
     // Auto scroll to bottom
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -1098,7 +1090,8 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       radius: 20,
                       backgroundImage: receiverProfile.isNotEmpty
                           ? NetworkImage(receiverProfile)
-                          : AssetImage('assets/default_avatar.png') as ImageProvider,
+                          : AssetImage('assets/default_avatar.png')
+                                as ImageProvider,
                       backgroundColor: Colors.white,
                     ),
                   ),
@@ -1118,13 +1111,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
-                      
                     ],
                   ),
                 ),
               ],
             ),
-            
           ),
         ),
       ),
@@ -1145,7 +1136,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF667eea),
+                          ),
                           strokeWidth: 3,
                         ),
                         SizedBox(height: 16),
@@ -1203,19 +1196,21 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     final msg = messages[index];
                     final isMe = msg['senderId'] == widget.currentID;
                     final timestamp = msg['timestamp'] as Timestamp?;
-                    
+
                     // Show date separator if it's a new day
                     bool showDateSeparator = false;
                     if (index == 0) {
                       showDateSeparator = timestamp != null;
                     } else if (index > 0 && timestamp != null) {
-                      final previousTimestamp = messages[index - 1]['timestamp'] as Timestamp?;
+                      final previousTimestamp =
+                          messages[index - 1]['timestamp'] as Timestamp?;
                       if (previousTimestamp != null) {
                         final currentDate = timestamp.toDate();
                         final previousDate = previousTimestamp.toDate();
-                        showDateSeparator = currentDate.day != previousDate.day ||
-                                          currentDate.month != previousDate.month ||
-                                          currentDate.year != previousDate.year;
+                        showDateSeparator =
+                            currentDate.day != previousDate.day ||
+                            currentDate.month != previousDate.month ||
+                            currentDate.year != previousDate.year;
                       }
                     }
 
@@ -1224,13 +1219,16 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         if (showDateSeparator) ...[
                           Container(
                             margin: EdgeInsets.symmetric(vertical: 16),
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.grey[300],
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              timestamp != null 
+                              timestamp != null
                                   ? _getDateString(timestamp.toDate())
                                   : '',
                               style: TextStyle(
@@ -1242,15 +1240,18 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                         ],
                         Align(
-                          alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                          alignment: isMe
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
                           child: Container(
                             margin: EdgeInsets.symmetric(vertical: 3),
                             constraints: BoxConstraints(
-                              maxWidth: MediaQuery.of(context).size.width * 0.75,
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.75,
                             ),
                             child: Column(
-                              crossAxisAlignment: isMe 
-                                  ? CrossAxisAlignment.end 
+                              crossAxisAlignment: isMe
+                                  ? CrossAxisAlignment.end
                                   : CrossAxisAlignment.start,
                               children: [
                                 Container(
@@ -1261,7 +1262,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                   decoration: BoxDecoration(
                                     gradient: isMe
                                         ? LinearGradient(
-                                            colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                                            colors: [
+                                              Color(0xFF667eea),
+                                              Color(0xFF764ba2),
+                                            ],
                                             begin: Alignment.topLeft,
                                             end: Alignment.bottomRight,
                                           )
@@ -1270,8 +1274,12 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                     borderRadius: BorderRadius.only(
                                       topLeft: Radius.circular(20),
                                       topRight: Radius.circular(20),
-                                      bottomLeft: Radius.circular(isMe ? 20 : 4),
-                                      bottomRight: Radius.circular(isMe ? 4 : 20),
+                                      bottomLeft: Radius.circular(
+                                        isMe ? 20 : 4,
+                                      ),
+                                      bottomRight: Radius.circular(
+                                        isMe ? 4 : 20,
+                                      ),
                                     ),
                                     boxShadow: [
                                       BoxShadow(
@@ -1289,7 +1297,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                         child: Text(
                                           msg['text'],
                                           style: TextStyle(
-                                            color: isMe ? Colors.white : Color(0xFF2D3748),
+                                            color: isMe
+                                                ? Colors.white
+                                                : Color(0xFF2D3748),
                                             fontSize: 15,
                                             height: 1.4,
                                           ),
@@ -1298,9 +1308,11 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                       if (isMe) ...[
                                         SizedBox(width: 8),
                                         Icon(
-                                          msg['isRead'] ? Icons.done_all : Icons.check,
+                                          msg['isRead']
+                                              ? Icons.done_all
+                                              : Icons.check,
                                           size: 16,
-                                          color: msg['isRead'] 
+                                          color: msg['isRead']
                                               ? Colors.white.withOpacity(0.9)
                                               : Colors.white.withOpacity(0.7),
                                         ),
@@ -1311,7 +1323,9 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                                 if (timestamp != null) ...[
                                   SizedBox(height: 4),
                                   Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 4),
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
                                     child: Text(
                                       _formatTime(timestamp),
                                       style: TextStyle(
@@ -1353,7 +1367,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                         color: Color(0xFFF7F8FC),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: _isTyping 
+                          color: _isTyping
                               ? Color(0xFF667eea).withOpacity(0.3)
                               : Colors.grey.withOpacity(0.2),
                           width: 1.5,
@@ -1404,7 +1418,10 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                       height: 48,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFF667eea), Color.fromARGB(255, 75, 82, 162)],
+                          colors: [
+                            Color(0xFF667eea),
+                            Color.fromARGB(255, 75, 82, 162),
+                          ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -1417,11 +1434,7 @@ class _ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      child: Icon(
-                        Icons.send,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.send, color: Colors.white, size: 20),
                     ),
                   ),
                 ],

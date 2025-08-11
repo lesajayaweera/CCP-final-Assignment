@@ -1,13 +1,17 @@
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const functions = require("firebase-functions");
+const admin = require("firebase-admin");
 admin.initializeApp();
 
 exports.notifyCertificateStatusChange = functions.firestore
-    .document('certificates/{userId}/certificates/{certificateId}')
+    .document("certificates/{userId}/certificates/{certificateId}")
     .onWrite(async(change, context) => {
         const { userId, certificateId } = context.params;
 
-        const fcmTokenSnap = await admin.firestore().collection('users').doc(userId).get();
+        const fcmTokenSnap = await admin
+            .firestore()
+            .collection("users")
+            .doc(userId)
+            .get();
         if (!fcmTokenSnap.exists) {
             console.log("User not found:", userId);
             return null;
@@ -60,6 +64,64 @@ exports.notifyCertificateStatusChange = functions.firestore
             } catch (error) {
                 console.error("Error sending approval notification:", error);
             }
+        }
+
+        return null;
+    });
+
+
+
+exports.notifyNewMessage = functions.firestore
+    .document("chats/{chatId}/messages/{messageId}")
+    .onCreate(async(snap, context) => {
+        const messageData = snap.data();
+        const { senderId, receiverId, text } = messageData;
+
+        // Get receiver's FCM token
+        const receiverDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(receiverId)
+            .get();
+        if (!receiverDoc.exists) {
+            console.log("Receiver not found:", receiverId);
+            return null;
+        }
+
+        const fcmToken = receiverDoc.data().fcmToken;
+        if (!fcmToken) {
+            console.log("No FCM token for receiver:", receiverId);
+            return null;
+        }
+
+        // Get sender's name for notification
+        const senderDoc = await admin
+            .firestore()
+            .collection("users")
+            .doc(senderId)
+            .get();
+        const senderName = senderDoc.exists ?
+            senderDoc.data().name || "Someone" :
+            "Someone";
+
+        // Prepare push notification
+        const message = {
+            token: fcmToken,
+            notification: {
+                title: `💬 New Message from ${senderName}`,
+                body: text.length > 50 ? text.substring(0, 50) + "..." : text,
+            },
+            data: {
+                chatId: context.params.chatId,
+                senderId: senderId,
+            },
+        };
+
+        try {
+            await admin.messaging().send(message);
+            console.log(`Message notification sent to ${receiverId}`);
+        } catch (error) {
+            console.error("Error sending notification:", error);
         }
 
         return null;
