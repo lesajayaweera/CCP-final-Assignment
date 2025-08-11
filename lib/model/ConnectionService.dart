@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 
-
 class ConnectionService {
   //  this class is responsible for create and manage connections with the user including the athlete and the sponsor
 
@@ -43,6 +42,17 @@ class ConnectionService {
         .get();
 
     return querySnapshot.docs.isNotEmpty;
+  }
+
+  static Stream<int> pendingRequestsCountStream() {
+    String currentUserId = FirebaseAuth.instance.currentUser!.uid;
+
+    return FirebaseFirestore.instance
+        .collection('connection_requests')
+        .where('receiverUID', isEqualTo: currentUserId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snapshot) => snapshot.size);
   }
 
   // static Future<List<InvitationRequest>> getEnrichedInvitations() async {
