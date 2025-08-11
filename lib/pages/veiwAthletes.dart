@@ -76,161 +76,62 @@ class _AthletesScreenState extends State<AthletesScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF4C63D2),
-            Color(0xFF21D4FD),
-          ],
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Section
-          Container(
-            padding: const EdgeInsets.fromLTRB(24, 40, 24, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.sports_soccer,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Elite Athletes',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'Verified talents ready to shine',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white70,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Stats bar
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.2),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.verified,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${verifiedAthletes.length} Verified Athletes',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Main Content
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8F9FA),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(30),
-                  topRight: Radius.circular(30),
-                ),
-              ),
-              child: isLoading
-                  ? _buildLoadingState()
-                  : verifiedAthletes.isNotEmpty
-                      ? _buildAthletesGrid()
-                      : _buildEmptyState(),
-            ),
-          ),
-        ],
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: FadeTransition(
+        opacity: _fadeAnimation,
+        child: isLoading
+            ? _buildLoadingState()
+            : verifiedAthletes.isNotEmpty
+                ? _buildAthletesView()
+                : _buildEmptyState(),
       ),
     );
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4C63D2)),
-              strokeWidth: 4,
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+              ),
+              borderRadius: BorderRadius.circular(40),
+            ),
+            child: const Center(
+              child: SizedBox(
+                width: 40,
+                height: 40,
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 3,
+                ),
+              ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 32),
+          const Text(
+            'Finding Elite Athletes',
+            style: TextStyle(
+              fontSize: 24,
+              color: Color(0xFF1F2937),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
-            'Finding elite athletes...',
+            'Searching through verified professional profiles',
             style: TextStyle(
               fontSize: 16,
-              color: Color(0xFF64748B),
-              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
             ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Searching through verified profiles',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF94A3B8),
-            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -243,43 +144,83 @@ class _AthletesScreenState extends State<AthletesScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            width: 140,
-            height: 140,
+            width: 160,
+            height: 160,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  const Color(0xFF4C63D2).withOpacity(0.1),
-                  const Color(0xFF21D4FD).withOpacity(0.1),
+                  const Color(0xFF3B82F6).withOpacity(0.1),
+                  const Color(0xFF8B5CF6).withOpacity(0.1),
                 ],
               ),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.emoji_events,
-              size: 70,
-              color: Color(0xFF4C63D2),
+            child: Center(
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.emoji_events,
+                  size: 50,
+                  color: Colors.white,
+                ),
+              ),
             ),
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 32),
           const Text(
-            'No verified athletes yet',
+            'No Verified Athletes Yet',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
+              fontSize: 28,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF1F2937),
             ),
           ),
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Text(
-              'Elite athletes are currently being verified. Check back soon for amazing talent!',
+              'Elite athletes are currently going through our verification process. Check back soon to discover amazing talent!',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 17,
                 color: Colors.grey[600],
-                height: 1.4,
+                height: 1.5,
+                fontWeight: FontWeight.w500,
               ),
               textAlign: TextAlign.center,
+            ),
+          ),
+          const SizedBox(height: 32),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3B82F6).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.schedule,
+                  color: Color(0xFF3B82F6),
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'Coming Soon',
+                  style: TextStyle(
+                    color: const Color(0xFF3B82F6),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -287,56 +228,210 @@ class _AthletesScreenState extends State<AthletesScreen>
     );
   }
 
-  Widget _buildAthletesGrid() {
-    return FadeTransition(
-      opacity: _fadeAnimation,
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: GridView.builder(
-          physics: const BouncingScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            childAspectRatio: 0.75,
-          ),
-          itemCount: verifiedAthletes.length,
-          itemBuilder: (context, index) {
-            return AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                final animationDelay = index * 0.1;
-                final slideAnimation = Tween<Offset>(
-                  begin: const Offset(0, 0.5),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _animationController,
-                    curve: Interval(
-                      animationDelay,
-                      1.0,
-                      curve: Curves.easeOutBack,
+  Widget _buildAthletesView() {
+    return CustomScrollView(
+      slivers: [
+        // Header section matching NetworkManagementScreen style
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.sports_tennis,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ),
-                );
-
-                return SlideTransition(
-                  position: slideAnimation,
-                  child: AthleteCard(athlete: verifiedAthletes[index]),
-                );
-              },
-            );
-          },
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Elite Athletes',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F2937),
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Verified talents ready to shine',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.verified_user,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${verifiedAthletes.length}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
-      ),
+
+        // Athletes grid section matching NetworkManagementScreen style
+        SliverToBoxAdapter(
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(
+                          Icons.people_alt_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Verified Athletes',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1F2937),
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Connect with these talented individuals',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.75,
+                    ),
+                    itemCount: verifiedAthletes.length,
+                    itemBuilder: (context, index) {
+                      return AnimatedContainer(
+                        duration: Duration(milliseconds: 300 + (index * 100)),
+                        curve: Curves.easeOutBack,
+                        child: AthleteCard(
+                          athlete: verifiedAthletes[index],
+                          index: index,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
 class AthleteCard extends StatefulWidget {
   final Athletes athlete;
+  final int index;
 
-  const AthleteCard({Key? key, required this.athlete}) : super(key: key);
+  const AthleteCard({Key? key, required this.athlete, required this.index})
+      : super(key: key);
 
   @override
   State<AthleteCard> createState() => _AthleteCardState();
@@ -345,29 +440,26 @@ class AthleteCard extends StatefulWidget {
 class _AthleteCardState extends State<AthleteCard>
     with SingleTickerProviderStateMixin {
   String _connectionStatus = 'loading';
-  late AnimationController _buttonAnimationController;
-  late Animation<double> _buttonScaleAnimation;
   bool _isHovered = false;
+  late AnimationController _scaleController;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
-    _buttonAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    _buttonScaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(
-        parent: _buttonAnimationController,
-        curve: Curves.easeInOut,
-      ),
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
     );
     _checkConnectionStatus();
   }
 
   @override
   void dispose() {
-    _buttonAnimationController.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 
@@ -388,8 +480,8 @@ class _AthleteCardState extends State<AthleteCard>
   }
 
   Future<void> _handleSendRequest() async {
-    _buttonAnimationController.forward().then((_) {
-      _buttonAnimationController.reverse();
+    _scaleController.forward().then((_) {
+      _scaleController.reverse();
     });
 
     await ConnectionService.sendConnectionRequestUsingUID(
@@ -399,27 +491,40 @@ class _AthleteCardState extends State<AthleteCard>
     setState(() {
       _connectionStatus = 'pending';
     });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text('Connected with ${widget.athlete.name}'),
+          ],
+        ),
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF10B981),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ProfileView(role: 'Athlete', uid: widget.athlete.uid),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isHovered = true),
-      onTapUp: (_) => setState(() => _isHovered = false),
-      onTapCancel: () => setState(() => _isHovered = false),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ProfileView(role: 'Athlete', uid: widget.athlete.uid),
-          ),
-        );
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        transform: Matrix4.identity()
-          ..scale(_isHovered ? 0.98 : 1.0),
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: GestureDetector(
+        onTap: _navigateToProfile,
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -427,19 +532,18 @@ class _AthleteCardState extends State<AthleteCard>
               end: Alignment.bottomRight,
               colors: [
                 Colors.white,
-                Colors.grey[50]!,
+                Colors.grey.shade50,
               ],
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: _isHovered ? const Color(0xFF3B82F6) : Colors.grey.shade200,
+              width: _isHovered ? 2 : 1,
+            ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4C63D2).withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-              BoxShadow(
-                color: Colors.black.withOpacity(0.04),
-                blurRadius: 4,
+                color: Colors.black.withOpacity(_isHovered ? 0.1 : 0.04),
+                blurRadius: _isHovered ? 15 : 8,
                 offset: const Offset(0, 2),
               ),
             ],
@@ -447,80 +551,50 @@ class _AthleteCardState extends State<AthleteCard>
           child: Stack(
             children: [
               Padding(
-                padding: const EdgeInsets.all(10.0),
+                padding: const EdgeInsets.all(5.0),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    // Profile Image with verification badge
-                    Stack(
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF4C63D2).withOpacity(0.8),
-                                const Color(0xFF21D4FD).withOpacity(0.8),
-                              ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF4C63D2).withOpacity(0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(3),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                image: DecorationImage(
-                                  image: NetworkImage(widget.athlete.imagePath),
-                                  fit: BoxFit.cover,
+                    // Enhanced profile image with gradient border
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFF3B82F6).withOpacity(0.8),
+                            const Color(0xFF8B5CF6).withOpacity(0.8),
+                          ],
+                        ),
+                      ),
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                        ),
+                        child: ClipOval(
+                          child: Image.network(
+                            widget.athlete.imagePath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                  size: 40,
                                 ),
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
-                        // Verification badge
-                        Positioned(
-                          bottom: -2,
-                          right: -2,
-                          child: Container(
-                            width: 22,
-                            height: 22,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF10B981),
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: Colors.white,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color(0xFF10B981).withOpacity(0.3),
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 12,
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
+                    
+                   
+                    
+                    
                     const SizedBox(height: 12),
 
                     // Name with verified badge
@@ -531,9 +605,10 @@ class _AthleteCardState extends State<AthleteCard>
                           child: Text(
                             widget.athlete.name,
                             style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1F2937),
+                              letterSpacing: -0.3,
                             ),
                             textAlign: TextAlign.center,
                             maxLines: 1,
@@ -541,48 +616,43 @@ class _AthleteCardState extends State<AthleteCard>
                           ),
                         ),
                         const SizedBox(width: 4),
-                        const Icon(
-                          Icons.verified,
-                          color: Color(0xFF10B981),
-                          size: 16,
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF10B981),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.verified,
+                            color: Colors.white,
+                            size: 12,
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 8),
 
-                    // Sport with enhanced styling
+                    // Enhanced sport badge
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFF4C63D2).withOpacity(0.1),
-                            const Color(0xFF21D4FD).withOpacity(0.1),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: const Color(0xFF4C63D2).withOpacity(0.2),
-                          width: 1,
-                        ),
+                        color: const Color(0xFF3B82F6).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            Icons.sports_soccer,
+                          Icon(
+                            Icons.sports_tennis,
                             size: 12,
-                            color: Color(0xFF4C63D2),
+                            color: const Color(0xFF3B82F6),
                           ),
                           const SizedBox(width: 4),
                           Text(
                             widget.athlete.sport,
                             style: const TextStyle(
-                              fontSize: 12,
-                              color: Color(0xFF4C63D2),
+                              fontSize: 10,
+                              color: Color(0xFF3B82F6),
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -591,144 +661,112 @@ class _AthleteCardState extends State<AthleteCard>
                     ),
                     const SizedBox(height: 8),
 
-                    // Club with enhanced styling
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.location_on,
-                          size: 14,
-                          color: Colors.grey[600],
-                        ),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            widget.athlete.club,
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
+                    // Enhanced club info
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 12,
+                            color: Colors.grey[600],
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              widget.athlete.club,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey[700],
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const Spacer(),
 
                     // Enhanced Connect Button
-                    ScaleTransition(
-                      scale: _buttonScaleAnimation,
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 40,
-                        child: ElevatedButton(
-                          onPressed: _connectionStatus == 'pending'
-                              ? null
-                              : _handleSendRequest,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _connectionStatus == 'pending'
-                                ? Colors.grey[300]
-                                : null,
-                            foregroundColor: _connectionStatus == 'pending'
-                                ? Colors.grey[600]
-                                : Colors.white,
-                            elevation: _connectionStatus == 'pending' ? 0 : 4,
-                            shadowColor: const Color(0xFF4C63D2).withOpacity(0.4),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ).copyWith(
-                            backgroundColor: _connectionStatus == 'pending'
-                                ? WidgetStateProperty.all(Colors.grey[300])
-                                : WidgetStateProperty.all(null),
-                            overlayColor: WidgetStateProperty.resolveWith((states) {
-                              if (_connectionStatus != 'pending') {
-                                return const Color(0xFF4C63D2);
-                              }
-                              return null;
-                            }),
-                          ),
-                          child: _connectionStatus == 'pending'
-                              ? Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.schedule,
-                                      size: 16,
-                                      color: Colors.grey[600],
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'Pending',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : Container(
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [
-                                        Color(0xFF4C63D2),
-                                        Color(0xFF21D4FD),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Row(
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: _connectionStatus == 'pending'
+                            ? LinearGradient(
+                                colors: [Colors.grey[300]!, Colors.grey[400]!],
+                              )
+                            : const LinearGradient(
+                                colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+                              ),
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: _connectionStatus != 'pending'
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF3B82F6).withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _connectionStatus == 'pending' ? null : _handleSendRequest,
+                          borderRadius: BorderRadius.circular(25),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: _connectionStatus == 'pending'
+                                ? Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        Icons.person_add,
+                                        Icons.schedule,
+                                        color: Colors.grey[700],
                                         size: 16,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'Pending',
+                                        style: TextStyle(
+                                          color: Colors.grey[700],
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.person_add_rounded,
                                         color: Colors.white,
+                                        size: 16,
                                       ),
                                       SizedBox(width: 6),
                                       Text(
                                         'Connect',
                                         style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
                                           color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
+                          ),
                         ),
                       ),
                     ),
                   ],
-                ),
-              ),
-
-              // Enhanced close button
-              Positioned(
-                top: 12,
-                right: 12,
-                child: GestureDetector(
-                  onTap: () {
-                    // Optional remove from list
-                  },
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.close,
-                      color: Colors.black54,
-                      size: 16,
-                    ),
-                  ),
                 ),
               ),
             ],

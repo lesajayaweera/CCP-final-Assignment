@@ -69,7 +69,7 @@ class _SharePostScreenState extends State<SharePostScreen> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         image: const DecorationImage(
-                          image: AssetImage('assets/images/profile.jpg'),
+                          image: AssetImage('asset/image/profile.jpg'),
                           fit: BoxFit.cover,
                         ),
                         border: Border.all(color: Colors.grey[300]!),

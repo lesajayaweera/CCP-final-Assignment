@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
-import 'package:sport_ignite/pages/manageInvititations.dart';
+
 
 class ConnectionService {
   //  this class is responsible for create and manage connections with the user including the athlete and the sponsor

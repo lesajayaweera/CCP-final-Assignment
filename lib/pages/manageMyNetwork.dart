@@ -520,8 +520,8 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
     ),
   ];
 
-  List<SponsorCardDetails> sponsors = [
-    SponsorCardDetails(
+  List<UsercardDetails> sponsors = [
+    UsercardDetails(
       name: 'Veronica Symo',
       title: 'Scout in Company',
       company: 'Lomonosov Moscow State',
@@ -530,7 +530,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
       companyLogo:
           'https://images.unsplash.com/photo-1599305445671-ac291c95aaa9?w=50&h=50&fit=crop',
     ),
-    SponsorCardDetails(
+    UsercardDetails(
       name: 'Alexey Makovs',
       title: 'Private Sponsor',
       company: 'LIVERPOOL Moscow State',
@@ -539,7 +539,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
       companyLogo:
           'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=50&h=50&fit=crop',
     ),
-    SponsorCardDetails(
+    UsercardDetails(
       name: 'Michael Riley',
       title: 'Company Sponsor',
       company: 'Tech Corp',
@@ -548,7 +548,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
       companyLogo:
           'https://images.unsplash.com/photo-1560472355-536de3962603?w=50&h=50&fit=crop',
     ),
-    SponsorCardDetails(
+    UsercardDetails(
       name: 'Daniel Jenkins',
       title: 'Company Sponsor',
       company: 'Sports Academy',
@@ -733,8 +733,8 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                       return AnimatedContainer(
                         duration: Duration(milliseconds: 300 + (index * 100)),
                         curve: Curves.easeOutBack,
-                        child: EnhancedSponsorCard(
-                          sponsor: sponsors[index],
+                        child: EnhancedUserCard(
+                          user: sponsors[index],
                           onConnect: () => _connectWithSponsor(sponsors[index]),
                           onDismiss: () => _dismissSponsor(index),
                           index: index,
@@ -846,7 +846,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
     );
   }
 
-  void _connectWithSponsor(SponsorCardDetails sponsor) {
+  void _connectWithSponsor(UsercardDetails sponsor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -886,25 +886,25 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
   }
 }
 
-class EnhancedSponsorCard extends StatefulWidget {
-  final SponsorCardDetails sponsor;
+class EnhancedUserCard extends StatefulWidget {
+  final UsercardDetails user;
   final VoidCallback onConnect;
   final VoidCallback onDismiss;
   final int index;
 
-  const EnhancedSponsorCard({
+  const EnhancedUserCard({
     Key? key,
-    required this.sponsor,
+    required this.user,
     required this.onConnect,
     required this.onDismiss,
     required this.index,
   }) : super(key: key);
 
   @override
-  State<EnhancedSponsorCard> createState() => _EnhancedSponsorCardState();
+  State<EnhancedUserCard> createState() => _EnhancedUserCardState();
 }
 
-class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
+class _EnhancedUserCardState extends State<EnhancedUserCard>
     with SingleTickerProviderStateMixin {
   bool _isHovered = false;
   late AnimationController _scaleController;
@@ -982,7 +982,7 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
                       ),
                       child: ClipOval(
                         child: Image.network(
-                          widget.sponsor.imagePath,
+                          widget.user.imagePath,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(
@@ -1002,7 +1002,7 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
 
                   // Name
                   Text(
-                    widget.sponsor.name,
+                    widget.user.name,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -1017,7 +1017,7 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
 
                   // Title
                   Text(
-                    widget.sponsor.title,
+                    widget.user.title,
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey[600],
@@ -1045,7 +1045,7 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             image: DecorationImage(
-                              image: NetworkImage(widget.sponsor.companyLogo),
+                              image: NetworkImage(widget.user.companyLogo),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -1053,7 +1053,7 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
-                            widget.sponsor.company,
+                            widget.user.company,
                             style: TextStyle(
                               fontSize: 10,
                               color: Colors.grey[700],
@@ -1158,14 +1158,14 @@ class _EnhancedSponsorCardState extends State<EnhancedSponsorCard>
   }
 }
 
-class SponsorCardDetails {
+class UsercardDetails {
   final String name;
   final String title;
   final String company;
   final String imagePath;
   final String companyLogo;
 
-  SponsorCardDetails({
+  UsercardDetails({
     required this.name,
     required this.title,
     required this.company,
