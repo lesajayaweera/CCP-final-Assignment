@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
 
 class ShortsPlayerScreen extends StatefulWidget {
-  const ShortsPlayerScreen({Key? key}) : super(key: key);
+  const ShortsPlayerScreen({super.key});
 
   @override
   State<ShortsPlayerScreen> createState() => _ShortsPlayerScreenState();

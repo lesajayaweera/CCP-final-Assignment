@@ -12,7 +12,7 @@ class ProfileView extends StatefulWidget {
   final String role;
   final String? uid;
 
-  ProfileView({super.key, required this.role, required this.uid});
+  const ProfileView({super.key, required this.role, required this.uid});
 
   @override
   _ProfileViewState createState() => _ProfileViewState();
@@ -118,7 +118,7 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   Widget _buildProfileHeader() {
-    return Container(
+    return SizedBox(
       height: 250,
       child: Stack(
         fit: StackFit.expand,
@@ -272,7 +272,7 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   Widget _buildConnectButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(

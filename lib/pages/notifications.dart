@@ -95,7 +95,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 class NotificationCard extends StatelessWidget {
   final NotificationItem notification;
 
-  const NotificationCard({Key? key, required this.notification}) : super(key: key);
+  const NotificationCard({super.key, required this.notification});
 
   @override
   Widget build(BuildContext context) {

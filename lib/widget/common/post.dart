@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class Post extends StatelessWidget {
-  const Post({Key? key}) : super(key: key);
+  const Post({super.key});
 
   // final String profileImage ;
   // final String username;

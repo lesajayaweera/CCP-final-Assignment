@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/Login.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

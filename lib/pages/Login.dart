@@ -267,7 +267,7 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> with TickerProviderStateMixin {
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
+  final bool _rememberMe = false;
   bool _isLoading = false;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();

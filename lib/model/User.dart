@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
-import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Users {
@@ -44,12 +43,14 @@ class Users {
           if (role != null) {
             Navigator.pop(context); // Dismiss loading dialog immediately
 
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => Dashboard(role: role)),
-              );
-            });
+            // WidgetsBinding.instance.addPostFrameCallback((_) {
+            //   Navigator.pushReplacement(
+            //     context,
+            //     MaterialPageRoute(builder: (context) => Dashboard(role: role)),
+            //   );
+            // });
+
+            print("User logged in with role: $role");
 
             return true;
           } else {

@@ -471,6 +471,8 @@ enum MessageType { sent, received, inMail }
 
 // Updated MessagingScreen to use MessagingService
 class MessagingScreen extends StatefulWidget {
+  const MessagingScreen({super.key});
+
   @override
   _MessagingScreenState createState() => _MessagingScreenState();
 }
@@ -544,10 +546,10 @@ class MessagesList extends StatelessWidget {
   final String searchQuery;
 
   const MessagesList({
-    Key? key, 
+    super.key, 
     required this.messagingService,
     this.searchQuery = ''
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -619,10 +621,10 @@ class MessagesList extends StatelessWidget {
                       // Trigger rebuild to retry
                       (context as Element).markNeedsBuild();
                     },
-                    child: Text('Retry'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Color(0xFF6366F1),
                     ),
+                    child: Text('Retry'),
                   ),
                 ],
               ),
@@ -746,6 +748,8 @@ class MessagesList extends StatelessWidget {
 
 // Modern App Bar with gradient and blur effect
 class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const ModernAppBar({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -805,10 +809,10 @@ class ModernSearchBar extends StatefulWidget {
   final ValueChanged<String>? onChanged;
 
   const ModernSearchBar({
-    Key? key,
+    super.key,
     this.hintText = 'Search conversations...',
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   _ModernSearchBarState createState() => _ModernSearchBarState();
@@ -915,11 +919,11 @@ class ModernMessageTile extends StatefulWidget {
   final int index;
 
   const ModernMessageTile({
-    Key? key,
+    super.key,
     required this.messageData,
     this.onTap,
     this.index = 0,
-  }) : super(key: key);
+  });
 
   @override
   _ModernMessageTileState createState() => _ModernMessageTileState();
@@ -1088,12 +1092,12 @@ class EnhancedUserAvatar extends StatelessWidget {
   final double size;
 
   const EnhancedUserAvatar({
-    Key? key,
+    super.key,
     required this.name,
     this.avatar,
     this.isOnline = false,
     this.size = 56,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1169,7 +1173,7 @@ class EnhancedUserAvatar extends StatelessWidget {
       [Color(0xFF06B6D4), Color(0xFF3B82F6)],
       [Color(0xFF10B981), Color(0xFF059669)],
       [Color(0xFFF59E0B), Color(0xFFEF4444)],
-      [Color(0xFFEC4899), Color(0xBE185D)],
+      [Color(0xFFEC4899), Color(0x00be185d)],
       [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
     ];
     return gradients[name.hashCode.abs() % gradients.length];
@@ -1180,7 +1184,7 @@ class EnhancedUserAvatar extends StatelessWidget {
 class ModernOnlineIndicator extends StatelessWidget {
   final double size;
 
-  const ModernOnlineIndicator({Key? key, this.size = 16}) : super(key: key);
+  const ModernOnlineIndicator({super.key, this.size = 16});
 
   @override
   Widget build(BuildContext context) {
@@ -1210,7 +1214,7 @@ class ModernOnlineIndicator extends StatelessWidget {
 class ModernUnreadIndicator extends StatelessWidget {
   final int count;
 
-  const ModernUnreadIndicator({Key? key, this.count = 1}) : super(key: key);
+  const ModernUnreadIndicator({super.key, this.count = 1});
 
   @override
   Widget build(BuildContext context) {

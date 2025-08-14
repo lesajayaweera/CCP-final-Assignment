@@ -70,7 +70,7 @@ class Sponsor {
           );
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
+            MaterialPageRoute(builder: (context) => Dashboard(role: role)),
           );
         } else {
           showSnackBar(context, "Failed to save user data.", Colors.red);
@@ -161,16 +161,24 @@ class Sponsor {
 
     return uniqueUids.toList();
   }
-  static Stream<List<Map<String, dynamic>>> getAllSponsorsStream() {
-    return FirebaseFirestore.instance
-        .collection('sponsor')
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map(
-                (doc) => {'uid': doc.id, ...doc.data() as Map<String, dynamic>},
-              )
-              .toList(),
-        );
-  }
+  // GET all sponsors except the current user
+static Stream<List<Map<String, dynamic>>> getAllSponsorsStream() {
+  final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
+  return FirebaseFirestore.instance
+      .collection('sponsor')
+      .snapshots()
+      .map(
+        (snapshot) => snapshot.docs
+            .where((doc) => doc.id != currentUserUid) // exclude current user
+            .map(
+              (doc) => {
+                'uid': doc.id,
+                ...doc.data(),
+              },
+            )
+            .toList(),
+      );
+}
+
 }

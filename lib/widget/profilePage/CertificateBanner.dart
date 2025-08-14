@@ -44,7 +44,7 @@ class CertificateBanner extends StatelessWidget {
               }
             },
           );
-        }).toList(),
+        }),
       ],
     );
   }

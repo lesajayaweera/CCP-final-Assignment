@@ -24,35 +24,41 @@ class ConnectionService {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text('Connection Request Sent'),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF10B981),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ));
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('Connection Request Sent'),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF10B981),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
       } else {
         // showSnackBar(context, 'Connection request already sent', Colors.orange);
         ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text('Connection request already sent'),
-          ],
-        ),
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color.fromARGB(255, 185, 123, 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ));
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('Connection request already sent'),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color.fromARGB(255, 185, 123, 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
       }
     } else {
       showSnackBar(context, 'User not logged in', Colors.red);
@@ -82,76 +88,45 @@ class ConnectionService {
         .map((snapshot) => snapshot.size);
   }
 
-  // static Future<List<InvitationRequest>> getEnrichedInvitations() async {
-  //   final String myUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-  //   if (myUid.isEmpty) return [];
+  static Future<void> acceptConnectionRequest(
+    String requestId,
+    String senderUID,
+    
+  ) async {
 
-  //   final snapshot = await _firestore
-  //       .collection('connection_requests')
-  //       .where('receiverUID', isEqualTo: myUid)
-  //       .where('status', isEqualTo: 'pending')
-  //       .orderBy('timestamp', descending: true)
-  //       .get();
+    final String receiverUID = FirebaseAuth.instance.currentUser?.uid ?? '';
+    print('Receiver UID: $receiverUID');
+    final WriteBatch batch = _firestore.batch();
 
-  //   List<InvitationRequest> invitations = [];
+    // 1. Update the request status to 'accepted'
+    final requestRef = _firestore
+        .collection('connection_requests')
+        .doc(requestId);
+    batch.update(requestRef, {'status': 'accepted'});
 
-  //   for (var doc in snapshot.docs) {
-  //     final data = doc.data();
-  //     final senderUID = data['senderUID'];
-  //     final timestamp = data['timestamp'] as Timestamp;
+    // 2. Add receiver to sender's "connections" subcollection
+    final senderConnectionRef = _firestore
+        .collection('users')
+        .doc(senderUID)
+        .collection('connections')
+        .doc(receiverUID);
+    batch.set(senderConnectionRef, {
+      'uid': receiverUID,
+      'connectedAt': FieldValue.serverTimestamp(),
+    });
 
-  //     // Try fetching from sponsor
-  //     DocumentSnapshot userDoc = await _firestore
-  //         .collection('sponsor')
-  //         .doc(senderUID)
-  //         .get();
+    // 3. Add sender to receiver's "connections" subcollection
+    final receiverConnectionRef = _firestore
+        .collection('users')
+        .doc(receiverUID)
+        .collection('connections')
+        .doc(senderUID);
+    batch.set(receiverConnectionRef, {
+      'uid': senderUID,
+      'connectedAt': FieldValue.serverTimestamp(),
+    });
 
-  //     String name = "";
-  //     String title = "";
-  //     String profileImage = "";
-  //     String role = "";
-
-  //     if (userDoc.exists) {
-  //       final user = userDoc.data() as Map<String, dynamic>;
-  //       name = user['name'];
-  //       title = '${user['sportIntrested']} Sponsor';
-  //       profileImage = user['profile'];
-  //       role = 'Sponsor';
-  //     } else {
-  //       // Try athlete
-  //       userDoc = await _firestore.collection('athlete').doc(senderUID).get();
-  //       if (userDoc.exists) {
-  //         final user = userDoc.data() as Map<String, dynamic>;
-  //         name = user['name'];
-  //         title = '${user['sport']} Athlete';
-  //         profileImage = user['profile'];
-  //         role = 'Athlete';
-  //       }
-  //     }
-
-  //     final invitation = InvitationRequest(
-  //       id: doc.id,
-  //       profileImage: profileImage,
-  //       name: name,
-  //       title: title,
-  //       mutualConnections: 0, // You can implement this later
-  //       timeAgo: _formatTimestamp(timestamp),
-  //       message: null, // Optional: add this if you have a message field
-  //     );
-
-  //     invitations.add(invitation);
-  //   }
-
-  //   return invitations;
-  // }
-
-  // static String _formatTimestamp(Timestamp timestamp) {
-  //   final now = DateTime.now();
-  //   final diff = now.difference(timestamp.toDate());
-
-  //   if (diff.inDays >= 1) return '${diff.inDays}d ago';
-  //   if (diff.inHours >= 1) return '${diff.inHours}h ago';
-  //   if (diff.inMinutes >= 1) return '${diff.inMinutes}m ago';
-  //   return 'Just now';
-  // }
+    // 4. Commit all in a single batch
+    await batch.commit();
+  }
 }

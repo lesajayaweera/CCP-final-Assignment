@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SharePostScreen extends StatefulWidget {
-  const SharePostScreen({Key? key}) : super(key: key);
+  const SharePostScreen({super.key});
 
   @override
   State<SharePostScreen> createState() => _SharePostScreenState();
@@ -292,11 +292,11 @@ class ShareOption extends StatelessWidget {
   final VoidCallback onTap;
 
   const ShareOption({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

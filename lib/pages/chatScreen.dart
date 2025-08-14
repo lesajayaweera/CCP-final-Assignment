@@ -893,11 +893,11 @@ class ChatScreen extends StatefulWidget {
   final String targetID;
 
   const ChatScreen({
-    Key? key,
+    super.key,
     required this.chatId,
     required this.currentID,
     required this.targetID,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();

@@ -386,7 +386,7 @@ import 'package:sport_ignite/config/essentials.dart';
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
   final String role;
-  const SocialFeedScreen({Key? key, required this.role}) : super(key: key);
+  const SocialFeedScreen({super.key, required this.role});
 
   @override
   State<SocialFeedScreen> createState() => _SocialFeedScreenState();
@@ -621,7 +621,7 @@ class SocialPost extends StatefulWidget {
   final bool isVerified;
 
   const SocialPost({
-    Key? key,
+    super.key,
     required this.userName,
     required this.userRole,
     required this.timeAgo,
@@ -636,7 +636,7 @@ class SocialPost extends StatefulWidget {
     this.onSend,
     this.isLiked = false,
     this.isVerified = false,
-  }) : super(key: key);
+  });
 
   @override
   State<SocialPost> createState() => _SocialPostState();
@@ -805,13 +805,13 @@ class PostHeader extends StatelessWidget {
   final bool isVerified;
 
   const PostHeader({
-    Key? key,
+    super.key,
     required this.userName,
     required this.userRole,
     required this.timeAgo,
     this.userAvatar,
     this.isVerified = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -940,10 +940,10 @@ class PostStats extends StatelessWidget {
   final int comments;
 
   const PostStats({
-    Key? key,
+    super.key,
     required this.likes,
     required this.comments,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1003,14 +1003,14 @@ class PostActions extends StatelessWidget {
   final Animation<double> likeAnimation;
 
   const PostActions({
-    Key? key,
+    super.key,
     this.onLike,
     this.onComment,
     this.onShare,
     this.onSend,
     this.isLiked = false,
     required this.likeAnimation,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1056,13 +1056,13 @@ class _ActionButton extends StatefulWidget {
   final bool isActive;
 
   const _ActionButton({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     this.onTap,
     this.color,
     this.isActive = false,
-  }) : super(key: key);
+  });
 
   @override
   State<_ActionButton> createState() => _ActionButtonState();

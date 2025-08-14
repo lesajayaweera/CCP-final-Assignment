@@ -7,8 +7,7 @@ import 'package:sport_ignite/pages/profileView.dart';
 
 class NetworkManagementScreen extends StatefulWidget {
   final String role;
-  const NetworkManagementScreen({Key? key, required this.role})
-      : super(key: key);
+  const NetworkManagementScreen({super.key, required this.role});
 
   @override
   State<NetworkManagementScreen> createState() =>
@@ -472,12 +471,12 @@ class EnhancedUserCard extends StatefulWidget {
   final int index;
 
   const EnhancedUserCard({
-    Key? key,
+    super.key,
     required this.user,
     required this.onConnect,
     required this.onDismiss,
     required this.index,
-  }) : super(key: key);
+  });
 
   @override
   State<EnhancedUserCard> createState() => _EnhancedUserCardState();
@@ -485,7 +484,7 @@ class EnhancedUserCard extends StatefulWidget {
 
 class _EnhancedUserCardState extends State<EnhancedUserCard>
     with SingleTickerProviderStateMixin {
-  bool _isHovered = false;
+  final bool _isHovered = false;
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
 

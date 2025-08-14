@@ -8,7 +8,7 @@ import 'package:sport_ignite/pages/profileView.dart';
 
 class SponsorScreen extends StatefulWidget {
   final String role;
-  const SponsorScreen({Key? key, required this.role}) : super(key: key);
+  const SponsorScreen({super.key, required this.role});
 
   @override
   State<SponsorScreen> createState() => _SponsorScreenState();
@@ -433,8 +433,7 @@ class SponsorCard extends StatefulWidget {
   final Athletes athlete;
   final int index;
 
-  const SponsorCard({Key? key, required this.athlete, required this.index})
-      : super(key: key);
+  const SponsorCard({super.key, required this.athlete, required this.index});
 
   @override
   State<SponsorCard> createState() => _SponsorCardState();
@@ -443,7 +442,7 @@ class SponsorCard extends StatefulWidget {
 class _SponsorCardState extends State<SponsorCard>
     with SingleTickerProviderStateMixin {
   String _connectionStatus = 'loading';
-  bool _isHovered = false;
+  final bool _isHovered = false;
   late AnimationController _scaleController;
   late Animation<double> _scaleAnimation;
 

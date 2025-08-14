@@ -1745,7 +1745,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
   }
 
   Widget _buildEnhancedHeader() {
-    return Container(
+    return SizedBox(
       height: 280,
       child: Stack(
         fit: StackFit.expand,
@@ -2185,7 +2185,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
     required VoidCallback onPressed,
     bool isOutlined = false,
   }) {
-    return Container(
+    return SizedBox(
       height: 50,
       child: ElevatedButton.icon(
         onPressed: onPressed,

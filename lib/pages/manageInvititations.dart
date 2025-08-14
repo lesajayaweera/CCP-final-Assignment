@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/profileView.dart';
-
+import 'package:sport_ignite/model/ConnectionService.dart';
 class InvitationsScreen extends StatelessWidget {
 
 
   const InvitationsScreen({
-    Key? key,
+    super.key,
 
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +40,7 @@ class InvitationsScreen extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('connection_requests')
-            .where('receiverUID', isEqualTo: myUid)
+            .where('receiverUID', isEqualTo: myUid) 
             .where('status', isEqualTo: 'pending')
             //.orderBy('timestamp', descending: true) // comment out for test
             .snapshots(),
@@ -207,9 +207,9 @@ class InvitationCard extends StatelessWidget {
   
 
   const InvitationCard({
-    Key? key,
+    super.key,
     required this.invitation,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -335,7 +335,12 @@ class InvitationCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: (){},
+                  onPressed: (){
+                    ConnectionService.acceptConnectionRequest(
+                      invitation.id,
+                      invitation.uid,
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF0A66C2),
                     foregroundColor: Colors.white,

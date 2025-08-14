@@ -73,7 +73,7 @@ class Athlete {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Dashboard(role: this.role)),
+            MaterialPageRoute(builder: (context) => Dashboard(role: role)),
           );
 
           return;
@@ -260,10 +260,6 @@ class Athlete {
   static Future<List<Map<String, dynamic>>> getApprovedCertificatesBYuid(
     String uid,
   ) async {
-    if (uid == null) {
-      throw Exception("User not logged in.");
-    }
-
     final querySnapshot = await FirebaseFirestore.instance
         .collection('certificates')
         .doc(uid)
@@ -315,15 +311,18 @@ class Athlete {
     }
   }
 
-// GET THe athletes user data
+  // GET all athletes except the current user
   static Stream<List<Map<String, dynamic>>> getAllAthletesStream() {
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
     return FirebaseFirestore.instance
         .collection('athlete')
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
+              .where((doc) => doc.id != currentUserUid) // exclude current user
               .map(
-                (doc) => {'uid': doc.id, ...doc.data() as Map<String, dynamic>},
+                (doc) => {'uid': doc.id, ...doc.data()},
               )
               .toList(),
         );
