@@ -256,6 +256,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/dashboard.dart';
 import 'package:sport_ignite/pages/registration.dart';
 
 class Login extends StatefulWidget {
@@ -290,18 +291,15 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic),
     );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutBack,
-    ));
+
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutBack),
+        );
 
     _fadeController.forward();
     _slideController.forward();
@@ -319,7 +317,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       body: Container(
         height: size.height,
@@ -327,11 +325,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-              Color(0xFF8b5fbf),
-            ],
+            colors: [Color(0xFF667eea), Color(0xFF764ba2), Color(0xFF8b5fbf)],
           ),
         ),
         child: SafeArea(
@@ -369,10 +363,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.white,
-                              Colors.grey.shade50,
-                            ],
+                            colors: [Colors.white, Colors.grey.shade50],
                           ),
                         ),
                         child: Padding(
@@ -475,7 +466,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           if (value == null || value.trim().isEmpty) {
             return 'Please enter your email';
           }
-          final emailValid = RegExp(r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$").hasMatch(value);
+          final emailValid = RegExp(
+            r"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$",
+          ).hasMatch(value);
           if (!emailValid) return 'Enter a valid email address';
           return null;
         },
@@ -492,7 +485,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.email_outlined, color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.email_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
@@ -500,7 +497,10 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           ),
           filled: true,
           fillColor: Colors.grey.shade50,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           labelStyle: TextStyle(color: Colors.grey[700]),
           hintStyle: TextStyle(color: Colors.grey[500]),
         ),
@@ -545,7 +545,11 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
               ),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.lock_outline, color: Colors.white, size: 20),
+            child: const Icon(
+              Icons.lock_outline,
+              color: Colors.white,
+              size: 20,
+            ),
           ),
           suffixIcon: IconButton(
             icon: Icon(
@@ -565,7 +569,10 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
           ),
           filled: true,
           fillColor: Colors.grey.shade50,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 16,
+          ),
           labelStyle: TextStyle(color: Colors.grey[700]),
           hintStyle: TextStyle(color: Colors.grey[500]),
         ),
@@ -576,16 +583,13 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Widget _buildRememberMeRow() {
     return Row(
       children: [
-        
         const Spacer(),
         TextButton(
           onPressed: () {
             HapticFeedback.lightImpact();
             // TODO: Add forgot password logic
           },
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF667eea),
-          ),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFF667eea)),
           child: const Text(
             "Forgot Password?",
             style: TextStyle(fontWeight: FontWeight.w600),
@@ -700,11 +704,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         ],
       ),
       child: OutlinedButton.icon(
-        icon: Image.asset(
-          'asset/image/google.png',
-          height: 24,
-          width: 24,
-        ),
+        icon: Image.asset('asset/image/google.png', height: 24, width: 24),
         label: const Text(
           "Continue with Google",
           style: TextStyle(
@@ -735,10 +735,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
       children: [
         Text(
           "Don't have an account? ",
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 12,
-          ),
+          style: TextStyle(color: Colors.grey[600], fontSize: 12),
         ),
         TextButton(
           onPressed: () {
@@ -746,28 +743,27 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
             Navigator.push(
               context,
               PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) => Registration(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  return SlideTransition(
-                    position: animation.drive(
-                      Tween(begin: const Offset(1.0, 0.0), end: Offset.zero)
-                          .chain(CurveTween(curve: Curves.easeInOut)),
-                    ),
-                    child: child,
-                  );
-                },
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    Registration(),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                      return SlideTransition(
+                        position: animation.drive(
+                          Tween(
+                            begin: const Offset(1.0, 0.0),
+                            end: Offset.zero,
+                          ).chain(CurveTween(curve: Curves.easeInOut)),
+                        ),
+                        child: child,
+                      );
+                    },
               ),
             );
           },
-          style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF667eea),
-          ),
+          style: TextButton.styleFrom(foregroundColor: const Color(0xFF667eea)),
           child: const Text(
             "Register Now",
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
       ],
@@ -777,17 +773,25 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
       setState(() => _isLoading = true);
-      
       HapticFeedback.mediumImpact();
-      
+
       try {
-        bool success = await Users().Login(
+        String? role = await Users().login(
           context,
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
 
-        if (success) {
+        // Always check if the widget is still mounted
+        if (!mounted) return;
+
+        if (role != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Dashboard(role: role)),
+          );
+
+          // Safe to clear controllers now
           _emailController.clear();
           _passwordController.clear();
         }

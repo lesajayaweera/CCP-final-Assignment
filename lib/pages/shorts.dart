@@ -206,58 +206,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                 )
               : const Center(child: CircularProgressIndicator()),
 
-          // Top app bar
-          // Positioned(
-          //   top: 0,
-          //   left: 0,
-          //   right: 0,
-          //   child: Container(
-          //     padding: EdgeInsets.only(
-          //       top: MediaQuery.of(context).padding.top,
-          //       left: 16,
-          //       right: 16,
-          //       bottom: 16,
-          //     ),
-          //     decoration: BoxDecoration(
-          //       gradient: LinearGradient(
-          //         begin: Alignment.topCenter,
-          //         end: Alignment.bottomCenter,
-          //         colors: [
-          //           Colors.black.withOpacity(0.7),
-          //           Colors.transparent,
-          //         ],
-          //       ),
-          //     ),
-          //     child: Row(
-          //       children: [
-          //         IconButton(
-          //           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          //           onPressed: () => Navigator.pop(context),
-          //         ),
-          //         const Expanded(
-          //           child: Text(
-          //             'Shorts',
-          //             style: TextStyle(
-          //               color: Colors.white,
-          //               fontSize: 18,
-          //               fontWeight: FontWeight.w500,
-          //             ),
-          //           ),
-          //         ),
-          //         IconButton(
-          //           icon: const Icon(Icons.more_vert, color: Colors.white),
-          //           onPressed: _showMoreOptions,
-          //         ),
-          //         const SizedBox(width: 8),
-          //         IconButton(
-          //           icon: const Icon(Icons.share_outlined, color: Colors.white),
-          //           onPressed: _shareVideo,
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // ),
-
+          
           // Center play icon when paused
           if (!isPlaying)
             Center(

@@ -10,80 +10,63 @@ class Users {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // login method
+Future<String?> login(
+  BuildContext context,
+  String email,
+  String password,
+) async {
+  try {
+    UserCredential userCredential =
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
 
-  Future<bool> Login(
-    BuildContext context,
-    String email,
-    String password,
-  ) async {
-    showLoadingDialog(context); // Show the loading spinner
+    User? user = userCredential.user;
 
-    try {
-      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+    if (user != null) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('uid', user.uid);
 
-      User? user = userCredential.user;
+      await PushNotificationService.initialize();
 
-      if (user != null) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('uid', user.uid);
-        await PushNotificationService.initialize();
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
 
-        DocumentSnapshot userDoc = await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .get();
-
-        if (userDoc.exists) {
-          final data = userDoc.data() as Map<String, dynamic>;
-          String? role = data['role'];
-
-          if (role != null) {
-            Navigator.pop(context); // Dismiss loading dialog immediately
-
-            // WidgetsBinding.instance.addPostFrameCallback((_) {
-            //   Navigator.pushReplacement(
-            //     context,
-            //     MaterialPageRoute(builder: (context) => Dashboard(role: role)),
-            //   );
-            // });
-
-            print("User logged in with role: $role");
-
-            return true;
-          } else {
-            Navigator.pop(context);
-            showSnackBar(context, "User role not defined", Colors.red);
-            return false;
-          }
+      if (userDoc.exists && userDoc.data() != null) {
+        final data = userDoc.data() as Map<String, dynamic>;
+        String role = data['role']?.toString() ?? '';
+        if (role.isNotEmpty) {
+          print("✅ User logged in with role: $role");
+          return role;
         } else {
-          Navigator.pop(context);
-          showSnackBar(context, "User data not found", Colors.red);
-          return false;
+          showSnackBar(context, "User role not defined", Colors.red);
+          return null;
         }
+      } else {
+        showSnackBar(context, "User data not found", Colors.red);
+        return null;
       }
-
-      Navigator.pop(context);
-      showSnackBar(context, "Login failed", Colors.red);
-      return false;
-    } on FirebaseAuthException catch (e) {
-      Navigator.pop(context);
-      showSnackBar(context, "Login failed: ${e.message}", Colors.red);
-      return false;
-    } catch (e) {
-      Navigator.pop(context);
-      showSnackBar(context, "Something went wrong: $e", Colors.red);
-      return false;
     }
+
+    showSnackBar(context, "Login failed", Colors.red);
+    return null;
+  } on FirebaseAuthException catch (e) {
+    showSnackBar(context, "Login failed: ${e.message}", Colors.red);
+    return null;
+  } catch (e) {
+    showSnackBar(context, "Something went wrong: $e", Colors.red);
+    return null;
   }
+}
+
+
 
   //  get the user profile image
   Future<String?> getUserProfileImage(String role) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final uid = user.uid;
+      final uid = user.uid;  
       final doc = await FirebaseFirestore.instance
           .collection(role.toString().toLowerCase())
           .doc(uid)

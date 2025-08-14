@@ -3,6 +3,7 @@ import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/ConnectionService.dart';
 import 'package:sport_ignite/model/Sponsor.dart';
 import 'package:sport_ignite/pages/manageInvititations.dart';
+import 'package:sport_ignite/pages/myNetwork.dart';
 import 'package:sport_ignite/pages/profileView.dart';
 
 class NetworkManagementScreen extends StatefulWidget {
@@ -428,13 +429,10 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
   }
 
   void _navigateTo(String route) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navigate to $route'),
-        duration: const Duration(seconds: 1),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: const Color(0xFF1F2937),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MyNetworkScreen(role: widget.role),
       ),
     );
   }

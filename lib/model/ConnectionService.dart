@@ -129,4 +129,61 @@ class ConnectionService {
     // 4. Commit all in a single batch
     await batch.commit();
   }
+
+
+  static Future<void> rejectConnectionRequest(
+    BuildContext context,
+    String senderUID,
+    
+  ) async {
+
+    final String receiverUID = FirebaseAuth.instance.currentUser?.uid ?? '';
+    print('Receiver UID: $receiverUID');
+  try {
+    final querySnapshot = await _firestore
+        .collection('connection_requests')
+        .where('senderUID', isEqualTo: senderUID)
+        .where('receiverUID', isEqualTo: receiverUID)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      // Get the document ID and delete it
+      await _firestore
+          .collection('connection_requests')
+          .doc(querySnapshot.docs.first.id)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.cancel, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text('Connection Request Rejected'),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('No connection request found'),
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  } catch (e) {
+    print('Error rejecting request: $e');
+  }
+}
+
 }

@@ -315,7 +315,9 @@ class InvitationCard extends StatelessWidget {
             children: [
               Expanded(
                 child: OutlinedButton(
-                  onPressed: (){},
+                  onPressed: (){
+                    ConnectionService.rejectConnectionRequest(context, invitation.uid);
+                  },
                   style: OutlinedButton.styleFrom(
                     side: BorderSide(color: Colors.grey[400]!),
                     shape: RoundedRectangleBorder(
