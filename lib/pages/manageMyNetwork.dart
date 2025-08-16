@@ -42,7 +42,9 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
   }
 
   // Convert Firebase data to UsercardDetails
-  List<UsercardDetails> _convertFirebaseDataToUserCards(List<Map<String, dynamic>> data) {
+  List<UsercardDetails> _convertFirebaseDataToUserCards(
+    List<Map<String, dynamic>> data,
+  ) {
     return data.map((item) {
       // Handle both athlete and sponsor data structures
       String uid = item['uid'] ?? '';
@@ -51,24 +53,22 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
       String company = '';
       String role2 = '';
       String imagePath = item['profile'] ?? '';
-      
+
       if (widget.role == 'Athlete') {
         // If current user is athlete, show sponsors
         company = item['institute'] ?? 'Unknown Institute';
         role2 = '${item['sport'] ?? 'Unknown Sport'} Athlete';
-        
       } else {
         // If current user is sponsor, show athletes
         company = item['company'] ?? 'Unknown Company';
         role2 = '${item['orgStructure'] ?? 'Private'} Sponsor';
-        
       }
 
       return UsercardDetails(
         uid: uid,
         name: name,
         role: role,
-        role2:role2,
+        role2: role2,
         company: company,
         imagePath: imagePath,
       );
@@ -97,12 +97,14 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+    final crossAxisCount = (width / 200).floor();
+    final childAspectRatio =
+        width / (crossAxisCount * 250); // adjust height ratio
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: _buildNetworkView(),
-      ),
+      body: FadeTransition(opacity: _fadeAnimation, child: _buildNetworkView()),
     );
   }
 
@@ -147,26 +149,27 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                   ),
                 ),
                 StreamBuilder<int>(
-                    stream: ConnectionService.pendingRequestsCountStream(),
-                    builder: (context, snapshot) {
-                      int count = snapshot.data ?? 0;
-                      return _buildEnhancedNavOption(
-                        icon: Icons.mail_outline_rounded,
-                        title: 'Invitation requests',
-                        subtitle: '$count pending invitations',
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => InvitationsScreen(),
-                            ),
-                          );
-                        },
-                        hasNotification: count > 0,
-                        notificationCount: count,
-                        color: const Color(0xFF10B981),
-                      );
-                    })
+                  stream: ConnectionService.pendingRequestsCountStream(),
+                  builder: (context, snapshot) {
+                    int count = snapshot.data ?? 0;
+                    return _buildEnhancedNavOption(
+                      icon: Icons.mail_outline_rounded,
+                      title: 'Invitation requests',
+                      subtitle: '$count pending invitations',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => InvitationsScreen(),
+                          ),
+                        );
+                      },
+                      hasNotification: count > 0,
+                      notificationCount: count,
+                      color: const Color(0xFF10B981),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -239,7 +242,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                     ],
                   ),
                 ),
-                
+
                 // StreamBuilder for dynamic data
                 StreamBuilder<List<Map<String, dynamic>>>(
                   stream: _getRelevantStream(),
@@ -249,12 +252,14 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                         padding: EdgeInsets.all(40.0),
                         child: Center(
                           child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF3B82F6)),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Color(0xFF3B82F6),
+                            ),
                           ),
                         ),
                       );
                     }
-                    
+
                     if (snapshot.hasError) {
                       return Padding(
                         padding: const EdgeInsets.all(20.0),
@@ -280,7 +285,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                         ),
                       );
                     }
-                    
+
                     if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(20.0),
@@ -306,29 +311,36 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                         ),
                       );
                     }
-                    
-                    final userCards = _convertFirebaseDataToUserCards(snapshot.data!);
-                    
+
+                    final userCards = _convertFirebaseDataToUserCards(
+                      snapshot.data!,
+                    );
+
                     return Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
                       child: GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 0.75,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.75,
+                            ),
                         itemCount: userCards.length,
                         itemBuilder: (context, index) {
                           return AnimatedContainer(
-                            duration: Duration(milliseconds: 300 + (index * 100)),
+                            duration: Duration(
+                              milliseconds: 300 + (index * 100),
+                            ),
                             curve: Curves.easeOutBack,
                             child: EnhancedUserCard(
                               user: userCards[index],
-                              onConnect: () => _connectWithUser(userCards[index]),
-                              onDismiss: () => _dismissUser(index, userCards[index]),
+                              onConnect: () =>
+                                  _connectWithUser(userCards[index]),
+                              onDismiss: () =>
+                                  _dismissUser(index, userCards[index]),
                               index: index,
                             ),
                           );
@@ -399,7 +411,10 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
               ),
               if (hasNotification && notificationCount > 0)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
@@ -439,8 +454,6 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
 
   void _connectWithUser(UsercardDetails user) {
     ConnectionService.sendConnectionRequestUsingUID(context, user.uid);
-    
-    
   }
 
   void _dismissUser(int index, UsercardDetails user) {
@@ -510,12 +523,12 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
       scale: _scaleAnimation,
       child: GestureDetector(
         onTap: () {
-
           print(widget.user.uid);
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ProfileView(uid: widget.user.uid, role: widget.user.role),
+              builder: (context) =>
+                  ProfileView(uid: widget.user.uid, role: widget.user.role),
             ),
           );
         },
@@ -524,14 +537,13 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade50,
-              ],
+              colors: [Colors.white, Colors.grey.shade50],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: _isHovered ? const Color(0xFF3B82F6) : Colors.grey.shade200,
+              color: _isHovered
+                  ? const Color(0xFF3B82F6)
+                  : Colors.grey.shade200,
               width: _isHovered ? 2 : 1,
             ),
             boxShadow: [
@@ -595,7 +607,7 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                       ),
                     ),
                     const SizedBox(height: 12),
-        
+
                     // Name
                     Text(
                       widget.user.name,
@@ -610,7 +622,7 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-        
+
                     // Role
                     Text(
                       widget.user.role2,
@@ -624,7 +636,7 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 2),
-        
+
                     // Company/Institute
                     Text(
                       widget.user.company,
@@ -638,9 +650,9 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 8),
-        
+
                     const Spacer(),
-        
+
                     // Enhanced Connect Button
                     Container(
                       width: double.infinity,
@@ -695,7 +707,7 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                   ],
                 ),
               ),
-        
+
               // Enhanced dismiss button
               Positioned(
                 top: 8,

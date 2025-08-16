@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:sport_ignite/Services/LocalNotifications.dart';
+import 'package:sport_ignite/pages/Login.dart';
 import 'package:sport_ignite/widget/AthWrapper.dart';
 import 'firebase_options.dart';
 
@@ -26,7 +27,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
-      home: const AuthWrapper(),
+      home: Login(),
     );
   }
 }

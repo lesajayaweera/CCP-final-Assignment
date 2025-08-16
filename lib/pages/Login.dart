@@ -533,6 +533,9 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         } else if (result.startsWith("error:")) {
           _showSnackBar(result.replaceFirst("error:", ""));
         } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => Dashboard(role: result),
+          ));
           
           _emailController.clear();
           _passwordController.clear();

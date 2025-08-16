@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sport_ignite/model/MessagingService.dart';
+import 'package:sport_ignite/model/User.dart';
+import 'package:sport_ignite/pages/profileView.dart';
+
+// Add your UserService import here
+// import 'path/to/your/user_service.dart';
 
 class MyNetworkScreen extends StatefulWidget {
   final String role;
@@ -17,6 +23,8 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   
+  // No need for UserService instance since we're using static method
+  
   List<NetworkConnection> pendingRequests = [];
   List<NetworkConnection> activeConnections = [];
   List<NetworkConnection> sentRequests = [];
@@ -26,7 +34,7 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -50,13 +58,47 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
       isLoading = true;
     });
 
-    // Simulate data loading - replace with your actual Firebase queries
-    await Future.delayed(const Duration(seconds: 1));
-    
-    // Mock data - replace with real data
-    pendingRequests = _generateMockData('pending');
-    activeConnections = _generateMockData('active');
-    sentRequests = _generateMockData('sent');
+    try {
+      // Get connected users from Firebase using static method
+      final connectedUsersData = await Users.getConnectedUsers();
+
+      // Convert to NetworkConnection objects
+      activeConnections = connectedUsersData.map((userData) {
+        return NetworkConnection(
+          id: userData['uid'] ?? '',
+          name: userData['name'] ?? 'Unknown User',
+          role: userData['role'] ?? '',
+          sport: _getSportFromUserData(userData),
+          location: _getLocationFromUserData(userData),
+          imagePath: userData['profile'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+          status: 'active',
+          connectedDate: DateTime.now(), // You might want to store this in Firebase
+        );
+      }).toList();
+      
+      // For now, keep sent requests as mock data or implement similar Firebase logic
+      sentRequests = _generateMockData('sent');
+
+    } catch (e) {
+      print("Error loading network data: $e");
+      // Show error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('Failed to load connections: ${e.toString()}'),
+              ],
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
 
     setState(() {
       isLoading = false;
@@ -65,6 +107,35 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     _animationController.forward();
   }
 
+  // Helper method to extract sport information from user data
+  String _getSportFromUserData(Map<String, dynamic> userData) {
+    if (userData['role'] == 'Athlete') {
+      return userData['sport'] ?? 'Unknown Sport';
+    } else if (userData['role'] == 'Sponsor') {
+      return userData['sportIntrested'] ?? 'Unknown Sport';
+    } else {
+      // Handle other roles like Coach, etc.
+      return userData['sport'] ?? userData['sportIntrested'] ?? 'Unknown Sport';
+    }
+  }
+
+  // Helper method to extract location information from user data
+  String _getLocationFromUserData(Map<String, dynamic> userData) {
+    String city = userData['city'] ?? '';
+    String province = userData['province'] ?? '';
+    
+    if (city.isNotEmpty && province.isNotEmpty) {
+      return '$city, $province';
+    } else if (city.isNotEmpty) {
+      return city;
+    } else if (province.isNotEmpty) {
+      return province;
+    } else {
+      return 'Unknown Location';
+    }
+  }
+
+  // Keep this method for sent requests or other mock data if needed
   List<NetworkConnection> _generateMockData(String type) {
     return List.generate(5, (index) => NetworkConnection(
       id: '$type$index',
@@ -79,9 +150,22 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     ));
   }
 
+  // Add refresh functionality
+  Future<void> _refreshData() async {
+    await _loadNetworkData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            onPressed: _refreshData,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
       backgroundColor: const Color(0xFFF8FAFC),
       body: FadeTransition(
         opacity: _fadeAnimation,
@@ -93,7 +177,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildPendingTab(),
                   _buildActiveTab(),
                   _buildSentTab(),
                 ],
@@ -175,8 +258,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
               children: [
                 _buildStatsCard('Active', activeConnections.length, Icons.handshake),
                 const SizedBox(width: 12),
-                _buildStatsCard('Pending', pendingRequests.length, Icons.schedule),
-                const SizedBox(width: 12),
                 _buildStatsCard('Sent', sentRequests.length, Icons.send),
               ],
             ),
@@ -248,35 +329,8 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
         unselectedLabelColor: const Color(0xFF64748B),
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-        tabs: [
+        tabs: const [
           Tab(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.notifications_active, size: 16),
-                  const SizedBox(width: 4),
-                  const Text('Pending'),
-                  if (pendingRequests.isNotEmpty) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Text(
-                        pendingRequests.length.toString(),
-                        style: const TextStyle(fontSize: 10, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          const Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -286,7 +340,7 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
               ],
             ),
           ),
-          const Tab(
+          Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -295,39 +349,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
                 Text('Sent'),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPendingTab() {
-    if (isLoading) return _buildLoadingState();
-    
-    return Container(
-      margin: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          Text(
-            'Connection Requests (${pendingRequests.length})',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF1F2937),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: pendingRequests.isEmpty
-                ? _buildEmptyState('No pending requests', 'You\'re all caught up!', Icons.inbox)
-                : ListView.builder(
-                    itemCount: pendingRequests.length,
-                    itemBuilder: (context, index) {
-                      return _buildPendingConnectionCard(pendingRequests[index], index);
-                    },
-                  ),
           ),
         ],
       ),
@@ -355,11 +376,14 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
           Expanded(
             child: activeConnections.isEmpty
                 ? _buildEmptyState('No active connections', 'Start building your network!', Icons.people_outline)
-                : ListView.builder(
-                    itemCount: activeConnections.length,
-                    itemBuilder: (context, index) {
-                      return _buildActiveConnectionCard(activeConnections[index], index);
-                    },
+                : RefreshIndicator(
+                    onRefresh: _refreshData,
+                    child: ListView.builder(
+                      itemCount: activeConnections.length,
+                      itemBuilder: (context, index) {
+                        return _buildActiveConnectionCard(activeConnections[index], index);
+                      },
+                    ),
                   ),
           ),
         ],
@@ -400,176 +424,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     );
   }
 
-  Widget _buildPendingConnectionCard(NetworkConnection connection, int index) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300 + (index * 100)),
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Profile Image
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF667eea), Color(0xFF764ba2)],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(2),
-                child: Container(
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
-                  child: ClipOval(
-                    child: Image.network(
-                      connection.imagePath,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.shade200,
-                          child: const Icon(Icons.person, size: 30, color: Colors.grey),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            // User Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        connection.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1F2937),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF667eea).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          connection.role,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF667eea),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.sports_tennis, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        connection.sport,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        connection.location,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Action Buttons
-            Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF10B981).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => _acceptConnection(connection),
-                    icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                    ),
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFEF4444).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    padding: EdgeInsets.zero,
-                    onPressed: () => _rejectConnection(connection),
-                    icon: const Icon(Icons.close, color: Colors.white, size: 18),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildActiveConnectionCard(NetworkConnection connection, int index) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300 + (index * 100)),
@@ -588,133 +442,143 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // Profile Image with active indicator
-            Stack(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF10B981), Color(0xFF059669)],
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                      ),
-                      child: ClipOval(
-                        child: Image.network(
-                          connection.imagePath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              color: Colors.grey.shade200,
-                              child: const Icon(Icons.person, size: 30, color: Colors.grey),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    width: 16,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF10B981),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    child: const Icon(Icons.check, size: 8, color: Colors.white),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            // User Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        child: GestureDetector(
+          onTap: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileView(uid: connection.id, role: connection.role)));
+          },
+          child: Row(
+            children: [
+              // Profile Image with active indicator
+              Stack(
                 children: [
-                  Row(
-                    children: [
-                      Text(
-                        connection.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFF1F2937),
-                        ),
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
                       ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
                         ),
-                        child: Text(
-                          connection.role,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Color(0xFF10B981),
-                            fontWeight: FontWeight.w600,
+                        child: ClipOval(
+                          child: Image.network(
+                            connection.imagePath,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Icon(Icons.person, size: 30, color: Colors.grey),
+                              );
+                            },
                           ),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.sports_tennis, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        connection.sport,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
+                  Positioned(
+                    bottom: 2,
+                    right: 2,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
                       ),
-                      const SizedBox(width: 8),
-                      Icon(Icons.schedule, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${connection.connectedDate.difference(DateTime.now()).inDays.abs()} days ago',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                      child: const Icon(Icons.check, size: 8, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
-            ),
-            // Message Button
-            Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF667eea).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(width: 16),
+              // User Info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          connection.name,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF1F2937),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            connection.role,
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF10B981),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.sports_tennis, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Text(
+                          connection.sport,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            connection.location,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              child: IconButton(
-                onPressed: () => _messageConnection(connection),
-                icon: const Icon(Icons.message_rounded, color: Color(0xFF667eea), size: 20),
+              // Message Button
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF667eea).withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    MessagingService.startNewChat(context, connection.id);
+                  },
+                  icon: const Icon(Icons.message_rounded, color: Color(0xFF667eea), size: 20),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -847,7 +711,7 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
                         child: const Text(
                           'Pending',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 10,                      
                             color: Color(0xFFF59E0B),
                             fontWeight: FontWeight.w600,
                           ),
@@ -935,52 +799,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
             textAlign: TextAlign.center,
           ),
         ],
-      ),
-    );
-  }
-
-  void _acceptConnection(NetworkConnection connection) {
-    // Implement accept connection logic
-    setState(() {
-      pendingRequests.remove(connection);
-      connection.status = 'active';
-      activeConnections.add(connection);
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text('Connected with ${connection.name}!'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  void _rejectConnection(NetworkConnection connection) {
-    // Implement reject connection logic
-    setState(() {
-      pendingRequests.remove(connection);
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.info, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text('Request from ${connection.name} declined'),
-          ],
-        ),
-        backgroundColor: const Color(0xFF64748B),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

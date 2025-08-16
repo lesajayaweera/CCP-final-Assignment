@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
@@ -136,4 +137,70 @@ class Users {
       return null;
     }
   }
+
+ static Future<List<Map<String, dynamic>>> getConnectedUsers() async {
+    final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserUid == null) return [];
+
+    List<Map<String, dynamic>> connectedUsers = [];
+
+    try {
+      // Get connections subcollection
+      final connectionsSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserUid)
+          .collection('connections')
+          .get();
+
+      for (var connectionDoc in connectionsSnapshot.docs) {
+        String connectedUid = connectionDoc.id;
+
+        // Fetch the connected user's main profile
+        final userDoc =
+            await FirebaseFirestore.instance.collection('users').doc(connectedUid).get();
+
+        if (userDoc.exists) {
+          final userData = userDoc.data()!;
+          String role = userData['role'] ?? '';
+
+          Map<String, dynamic>? fullUserData;
+
+          if (role == 'Athlete') {
+            // Fetch from athlete collection
+            final athleteDoc =
+                await FirebaseFirestore.instance.collection('athlete').doc(connectedUid).get();
+            if (athleteDoc.exists) {
+              fullUserData = {
+                'uid': connectedUid,
+                ...athleteDoc.data()!,
+              };
+            }
+          } else {
+            // Fetch from another role collection
+            final otherDoc = await FirebaseFirestore.instance
+                .collection(role.toLowerCase()) // e.g. "sponsor", "coach"
+                .doc(connectedUid)
+                .get();
+            if (otherDoc.exists) {
+              fullUserData = {
+                'uid': connectedUid,
+                ...otherDoc.data()!,
+              };
+            }
+          }
+
+          if (fullUserData != null) {
+            connectedUsers.add(fullUserData);
+          }
+        }
+      }
+    } catch (e) {
+      print("Error fetching connected users: $e");
+    }
+
+    return connectedUsers;
+  }
+
+
+  
 }
