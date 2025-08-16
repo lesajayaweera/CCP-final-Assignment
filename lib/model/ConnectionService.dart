@@ -91,9 +91,7 @@ class ConnectionService {
   static Future<void> acceptConnectionRequest(
     String requestId,
     String senderUID,
-    
   ) async {
-
     final String receiverUID = FirebaseAuth.instance.currentUser?.uid ?? '';
     print('Receiver UID: $receiverUID');
     final WriteBatch batch = _firestore.batch();
@@ -130,60 +128,147 @@ class ConnectionService {
     await batch.commit();
   }
 
-
   static Future<void> rejectConnectionRequest(
     BuildContext context,
     String senderUID,
-    
   ) async {
-
     final String receiverUID = FirebaseAuth.instance.currentUser?.uid ?? '';
     print('Receiver UID: $receiverUID');
-  try {
-    final querySnapshot = await _firestore
-        .collection('connection_requests')
-        .where('senderUID', isEqualTo: senderUID)
-        .where('receiverUID', isEqualTo: receiverUID)
-        .limit(1)
-        .get();
-
-    if (querySnapshot.docs.isNotEmpty) {
-      // Get the document ID and delete it
-      await _firestore
+    try {
+      final querySnapshot = await _firestore
           .collection('connection_requests')
-          .doc(querySnapshot.docs.first.id)
-          .delete();
+          .where('senderUID', isEqualTo: senderUID)
+          .where('receiverUID', isEqualTo: receiverUID)
+          .limit(1)
+          .get();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.cancel, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text('Connection Request Rejected'),
-            ],
+      if (querySnapshot.docs.isNotEmpty) {
+        // Get the document ID and delete it
+        await _firestore
+            .collection('connection_requests')
+            .doc(querySnapshot.docs.first.id)
+            .delete();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.cancel, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('Connection Request Rejected'),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.red,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('No connection request found'),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.orange,
           ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('No connection request found'),
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: Colors.orange,
-        ),
-      );
+        );
+      }
+    } catch (e) {
+      print('Error rejecting request: $e');
     }
-  } catch (e) {
-    print('Error rejecting request: $e');
   }
-}
 
+
+  static Future<List<Map<String, dynamic>>> getSentPendingRequests() async {
+    final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserUid == null) return [];
+
+    List<Map<String, dynamic>> sentRequests = [];
+
+    try {
+      // Get pending connection requests where current user is the sender
+      final requestsSnapshot = await FirebaseFirestore.instance
+          .collection('connection_requests')
+          .where('senderUID', isEqualTo: currentUserUid)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (var requestDoc in requestsSnapshot.docs) {
+        final requestData = requestDoc.data();
+        String receiverUID = requestData['receiverUID'] ?? '';
+
+        if (receiverUID.isNotEmpty) {
+          // Fetch the receiver's main profile
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(receiverUID)
+              .get();
+
+          if (userDoc.exists) {
+            final userData = userDoc.data()!;
+            String role = userData['role'] ?? '';
+
+            Map<String, dynamic>? fullUserData;
+
+            if (role == 'Athlete') {
+              // Fetch from athlete collection
+              final athleteDoc = await FirebaseFirestore.instance
+                  .collection('athlete')
+                  .doc(receiverUID)
+                  .get();
+              if (athleteDoc.exists) {
+                fullUserData = {
+                  'uid': receiverUID,
+                  'requestId': requestDoc.id, // Include request document ID
+                  'requestTimestamp': requestData['timestamp'],
+                  'status': requestData['status'],
+                  ...athleteDoc.data()!,
+                };
+              }
+            } else {
+              // Fetch from another role collection (sponsor, coach, etc.)
+              final otherDoc = await FirebaseFirestore.instance
+                  .collection(role.toLowerCase())
+                  .doc(receiverUID)
+                  .get();
+              if (otherDoc.exists) {
+                fullUserData = {
+                  'uid': receiverUID,
+                  'requestId': requestDoc.id, // Include request document ID
+                  'requestTimestamp': requestData['timestamp'],
+                  'status': requestData['status'],
+                  ...otherDoc.data()!,
+                };
+              }
+            }
+
+            if (fullUserData != null) {
+              sentRequests.add(fullUserData);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print("Error fetching sent pending requests: $e");
+    }
+
+    return sentRequests;
+  }
+
+  // Method to cancel a sent request
+  static Future<bool> cancelConnectionRequest(String requestId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('connection_requests')
+          .doc(requestId)
+          .delete();
+      return true;
+    } catch (e) {
+      print("Error cancelling request: $e");
+      return false;
+    }
+  }
 }

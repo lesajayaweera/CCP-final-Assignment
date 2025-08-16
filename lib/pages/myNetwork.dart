@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:sport_ignite/model/ConnectionService.dart';
 import 'package:sport_ignite/model/MessagingService.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/profileView.dart';
@@ -22,8 +23,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
   late TabController _tabController;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
-  
-  // No need for UserService instance since we're using static method
   
   List<NetworkConnection> pendingRequests = [];
   List<NetworkConnection> activeConnections = [];
@@ -59,10 +58,16 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     });
 
     try {
-      // Get connected users from Firebase using static method
-      final connectedUsersData = await Users.getConnectedUsers();
+      // Load both active connections and sent requests in parallel
+      final futures = await Future.wait([
+        Users.getConnectedUsers(),
+        ConnectionService.getSentPendingRequests(),
+      ]);
 
-      // Convert to NetworkConnection objects
+      final connectedUsersData = futures[0] as List<Map<String, dynamic>>;
+      final sentRequestsData = futures[1] as List<Map<String, dynamic>>;
+
+      // Convert connected users to NetworkConnection objects
       activeConnections = connectedUsersData.map((userData) {
         return NetworkConnection(
           id: userData['uid'] ?? '',
@@ -72,16 +77,28 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
           location: _getLocationFromUserData(userData),
           imagePath: userData['profile'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
           status: 'active',
-          connectedDate: DateTime.now(), // You might want to store this in Firebase
+          connectedDate: DateTime.now(),
+          requestId: null, // No request ID for active connections
         );
       }).toList();
-      
-      // For now, keep sent requests as mock data or implement similar Firebase logic
-      sentRequests = _generateMockData('sent');
+
+      // Convert sent requests to NetworkConnection objects
+      sentRequests = sentRequestsData.map((userData) {
+        return NetworkConnection(
+          id: userData['uid'] ?? '',
+          name: userData['name'] ?? 'Unknown User',
+          role: userData['role'] ?? '',
+          sport: _getSportFromUserData(userData),
+          location: _getLocationFromUserData(userData),
+          imagePath: userData['profile'] ?? 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+          status: 'sent',
+          connectedDate: userData['requestTimestamp']?.toDate() ?? DateTime.now(),
+          requestId: userData['requestId'], // Store request ID for cancellation
+        );
+      }).toList();
 
     } catch (e) {
       print("Error loading network data: $e");
-      // Show error to user
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -133,21 +150,6 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     } else {
       return 'Unknown Location';
     }
-  }
-
-  // Keep this method for sent requests or other mock data if needed
-  List<NetworkConnection> _generateMockData(String type) {
-    return List.generate(5, (index) => NetworkConnection(
-      id: '$type$index',
-      name: type == 'active' ? 'John Smith $index' : 
-            type == 'pending' ? 'Sarah Wilson $index' : 'Mike Johnson $index',
-      role: widget.role == 'Athlete' ? 'Sponsor' : 'Athlete',
-      sport: 'Tennis',
-      location: 'New York',
-      imagePath: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-      status: type,
-      connectedDate: DateTime.now().subtract(Duration(days: index * 5)),
-    ));
   }
 
   // Add refresh functionality
@@ -412,11 +414,14 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
           Expanded(
             child: sentRequests.isEmpty
                 ? _buildEmptyState('No sent requests', 'Send connection requests to build your network!', Icons.send_rounded)
-                : ListView.builder(
-                    itemCount: sentRequests.length,
-                    itemBuilder: (context, index) {
-                      return _buildSentConnectionCard(sentRequests[index], index);
-                    },
+                : RefreshIndicator(
+                    onRefresh: _refreshData,
+                    child: ListView.builder(
+                      itemCount: sentRequests.length,
+                      itemBuilder: (context, index) {
+                        return _buildSentConnectionCard(sentRequests[index], index);
+                      },
+                    ),
                   ),
           ),
         ],
@@ -722,7 +727,7 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
                 ],
               ),
             ),
-            // Cancel Button
+            // Cancel Button with loading state
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFFEF4444).withOpacity(0.1),
@@ -821,29 +826,109 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
     );
   }
 
-  void _cancelRequest(NetworkConnection connection) {
-    // Implement cancel request logic
-    setState(() {
-      sentRequests.remove(connection);
-    });
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.cancel, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text('Request to ${connection.name} cancelled'),
-          ],
-        ),
-        backgroundColor: const Color(0xFFEF4444),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+  Future<void> _cancelRequest(NetworkConnection connection) async {
+    // Show confirmation dialog first
+    final bool? shouldCancel = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancel Request'),
+        content: Text('Are you sure you want to cancel the connection request to ${connection.name}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: const Color(0xFFEF4444),
+            ),
+            child: const Text('Yes, Cancel'),
+          ),
+        ],
       ),
     );
+
+    if (shouldCancel != true) return;
+
+    // Show loading indicator
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            ),
+            SizedBox(width: 12),
+            Text('Cancelling request...'),
+          ],
+        ),
+        backgroundColor: Color(0xFF667eea),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    try {
+      // Use the Firebase method to cancel the request
+      if (connection.requestId != null) {
+        final success = await ConnectionService.cancelConnectionRequest(connection.requestId!);
+        
+        if (success) {
+          // Remove from local list and update UI
+          setState(() {
+            sentRequests.remove(connection);
+          });
+          
+          // Hide the loading snackbar and show success message
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                  const SizedBox(width: 8),
+                  Text('Request to ${connection.name} cancelled successfully'),
+                ],
+              ),
+              backgroundColor: const Color(0xFF10B981),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+          );
+        } else {
+          throw Exception('Failed to cancel request');
+        }
+      } else {
+        throw Exception('Request ID not found');
+      }
+    } catch (e) {
+      print("Error cancelling request: $e");
+      
+      // Hide loading snackbar and show error message
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text('Failed to cancel request: ${e.toString()}'),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+      );
+    }
   }
 }
-
 // Network Connection Model
 class NetworkConnection {
   final String id;
@@ -854,6 +939,7 @@ class NetworkConnection {
   final String imagePath;
   String status;
   final DateTime connectedDate;
+  final String? requestId; // Add this field to store request ID for cancellation
 
   NetworkConnection({
     required this.id,
@@ -864,6 +950,7 @@ class NetworkConnection {
     required this.imagePath,
     required this.status,
     required this.connectedDate,
+    this.requestId, // Make it optional
   });
 
   factory NetworkConnection.fromFirestore(DocumentSnapshot doc) {
@@ -877,6 +964,7 @@ class NetworkConnection {
       imagePath: data['imagePath'] ?? '',
       status: data['status'] ?? '',
       connectedDate: (data['connectedDate'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      requestId: data['requestId'], // Include requestId from Firestore
     );
   }
 
@@ -889,6 +977,7 @@ class NetworkConnection {
       'imagePath': imagePath,
       'status': status,
       'connectedDate': Timestamp.fromDate(connectedDate),
+      'requestId': requestId,
     };
   }
 }
