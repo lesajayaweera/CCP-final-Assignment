@@ -7,32 +7,35 @@ import 'package:sport_ignite/pages/dashboard.dart';
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
+  Widget _buildLoader() {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('asset/image/Logo.png', width: 100, height: 100),
+            const SizedBox(height: 20),
+            const CircularProgressIndicator(),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return  Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    'asset/image/Logo.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                  const SizedBox(height: 20),
-                  const CircularProgressIndicator(),
-                ],
-              ),
-            ),
-          );
+          print("Loading user...");
+          print(snapshot.data?.uid);
+          return _buildLoader();
+          
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          // User is logged in
+          // User is logged in → check role
           return FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
                 .collection('users')
@@ -40,21 +43,26 @@ class AuthWrapper extends StatelessWidget {
                 .get(),
             builder: (context, roleSnapshot) {
               if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(child: CircularProgressIndicator()),
-                );
+                print("Loading user role...");
+                print(roleSnapshot);
+                return _buildLoader();
               }
 
               if (roleSnapshot.hasData && roleSnapshot.data!.exists) {
                 final data =
                     roleSnapshot.data!.data() as Map<String, dynamic>? ?? {};
-                final role = data['role'] ?? '';
+                final role = (data['role'] ?? '').toString();
+
                 if (role.isEmpty) {
+                  FirebaseAuth.instance.signOut();
                   return const Login();
                 }
+
                 return Dashboard(role: role);
               }
 
+              // If no data → force logout
+              FirebaseAuth.instance.signOut();
               return const Login();
             },
           );

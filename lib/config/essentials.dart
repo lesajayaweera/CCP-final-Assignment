@@ -46,8 +46,17 @@ final List<String> sector =[
   void showSnackBar(BuildContext context, String message, Color bgColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Row(
+          children: [
+            const Icon(Icons.visibility_off, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Text(message),
+          ],
+        ),
+        duration: const Duration(seconds: 1),
+        behavior: SnackBarBehavior.floating,
         backgroundColor: bgColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }

@@ -264,7 +264,15 @@ class _ProfileViewState extends State<ProfileView>
             const SizedBox(height: 20),
             _buildConnectButton(),
             const SizedBox(height: 10),
-            _buildMesageButton(),
+
+            if (userData?['role'] == 'Athlete' && widget.role == 'Sponsor')
+              _buildMesageButton(),
+            if (userData?['role'] == 'Athlete' && widget.role == 'Athlete')
+              _buildMesageButton(),
+
+            if (userData?['role'] == 'Sponsor' && widget.role == 'Sponsor')
+              _buildMesageButton(),
+
           ],
         ),
       ),
