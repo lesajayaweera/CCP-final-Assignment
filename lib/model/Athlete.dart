@@ -315,16 +315,91 @@ class Athlete {
   static Stream<List<Map<String, dynamic>>> getAllAthletesStream() {
     final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
-    return FirebaseFirestore.instance
-        .collection('athlete')
-        .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .where((doc) => doc.id != currentUserUid) // exclude current user
-              .map(
-                (doc) => {'uid': doc.id, ...doc.data()},
-              )
-              .toList(),
-        );
+    if (currentUserUid == null) {
+      return Stream.value([]);
+    }
+
+    // Get current user's role
+    final currentUserDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserUid)
+        .snapshots();
+
+    return currentUserDoc.asyncExpand((currentUserSnapshot) {
+      if (!currentUserSnapshot.exists) {
+        return Stream.value([]);
+      }
+
+      final currentUserData = currentUserSnapshot.data()!;
+      final String currentUserRole = currentUserData['role'];
+
+      // Only proceed if current user is an Athlete
+      if (currentUserRole != "Athlete") {
+        return Stream.value([]);
+      }
+
+      // Get all users with role = Athlete
+      return FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'Athlete')
+          .snapshots()
+          .asyncMap((userSnapshot) async {
+            // --- 1. Get current user's connections ---
+            final connectionsSnapshot = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUserUid)
+                .collection('connections')
+                .get();
+
+            final Set<String> excludedUserIds = connectionsSnapshot.docs
+                .map((doc) => doc.id)
+                .toSet();
+
+            // --- 2. Get connection requests (pending + accepted) ---
+            final requestsSnapshot = await FirebaseFirestore.instance
+                .collection('connection_requests')
+                .where('status', whereIn: ['pending', 'accepted'])
+                .get();
+
+            for (final doc in requestsSnapshot.docs) {
+              final data = doc.data();
+              final sender = data['senderUID'] as String;
+              final receiver = data['receiverUID'] as String;
+
+              if (sender == currentUserUid) {
+                excludedUserIds.add(receiver);
+              }
+              if (receiver == currentUserUid) {
+                excludedUserIds.add(sender);
+              }
+            }
+
+            // --- 3. Collect UIDs of athletes to show ---
+            final List<String> validAthleteUids = userSnapshot.docs
+                .where(
+                  (doc) =>
+                      doc.id != currentUserUid &&
+                      !excludedUserIds.contains(doc.id),
+                )
+                .map((doc) => doc.id)
+                .toList();
+
+            if (validAthleteUids.isEmpty) {
+              return [];
+            }
+
+            // --- 4. Fetch athlete details from athlete collection ---
+            final athleteDocs = await FirebaseFirestore.instance
+                .collection('athlete')
+                .where(FieldPath.documentId, whereIn: validAthleteUids)
+                .get();
+
+            final List<Map<String, dynamic>> athletes = athleteDocs.docs
+                .map((doc) => {'uid': doc.id, ...doc.data()})
+                .toList();
+
+            return athletes;
+          });
+    });
   }
 }

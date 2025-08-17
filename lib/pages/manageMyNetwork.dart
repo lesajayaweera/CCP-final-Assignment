@@ -21,6 +21,10 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
   String currentView = 'network';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  
+  // Track connection states for each user
+  final Set<String> _pendingConnections = <String>{};
+  final Set<String> _sentConnections = <String>{};
 
   @override
   void initState() {
@@ -45,6 +49,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
   List<UsercardDetails> _convertFirebaseDataToUserCards(
     List<Map<String, dynamic>> data,
   ) {
+    print(data);
     return data.map((item) {
       // Handle both athlete and sponsor data structures
       String uid = item['uid'] ?? '';
@@ -56,12 +61,14 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
 
       if (widget.role == 'Athlete') {
         // If current user is athlete, show sponsors
-        company = item['institute'] ?? 'Unknown Institute';
+         company = item['institute'] ?? 'Unknown Institute';
         role2 = '${item['sport'] ?? 'Unknown Sport'} Athlete';
+       
       } else {
         // If current user is sponsor, show athletes
-        company = item['company'] ?? 'Unknown Company';
-        role2 = '${item['orgStructure'] ?? 'Private'} Sponsor';
+       
+         company = item['company'] ?? 'Unknown Company';
+        role2 = '${item['orgStructure'] ?? 'Unknown'} Sponsor';
       }
 
       return UsercardDetails(
@@ -80,6 +87,7 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
     if (widget.role == 'Athlete') {
       // If user is athlete, show sponsors
       return Athlete.getAllAthletesStream();
+      
     } else {
       // If user is sponsor, show athletes
       return Sponsor.getAllSponsorsStream();
@@ -342,6 +350,8 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
                               onDismiss: () =>
                                   _dismissUser(index, userCards[index]),
                               index: index,
+                              isConnecting: _pendingConnections.contains(userCards[index].uid),
+                              isConnected: _sentConnections.contains(userCards[index].uid),
                             ),
                           );
                         },
@@ -452,8 +462,65 @@ class _NetworkManagementScreenState extends State<NetworkManagementScreen>
     );
   }
 
-  void _connectWithUser(UsercardDetails user) {
-    ConnectionService.sendConnectionRequestUsingUID(context, user.uid);
+  Future<void> _connectWithUser(UsercardDetails user) async {
+    // Add to pending connections immediately for UI feedback
+    setState(() {
+      _pendingConnections.add(user.uid);
+    });
+
+    try {
+      // Send connection request
+      await ConnectionService.sendConnectionRequestUsingUID(context, user.uid);
+      
+      // Move from pending to sent connections
+      setState(() {
+        _pendingConnections.remove(user.uid);
+        _sentConnections.add(user.uid);
+      });
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                Text('Connection request sent to ${user.name}'),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFF10B981),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    } catch (error) {
+      // Remove from pending connections on error
+      setState(() {
+        _pendingConnections.remove(user.uid);
+      });
+      
+      // Show error message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Text('Failed to send connection request'),
+              ],
+            ),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: const Color(0xFFEF4444),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        );
+      }
+    }
   }
 
   void _dismissUser(int index, UsercardDetails user) {
@@ -480,6 +547,8 @@ class EnhancedUserCard extends StatefulWidget {
   final VoidCallback onConnect;
   final VoidCallback onDismiss;
   final int index;
+  final bool isConnecting;
+  final bool isConnected;
 
   const EnhancedUserCard({
     super.key,
@@ -487,6 +556,8 @@ class EnhancedUserCard extends StatefulWidget {
     required this.onConnect,
     required this.onDismiss,
     required this.index,
+    this.isConnecting = false,
+    this.isConnected = false,
   });
 
   @override
@@ -575,7 +646,7 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                       child: Container(
                         width: 70,
                         height: 70,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           shape: BoxShape.circle,
                           color: Colors.white,
                         ),
@@ -584,7 +655,28 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
                               ? Image.network(
                                   widget.user.imagePath,
                                   fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) {
+                                      return child;
+                                    }
+                                    return Container(
+                                      color: Colors.grey.shade200,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          value: loadingProgress.expectedTotalBytes != null
+                                              ? loadingProgress.cumulativeBytesLoaded /
+                                                  loadingProgress.expectedTotalBytes!
+                                              : null,
+                                          strokeWidth: 2,
+                                          valueColor: const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFF3B82F6),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                   errorBuilder: (context, error, stackTrace) {
+                                    print('Image loading error for ${widget.user.name}: $error');
                                     return Container(
                                       color: Colors.grey.shade200,
                                       child: const Icon(
@@ -653,90 +745,171 @@ class _EnhancedUserCardState extends State<EnhancedUserCard>
 
                     const Spacer(),
 
-                    // Enhanced Connect Button
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                        ),
-                        borderRadius: BorderRadius.circular(25),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF3B82F6).withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            _scaleController.forward().then((_) {
-                              _scaleController.reverse();
-                              widget.onConnect();
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(25),
-                          child: const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.person_add_rounded,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  'Connect',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    // Enhanced Connect Button with state management
+                    _buildConnectionButton(),
                   ],
                 ),
               ),
 
-              // Enhanced dismiss button
-              Positioned(
-                top: 8,
-                right: 8,
-                child: GestureDetector(
-                  onTap: widget.onDismiss,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.7),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(
-                      Icons.close_rounded,
-                      color: Colors.white,
-                      size: 16,
+              // Enhanced dismiss button - only show if not connected
+              if (!widget.isConnected)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: widget.onDismiss,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.7),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                        size: 16,
+                      ),
                     ),
                   ),
                 ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConnectionButton() {
+    // Show different button states based on connection status
+    if (widget.isConnected) {
+      // Connection request has been sent
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.check_circle,
+                color: Colors.grey,
+                size: 16,
+              ),
+              SizedBox(width: 6),
+              Text(
+                'Request Sent',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
+          ),
+        ),
+      );
+    }
+
+    if (widget.isConnecting) {
+      // Currently sending connection request
+      return Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF3B82F6).withOpacity(0.7),
+              const Color(0xFF1D4ED8).withOpacity(0.7),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(25),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 14,
+                height: 14,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Connecting...',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Default connect button
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            _scaleController.forward().then((_) {
+              _scaleController.reverse();
+              widget.onConnect();
+            });
+          },
+          borderRadius: BorderRadius.circular(25),
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.person_add_rounded,
+                  color: Colors.white,
+                  size: 16,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'Connect',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -760,4 +933,4 @@ class UsercardDetails {
     required this.company,
     required this.imagePath,
   });
-}
+} 

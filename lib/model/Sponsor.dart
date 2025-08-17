@@ -45,7 +45,6 @@ class Sponsor {
     showLoadingDialog(context); // Show the loading spinner
 
     try {
-      
       UserCredential userCredentials = await _auth
           .createUserWithEmailAndPassword(email: email, password: pass);
 
@@ -56,11 +55,9 @@ class Sponsor {
         await prefs.setString('uid', user.uid);
 
         bool writeSuccess = await writeData(context);
-         PushNotificationService.initialize();
+        PushNotificationService.initialize();
 
-        Navigator.pop(
-          context,
-        );
+        Navigator.pop(context);
 
         if (writeSuccess) {
           showSnackBar(
@@ -76,7 +73,7 @@ class Sponsor {
           showSnackBar(context, "Failed to save user data.", Colors.red);
         }
       } else {
-        Navigator.pop(context); 
+        Navigator.pop(context);
         showSnackBar(
           context,
           "Registration failed. Please try again.",
@@ -84,7 +81,7 @@ class Sponsor {
         );
       }
     } on FirebaseAuthException catch (e) {
-      Navigator.pop(context); 
+      Navigator.pop(context);
       showSnackBar(context, e.message.toString(), Colors.red);
     } catch (e) {
       Navigator.pop(context);
@@ -161,24 +158,96 @@ class Sponsor {
 
     return uniqueUids.toList();
   }
+
   // GET all sponsors except the current user
-static Stream<List<Map<String, dynamic>>> getAllSponsorsStream() {
-  final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+  static Stream<List<Map<String, dynamic>>> getAllSponsorsStream() {
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
 
-  return FirebaseFirestore.instance
-      .collection('sponsor')
-      .snapshots()
-      .map(
-        (snapshot) => snapshot.docs
-            .where((doc) => doc.id != currentUserUid) // exclude current user
-            .map(
-              (doc) => {
-                'uid': doc.id,
-                ...doc.data(),
-              },
-            )
-            .toList(),
-      );
-}
+    if (currentUserUid == null) {
+      return Stream.value([]);
+    }
 
+    // Get current user's role
+    final currentUserDoc = FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserUid)
+        .snapshots();
+
+    return currentUserDoc.asyncExpand((currentUserSnapshot) {
+      if (!currentUserSnapshot.exists) {
+        return Stream.value([]);
+      }
+
+      final currentUserData = currentUserSnapshot.data()!;
+      final String currentUserRole = currentUserData['role'];
+
+      // Only proceed if current user is a Sponsor
+      if (currentUserRole != "Sponsor") {
+        return Stream.value([]);
+      }
+
+      // Get all users with role = Sponsor
+      return FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'Sponsor')
+          .snapshots()
+          .asyncMap((userSnapshot) async {
+            // --- 1. Get current user's connections ---
+            final connectionsSnapshot = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUserUid)
+                .collection('connections')
+                .get();
+
+            final Set<String> excludedUserIds = connectionsSnapshot.docs
+                .map((doc) => doc.id)
+                .toSet();
+
+            // --- 2. Get connection requests (pending + accepted) ---
+            final requestsSnapshot = await FirebaseFirestore.instance
+                .collection('connection_requests')
+                .where('status', whereIn: ['pending', 'accepted'])
+                .get();
+
+            for (final doc in requestsSnapshot.docs) {
+              final data = doc.data();
+              final sender = data['senderUID'] as String;
+              final receiver = data['receiverUID'] as String;
+
+              if (sender == currentUserUid) {
+                excludedUserIds.add(receiver);
+              }
+              if (receiver == currentUserUid) {
+                excludedUserIds.add(sender);
+              }
+            }
+
+            // --- 3. Collect UIDs of sponsors to show ---
+            final List<String> validSponsorUids = userSnapshot.docs
+                .where(
+                  (doc) =>
+                      doc.id != currentUserUid &&
+                      !excludedUserIds.contains(doc.id),
+                )
+                .map((doc) => doc.id)
+                .toList();
+
+            if (validSponsorUids.isEmpty) {
+              return [];
+            }
+
+            // --- 4. Fetch sponsor details from sponsor collection ---
+            final sponsorDocs = await FirebaseFirestore.instance
+                .collection('sponsor')
+                .where(FieldPath.documentId, whereIn: validSponsorUids)
+                .get();
+
+            final List<Map<String, dynamic>> sponsors = sponsorDocs.docs
+                .map((doc) => {'uid': doc.id, ...doc.data()})
+                .toList();
+
+            return sponsors;
+          });
+    });
+  }
 }

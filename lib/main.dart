@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Poppins',
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlue),
       ),
-      home: Login(),
+      home: const Wrapper(),
     );
   }
 }
