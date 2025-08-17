@@ -273,15 +273,48 @@ class Athlete {
     return querySnapshot.docs.map((doc) => doc.data()).toList();
   }
 
-  static Future<List<String>> getAllSponsorUIDs() async {
+  static Future<List<String>> getAllSponsorUIDs(
+    
+  ) async {
+
+    final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
     try {
-      QuerySnapshot snapshot = await FirebaseFirestore.instance
+      // 1. Get all sponsors
+      QuerySnapshot sponsorSnapshot = await FirebaseFirestore.instance
           .collection('sponsor')
           .get();
+      List<String> allSponsorUIDs = sponsorSnapshot.docs
+          .map((doc) => doc.id)
+          .toList();
 
-      return snapshot.docs.map((doc) => doc.id).toList();
+      // 2. Get all connection requests sent by the current user
+      QuerySnapshot requestSnapshot = await FirebaseFirestore.instance
+          .collection('connection_requests')
+          .where('senderUID', isEqualTo: currentUserUid)
+          .get();
+      List<String> requestedUIDs = requestSnapshot.docs
+          .map((doc) => doc['receiverUID'] as String)
+          .toList();
+
+      // 3. Get all connected users under the current user's connections subcollection
+      QuerySnapshot connectionSnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUserUid)
+          .collection('connections')
+          .get();
+      List<String> connectedUIDs = connectionSnapshot.docs
+          .map((doc) => doc['uid'] as String)
+          .toList();
+
+      // 4. Exclude sponsors who are already connected or already requested
+      List<String> availableUIDs = allSponsorUIDs.where((uid) {
+        return !requestedUIDs.contains(uid) && !connectedUIDs.contains(uid);
+      }).toList();
+
+      return availableUIDs;
     } catch (e) {
-      print('Error fetching sponsor UIDs: $e');
+      print('Error fetching available sponsors: $e');
       return [];
     }
   }

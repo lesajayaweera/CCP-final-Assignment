@@ -71,6 +71,7 @@ class ConnectionService {
         .collection('connection_requests')
         .where('senderUID', isEqualTo: myUid)
         .where('receiverUID', isEqualTo: toUid)
+        .where('status', whereIn: ['pending', 'accepted'])
         .limit(1)
         .get();
 
@@ -180,7 +181,6 @@ class ConnectionService {
       print('Error rejecting request: $e');
     }
   }
-
 
   static Future<List<Map<String, dynamic>>> getSentPendingRequests() async {
     final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;

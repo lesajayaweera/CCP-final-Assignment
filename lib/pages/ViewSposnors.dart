@@ -46,7 +46,9 @@ class _SponsorScreenState extends State<SponsorScreen>
       isLoading = true;
     });
 
-    final uids = await Athlete.getAllSponsorUIDs();
+    final uids = await Athlete.getAllSponsorUIDs(
+      
+    );
 
     if (!mounted) return;
 

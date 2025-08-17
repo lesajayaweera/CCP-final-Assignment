@@ -140,23 +140,51 @@ class Sponsor {
 
   // to get the athletes who have verified certificates
   static Future<List<String>> getUidsWithApprovedCertificates() async {
+     try {
+      final currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+
+    // 1. Get all approved certificates
     final querySnapshot = await FirebaseFirestore.instance
         .collectionGroup('certificates')
         .where('status', isEqualTo: 'true')
         .get();
 
     // Extract UIDs from document references
-    final Set<String> uniqueUids = {};
-
+    final Set<String> certificateUids = {};
     for (var doc in querySnapshot.docs) {
-      // doc.reference.parent.parent points to the UID document under 'certificates'
       final uid = doc.reference.parent.parent?.id;
       if (uid != null) {
-        uniqueUids.add(uid);
+        certificateUids.add(uid);
       }
     }
 
-    return uniqueUids.toList();
+    // 2. Get all connection requests sent by the current user
+    final requestSnapshot = await FirebaseFirestore.instance
+        .collection('connection_requests')
+        .where('senderUID', isEqualTo: currentUserUid)
+        .get();
+    final List<String> requestedUIDs =
+        requestSnapshot.docs.map((doc) => doc['receiverUID'] as String).toList();
+
+    // 3. Get all connected users under the current user's connections subcollection
+    final connectionSnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(currentUserUid)
+        .collection('connections')
+        .get();
+    final List<String> connectedUIDs =
+        connectionSnapshot.docs.map((doc) => doc['uid'] as String).toList();
+
+    // 4. Filter out UIDs that are already requested or connected
+    final List<String> filteredUids = certificateUids.where((uid) {
+      return !requestedUIDs.contains(uid) && !connectedUIDs.contains(uid);
+    }).toList();
+
+    return filteredUids;
+  } catch (e) {
+    print('Error fetching filtered UIDs: $e');
+    return [];
+  }
   }
 
   // GET all sponsors except the current user
