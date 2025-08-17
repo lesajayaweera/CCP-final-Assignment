@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/Athlete.dart';
 import 'package:sport_ignite/model/ConnectionService.dart';
@@ -20,6 +18,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
+  bool canMessage = false;
   Map<String, dynamic>? userData;
   Map<String, dynamic>? userStats;
   late AnimationController _animationController;
@@ -46,6 +45,8 @@ class _ProfileViewState extends State<ProfileView>
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
     );
 
+   
+
     loadUserData();
     _animationController.forward();
     _fadeController.forward();
@@ -59,36 +60,50 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   void loadUserData() async {
-    if (widget.uid != null) {
-      var data = await Users().getUserDetailsByUIDAndRole(
-        context,
-        widget.uid!,
-        widget.role,
-      );
-      setState(() {
-        userData = data;
-      });
+  if (widget.uid != null) {
+    var data = await Users().getUserDetailsByUIDAndRole(
+      context,
+      widget.uid!,
+      widget.role,
+    );
+    setState(() {
+      userData = data;
 
-      if (data?['sport'] != null && data?['email'] != null) {
-        var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
-        setState(() {
-          userStats = stats;
-        });
+      // ✅ Decide message permission after data is loaded
+      if (data?['role'] == 'Athlete' && widget.role == 'Sponsor') {
+        canMessage = true;
+      } else if (data?['role'] == 'Athlete' && widget.role == 'Athlete') {
+        canMessage = true;
       }
-    } else {
-      var data = await Users().getUserDetails(context, widget.role);
-      setState(() {
-        userData = data;
-      });
+    });
 
-      if (data?['sport'] != null && data?['email'] != null) {
-        var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
-        setState(() {
-          userStats = stats;
-        });
+    if (data?['sport'] != null && data?['email'] != null) {
+      var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
+      setState(() {
+        userStats = stats;
+      });
+    }
+  } else {
+    var data = await Users().getUserDetails(context, widget.role);
+    setState(() {
+      userData = data;
+
+      if (data?['role'] == 'Athlete' && widget.role == 'Sponsor') {
+        canMessage = true;
+      } else if (data?['role'] == 'Athlete' && widget.role == 'Athlete') {
+        canMessage = true;
       }
+    });
+
+    if (data?['sport'] != null && data?['email'] != null) {
+      var stats = await Athlete.loadUserStats(data!['sport'], data['email']);
+      setState(() {
+        userStats = stats;
+      });
     }
   }
+}
+
 
   Future<List<Map<String, dynamic>>> loadCertificates() async {
     if (widget.uid != null) {
@@ -265,14 +280,7 @@ class _ProfileViewState extends State<ProfileView>
             _buildConnectButton(),
             const SizedBox(height: 10),
 
-            if (userData?['role'] == 'Athlete' && widget.role == 'Sponsor')
-              _buildMesageButton(),
-            if (userData?['role'] == 'Athlete' && widget.role == 'Athlete')
-              _buildMesageButton(),
-
-            if (userData?['role'] == 'Sponsor' && widget.role == 'Sponsor')
-              _buildMesageButton(),
-
+            if (canMessage) _buildMesageButton(),
           ],
         ),
       ),
@@ -368,10 +376,7 @@ class _ProfileViewState extends State<ProfileView>
         child: InkWell(
           borderRadius: BorderRadius.circular(28),
           onTap: () {
-            MessagingService.startNewChat(
-              context,
-              widget.uid!,
-            );
+            MessagingService.startNewChat(context, widget.uid!);
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 24),
