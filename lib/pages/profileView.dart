@@ -93,6 +93,9 @@ class _ProfileViewState extends State<ProfileView>
       } else if (data?['role'] == 'Athlete' && widget.role == 'Athlete') {
         canMessage = true;
       }
+      else if (data?['role'] == 'Sponsor' && widget.role == 'Sponsor') {
+        canMessage = true;
+      }
     });
 
     if (data?['sport'] != null && data?['email'] != null) {
@@ -257,7 +260,7 @@ class _ProfileViewState extends State<ProfileView>
                     : userData?['sport'] ?? '',
                 style: TextStyle(
                   color: widget.role == 'Sponsor'
-                      ? Colors.orange.shade700
+                      ?Colors.orange.shade700 
                       : Colors.blue.shade700,
                   fontWeight: FontWeight.w600,
                 ),
@@ -505,7 +508,7 @@ class _ProfileViewState extends State<ProfileView>
         _buildVerticalDivider(),
         _buildStatItem(
           userStats?['Fifties'].toString() ?? '-',
-          '100s',
+          '50s',
           Icons.star,
           Colors.amber,
         ),
