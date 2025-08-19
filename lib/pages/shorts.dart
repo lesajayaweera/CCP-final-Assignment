@@ -86,6 +86,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     HapticFeedback.lightImpact();
   }
 
+  // ignore: unused_element
   void _showMoreOptions() {
     showModalBottomSheet(
       context: context,

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sport_ignite/pages/dashboard.dart';
 
 class Users {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;

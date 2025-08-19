@@ -56,7 +56,7 @@ class _DashboardState extends State<Dashboard> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => SharePostScreen(),
+                builder: (context) => SharePostScreen(role: widget.role,),
               ),
             ).then((value) {
               // Refresh the current screen after creating a post
