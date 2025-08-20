@@ -1,387 +1,12 @@
-// import 'package:flutter/material.dart';
-// import 'package:sport_ignite/config/essentials.dart';
-
-// // Main Screen
-// class SocialFeedScreen extends StatefulWidget {
-//   final String role;
-//   const SocialFeedScreen({Key? key, required this.role}) : super(key: key);
-
-//   @override
-//   State<SocialFeedScreen> createState() => _SocialFeedScreenState();
-// }
-
-// class _SocialFeedScreenState extends State<SocialFeedScreen> {
-//   List<bool> likedPosts = [false, false];
-
-//   int _currentIndex = 0;
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return ListView(
-//       physics: BouncingScrollPhysics(),
-//       children: [
-//         // First Post - Swimmer
-//         SocialPost(
-//           userName: 'Stanislav Naida',
-//           userAvatar:
-//               'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-//           userRole: 'Swimmer',
-//           timeAgo: '1st',
-//           postText:
-//               'Hello, I am looking for a Sponsorship opportunity and would appreciate your support. Thanks in advance for any contact recommendation, advice or... see more',
-//           likes: 77,
-//           comments: 11,
-//           isLiked: likedPosts[0],
-//           onLike: () {
-//             setState(() {
-//               likedPosts[0] = !likedPosts[0];
-//             });
-//           },
-//           onComment: () => showSnackBar(
-//             context,
-//             'User has clicked the comments',
-//             Colors.black,
-//           ),
-//           onShare: () =>
-//               showSnackBar(context, 'User has clicked the share', Colors.black),
-//           onSend: () =>
-//               showSnackBar(context, 'User has clicked the send', Colors.black),
-//         ),
-
-//         // Second Post - Athlete with Medal
-//         SocialPost(
-//           userName: 'Vera Drozdova',
-//           userRole: 'Athlete',
-//           timeAgo: '2 st',
-//           userAvatar:
-//               'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
-//           postText: '',
-//           imageUrl: 'asset/image/background.png',
-//           likes: 45,
-//           comments: 8,
-//           isLiked: likedPosts[1],
-//           onLike: () {
-//             setState(() {
-//               likedPosts[1] = !likedPosts[1];
-//             });
-//           },
-//           onComment: () => showSnackBar(
-//             context,
-//             'User has clicked the comments',
-//             Colors.black,
-//           ),
-//           onShare: () =>
-//               showSnackBar(context, 'User has clicked the share', Colors.black),
-//           onSend: () =>
-//               showSnackBar(context, 'User has clicked the send', Colors.black),
-//         ),
-//         SocialPost(
-//           userName: 'Vera Drozdova',
-//           userRole: 'Athlete',
-//           timeAgo: '2 st',
-//           postText: '',
-//           imageUrl: 'asset/image/background.png',
-//           likes: 45,
-//           comments: 8,
-//           isLiked: likedPosts[0],
-//           onLike: () {
-//             setState(() {
-//               likedPosts[0] = !likedPosts[0];
-//             });
-//           },
-//           onComment: () => showSnackBar(
-//             context,
-//             'User has clicked the comments',
-//             Colors.black,
-//           ),
-//           onShare: () =>
-//               showSnackBar(context, 'User has clicked the share', Colors.black),
-//           onSend: () =>
-//               showSnackBar(context, 'User has clicked the send', Colors.black),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// // Main Post Widget - Reusable
-// // ignore: must_be_immutable
-// class SocialPost extends StatelessWidget {
-//   final String userName;
-//   final String userRole;
-//   final String timeAgo;
-//   final String postText;
-//   final String? userAvatar;
-//   String? imageUrl;
-//   final int likes;
-//   final int comments;
-//   final VoidCallback? onLike;
-//   final VoidCallback? onComment;
-//   final VoidCallback? onShare;
-//   final VoidCallback? onSend;
-//   final bool isLiked;
-
-//   SocialPost({
-//     Key? key,
-//     required this.userName,
-//     required this.userRole,
-//     required this.timeAgo,
-//     required this.postText,
-//     this.userAvatar,
-//     this.imageUrl,
-//     this.likes = 0,
-//     this.comments = 0,
-//     this.onLike,
-//     this.onComment,
-//     this.onShare,
-//     this.onSend,
-//     this.isLiked = false,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Card(
-//       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-//       elevation: 0,
-//       color: Colors.white,
-//       child: Padding(
-//         padding: const EdgeInsets.all(16),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Header with user info
-//             PostHeader(
-//               userName: userName,
-//               userRole: userRole,
-//               timeAgo: timeAgo,
-//               userAvatar: userAvatar,
-//             ),
-//             const SizedBox(height: 12),
-
-//             // Post content
-//             Text(
-//               postText,
-//               style: const TextStyle(
-//                 fontSize: 14,
-//                 color: Colors.black87,
-//                 height: 1.4,
-//               ),
-//             ),
-
-//             if (imageUrl != null) Image.asset(imageUrl!, fit: BoxFit.cover),
-
-//             const SizedBox(height: 12),
-
-//             // Engagement stats
-//             PostStats(likes: likes, comments: comments),
-
-//             const SizedBox(height: 12),
-
-//             // Action buttons
-//             PostActions(
-//               onLike: onLike,
-//               onComment: onComment,
-//               onShare: onShare,
-//               onSend: onSend,
-//               isLiked: isLiked,
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
-// // Post Header Component
-// class PostHeader extends StatelessWidget {
-//   final String userName;
-//   final String userRole;
-//   final String timeAgo;
-//   final String? userAvatar;
-
-//   const PostHeader({
-//     Key? key,
-//     required this.userName,
-//     required this.userRole,
-//     required this.timeAgo,
-//     this.userAvatar,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         // User Avatar
-//         CircleAvatar(
-//           radius: 20,
-//           backgroundColor: Colors.grey[300],
-//           backgroundImage: userAvatar != null
-//               ? NetworkImage(userAvatar!)
-//               : null,
-//           child: userAvatar == null
-//               ? Icon(Icons.person, color: Colors.grey[600], size: 20)
-//               : null,
-//         ),
-//         const SizedBox(width: 12),
-
-//         // User info
-//         Expanded(
-//           child: Column(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               Text(
-//                 userName,
-//                 style: const TextStyle(
-//                   fontWeight: FontWeight.w600,
-//                   fontSize: 15,
-//                   color: Colors.black87,
-//                 ),
-//               ),
-//               const SizedBox(height: 2),
-//               Text(
-//                 userRole,
-//                 style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-//               ),
-//             ],
-//           ),
-//         ),
-
-//         // Time and more options
-//         Column(
-//           crossAxisAlignment: CrossAxisAlignment.end,
-//           children: [
-//             Text(
-//               timeAgo,
-//               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-//             ),
-//             const SizedBox(height: 4),
-//             Icon(Icons.more_horiz, color: Colors.grey[600], size: 20),
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// // Post Stats Component
-// class PostStats extends StatelessWidget {
-//   final int likes;
-//   final int comments;
-
-//   const PostStats({Key? key, required this.likes, required this.comments})
-//     : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       children: [
-//         // Likes
-//         Row(
-//           children: [
-//             Icon(Icons.favorite, size: 16, color: Colors.grey[600]),
-//             const SizedBox(width: 4),
-//             Text(
-//               likes.toString(),
-//               style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-//             ),
-//           ],
-//         ),
-//         const SizedBox(width: 16),
-
-//         // Comments
-//         Text(
-//           '$comments comments',
-//           style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// // Post Actions Component
-// class PostActions extends StatelessWidget {
-//   final VoidCallback? onLike;
-//   final VoidCallback? onComment;
-//   final VoidCallback? onShare;
-//   final VoidCallback? onSend;
-//   final bool isLiked;
-
-//   const PostActions({
-//     Key? key,
-//     this.onLike,
-//     this.onComment,
-//     this.onShare,
-//     this.onSend,
-//     this.isLiked = false,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Row(
-//       mainAxisAlignment: MainAxisAlignment.spaceAround,
-//       children: [
-//         _ActionButton(
-//           icon: isLiked ? Icons.favorite : Icons.favorite_border,
-//           label: 'Like',
-//           onTap: onLike,
-//           color: isLiked ? Colors.red : null,
-//         ),
-//         _ActionButton(
-//           icon: Icons.chat_bubble_outline,
-//           label: 'Comment',
-//           onTap: onComment,
-//         ),
-//         _ActionButton(
-//           icon: Icons.share_outlined,
-//           label: 'Share',
-//           onTap: onShare,
-//         ),
-//         _ActionButton(icon: Icons.send_outlined, label: 'Send', onTap: onSend),
-//       ],
-//     );
-//   }
-// }
-
-// // Action Button Helper Widget
-// class _ActionButton extends StatelessWidget {
-//   final IconData icon;
-//   final String label;
-//   final VoidCallback? onTap;
-//   final Color? color;
-
-//   const _ActionButton({
-//     Key? key,
-//     required this.icon,
-//     required this.label,
-//     this.onTap,
-//     this.color,
-//   }) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return InkWell(
-//       onTap: onTap,
-//       borderRadius: BorderRadius.circular(8),
-//       child: Padding(
-//         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-//         child: Column(
-//           children: [
-//             Icon(icon, size: 20, color: color ?? Colors.grey[700]),
-//             const SizedBox(height: 4),
-//             Text(
-//               label,
-//               style: TextStyle(fontSize: 12, color: color ?? Colors.grey[700]),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-// // 
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/model/postService.dart';
+import 'package:sport_ignite/widget/post/postAction.dart';
+import 'package:sport_ignite/widget/post/postHeader.dart';
+import 'package:sport_ignite/widget/post/postStats.dart';
+// Add video player dependency
+import 'package:video_player/video_player.dart';
 
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
@@ -394,7 +19,11 @@ class SocialFeedScreen extends StatefulWidget {
 
 class _SocialFeedScreenState extends State<SocialFeedScreen>
     with TickerProviderStateMixin {
-  List<bool> likedPosts = [false, false, false];
+  List<Map<String, dynamic>> posts = [];
+  Map<String, bool> likedPosts = {};
+  Map<String, Map<String, dynamic>?> userProfiles = {};
+  bool isLoading = true;
+  String? error;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -408,7 +37,130 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    _animationController.forward();
+    _loadPosts();
+  }
+
+  Future<void> _loadPosts() async {
+    try {
+      setState(() {
+        isLoading = true;
+        error = null;
+      });
+
+      final fetchedPosts = await PostService.getPostsForUserSport(widget.role);
+
+      Map<String, bool> initialLikedStatus = {};
+      for (var post in fetchedPosts) {
+        final postId = post['uid'] + '_' + post['timestamp'].toString();
+        initialLikedStatus[postId] = false;
+      }
+
+      Map<String, Map<String, dynamic>?> profiles = {};
+      for (var post in fetchedPosts) {
+        final uid = post['uid'];
+        if (!profiles.containsKey(uid)) {  
+          profiles[uid] = await _getUserProfile(uid, post['role']);
+        }
+      }
+
+      setState(() {
+        posts = fetchedPosts;
+        likedPosts = initialLikedStatus;
+        userProfiles = profiles;
+        isLoading = false;
+      });
+
+      _animationController.forward();
+    } catch (e) {
+      setState(() {
+        error = e.toString();
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<Map<String, dynamic>?> _getUserProfile(String uid, String role) async {
+    try {
+      String collection = role == 'Athlete' ? 'athlete' : 'sponsor';
+      final doc = await FirebaseFirestore.instance.collection(collection).doc(uid).get();
+      return doc.data();
+    } catch (e) {
+      print('Error fetching user profile: $e');
+      return null;
+    }
+  }
+
+  String _getTimeAgo(dynamic timestamp) {
+    if (timestamp == null) return 'Unknown';
+    
+    DateTime dateTime;
+    if (timestamp is Timestamp) {
+      dateTime = timestamp.toDate();
+    } else {
+      return 'Unknown';
+    }
+
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h';
+    } else {
+      return '${difference.inDays}d';
+    }
+  }
+
+  // Enhanced method to get all media items with type detection
+  List<Map<String, String>> _getPostMedia(dynamic media) {
+    List<Map<String, String>> mediaList = [];
+    
+    if (media == null) return mediaList;
+    
+    List<dynamic> mediaUrls = [];
+    if (media is List) {
+      mediaUrls = media;
+    } else if (media is String && media.isNotEmpty) {
+      mediaUrls = [media];
+    }
+    
+    for (var url in mediaUrls) {
+      String urlString = url.toString();
+      if (urlString.isNotEmpty) {
+        String mediaType = _getMediaType(urlString);
+        mediaList.add({
+          'url': urlString,
+          'type': mediaType,
+        });
+      }
+    }
+    
+    return mediaList;
+  }
+
+  // Helper method to determine media type based on URL/extension
+  String _getMediaType(String url) {
+    final videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
+    final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
+    
+    String lowerUrl = url.toLowerCase();
+    
+    for (String ext in videoExtensions) {
+      if (lowerUrl.contains(ext)) {
+        return 'video';
+      }
+    }
+    
+    for (String ext in imageExtensions) {
+      if (lowerUrl.contains(ext)) {
+        return 'image';
+      }
+    }
+    
+    // Default fallback - you might want to improve this logic
+    // based on your specific URL patterns or add API calls to check content type
+    return 'image';
   }
 
   @override
@@ -430,187 +182,222 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
           ],
         ),
       ),
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            
-
-            // Posts List
-            SliverList(
-              delegate: SliverChildListDelegate([
-                const SizedBox(height: 16),
-                
-                // First Post - Swimmer
-                AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final slideAnimation = Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _animationController,
-                      curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
-                    ));
-
-                    return SlideTransition(
-                      position: slideAnimation,
-                      child: SocialPost(
-                        userName: 'Stanislav Naida',
-                        userAvatar:
-                            'https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-                        userRole: 'Professional Swimmer',
-                        timeAgo: '1h',
-                        postText:
-                            'Hello, I am looking for a Sponsorship opportunity and would appreciate your support. Thanks in advance for any contact recommendation, advice or guidance! 🏊‍♂️✨',
-                        likes: 77,
-                        comments: 11,
-                        isLiked: likedPosts[0],
-                        isVerified: true,
-                        onLike: () {
-                          setState(() {
-                            likedPosts[0] = !likedPosts[0];
-                          });
-                        },
-                        onComment: () => showSnackBar(
-                          context,
-                          'Comments opened',
-                          Colors.blue,
-                        ),
-                        onShare: () => showSnackBar(
-                          context,
-                          'Post shared',
-                          Colors.green,
-                        ),
-                        onSend: () => showSnackBar(
-                          context,
-                          'Message sent',
-                          Colors.purple,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                // Second Post - Athlete with Medal
-                AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final slideAnimation = Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _animationController,
-                      curve: const Interval(0.2, 0.8, curve: Curves.easeOutBack),
-                    ));
-
-                    return SlideTransition(
-                      position: slideAnimation,
-                      child: SocialPost(
-                        userName: 'Vera Drozdova',
-                        userRole: 'Olympic Athlete',
-                        timeAgo: '2h',
-                        userAvatar:
-                            'https://images.unsplash.com/photo-1640960543409-dbe56ccc30e2?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHVzZXJ8ZW58MHx8MHx8fDA%3D',
-                        postText: 'Another gold medal in the books! 🏅 Thank you to everyone who believed in this journey. The hard work pays off! #NeverGiveUp #GoldMedal',
-                        imageUrl: 'asset/image/background.png',
-                        likes: 245,
-                        comments: 28,
-                        isLiked: likedPosts[1],
-                        isVerified: true,
-                        onLike: () {
-                          setState(() {
-                            likedPosts[1] = !likedPosts[1];
-                          });
-                        },
-                        onComment: () => showSnackBar(
-                          context,
-                          'Comments opened',
-                          Colors.blue,
-                        ),
-                        onShare: () => showSnackBar(
-                          context,
-                          'Post shared',
-                          Colors.green,
-                        ),
-                        onSend: () => showSnackBar(
-                          context,
-                          'Message sent',
-                          Colors.purple,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                // Third Post
-                AnimatedBuilder(
-                  animation: _animationController,
-                  builder: (context, child) {
-                    final slideAnimation = Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: _animationController,
-                      curve: const Interval(0.4, 1.0, curve: Curves.easeOutBack),
-                    ));
-
-                    return SlideTransition(
-                      position: slideAnimation,
-                      child: SocialPost(
-                        userName: 'Alex Johnson',
-                        userRole: 'Track & Field',
-                        timeAgo: '4h',
-                        userAvatar: null,
-                        postText: 'Training never stops! Early morning session completed ✅ Who else is putting in the work today? 💪 #TrainingLife #Dedication',
-                        likes: 89,
-                        comments: 15,
-                        isLiked: likedPosts[2],
-                        isVerified: false,
-                        onLike: () {
-                          setState(() {
-                            likedPosts[2] = !likedPosts[2];
-                          });
-                        },
-                        onComment: () => showSnackBar(
-                          context,
-                          'Comments opened',
-                          Colors.blue,
-                        ),
-                        onShare: () => showSnackBar(
-                          context,
-                          'Post shared',
-                          Colors.green,
-                        ),
-                        onSend: () => showSnackBar(
-                          context,
-                          'Message sent',
-                          Colors.purple,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 80),
-              ]),
-            ),
-          ],
+      child: RefreshIndicator(
+        onRefresh: _loadPosts,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: _buildBody(),
         ),
       ),
     );
   }
+
+  Widget _buildBody() {
+    if (isLoading) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Color(0xFF667eea),
+        ),
+      );
+    }
+
+    if (error != null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Error loading posts',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error!,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _loadPosts,
+              child: const Text('Try Again'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (posts.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.sports_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No posts available',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Check back later for new posts in your sport',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              if (index == 0) {
+                return const SizedBox(height: 16);
+              }
+              
+              final postIndex = index - 1;
+              if (postIndex >= posts.length) {
+                return const SizedBox(height: 80);
+              }
+
+              final post = posts[postIndex];
+              final postId = post['uid'] + '_' + post['timestamp'].toString();
+              final userProfile = userProfiles[post['uid']];
+              
+              return AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  final slideAnimation = Tween<Offset>(
+                    begin: const Offset(0, 0.3),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(
+                    parent: _animationController,
+                    curve: Interval(
+                      (postIndex * 0.1).clamp(0.0, 0.8),
+                      ((postIndex * 0.1) + 0.6).clamp(0.2, 1.0),
+                      curve: Curves.easeOutBack,
+                    ),
+                  ));
+
+                  return SlideTransition(
+                    position: slideAnimation,
+                    child: SocialPost(
+                      userName: _getUserName(userProfile, post['role']),
+                      userAvatar: _getUserAvatar(userProfile),
+                      userRole: _getUserRole(userProfile, post['role']),
+                      timeAgo: _getTimeAgo(post['timestamp']),
+                      postText: post['text'] ?? '',
+                      mediaItems: _getPostMedia(post['media']), // Changed from imageUrl
+                      likes: post['likes'] ?? 0,
+                      comments: post['comments'] ?? 0,
+                      isLiked: likedPosts[postId] ?? false,
+                      isVerified: _isUserVerified(userProfile, post['role']),
+                      onLike: () {
+                        setState(() {
+                          likedPosts[postId] = !(likedPosts[postId] ?? false);
+                        });
+                      },
+                      onComment: () => showSnackBar(
+                        context,
+                        'Comments opened',
+                        Colors.blue,
+                      ),
+                      onShare: () => showSnackBar(
+                        context,
+                        'Post shared',
+                        Colors.green,
+                      ),
+                      onSend: () => showSnackBar(
+                        context,
+                        'Message sent',
+                        Colors.purple,
+                      ),
+                      uid: post['uid'] ?? '',
+                    ),
+                  );
+                },
+              );
+            },
+            childCount: posts.length + 2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getUserName(Map<String, dynamic>? profile, String role) {
+    if (profile == null) return 'Unknown User';
+    
+    if (role == 'Athlete') {
+      return profile['name'] ?? 'Unknown Athlete';
+    } else {
+      return profile['name'] ?? 'Unknown Sponsor';
+    }
+  }
+
+  String? _getUserAvatar(Map<String, dynamic>? profile) {
+    if (profile == null) return null;
+    return profile['profile'] ?? profile['profile'];
+  }
+
+  String _getUserRole(Map<String, dynamic>? profile, String role) {
+    if (profile == null) return role;
+    
+    if (role == 'Athlete') {
+      final sport = profile['sport'] ?? '';
+      final category = profile['role'] ?? '';
+      if (sport.isNotEmpty && category.isNotEmpty) {
+        return '$category $sport';
+      } else if (sport.isNotEmpty) {
+        return sport;
+      }
+      return 'Athlete';
+    } else {
+      return profile['company'] ?? 'Sponsor';
+    }
+  }
+
+  bool _isUserVerified(Map<String, dynamic>? profile, String role) {
+    if (profile == null) return false;
+    return profile['isVerified'] ?? false;
+  }
 }
 
-// Main Post Widget - Reusable
+// Updated SocialPost Widget with Media Support
 class SocialPost extends StatefulWidget {
   final String userName;
   final String userRole;
   final String timeAgo;
   final String postText;
   final String? userAvatar;
-  final String? imageUrl;
+  final List<Map<String, String>> mediaItems; // Changed from imageUrl
   final int likes;
   final int comments;
   final VoidCallback? onLike;
@@ -619,6 +406,7 @@ class SocialPost extends StatefulWidget {
   final VoidCallback? onSend;
   final bool isLiked;
   final bool isVerified;
+  final String uid;
 
   const SocialPost({
     super.key,
@@ -627,7 +415,7 @@ class SocialPost extends StatefulWidget {
     required this.timeAgo,
     required this.postText,
     this.userAvatar,
-    this.imageUrl,
+    this.mediaItems = const [], // Changed default
     this.likes = 0,
     this.comments = 0,
     this.onLike,
@@ -636,6 +424,7 @@ class SocialPost extends StatefulWidget {
     this.onSend,
     this.isLiked = false,
     this.isVerified = false,
+    required this.uid,
   });
 
   @override
@@ -707,6 +496,7 @@ class _SocialPostState extends State<SocialPost>
               timeAgo: widget.timeAgo,
               userAvatar: widget.userAvatar,
               isVerified: widget.isVerified,
+              uid: widget.uid,
             ),
             const SizedBox(height: 16),
 
@@ -724,28 +514,11 @@ class _SocialPostState extends State<SocialPost>
 
             if (widget.postText.isNotEmpty) const SizedBox(height: 16),
 
-            if (widget.imageUrl != null)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(
-                    widget.imageUrl!,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                ),
-              ),
+            // Media content (images and videos)
+            if (widget.mediaItems.isNotEmpty)
+              MediaCarousel(mediaItems: widget.mediaItems),
 
-            if (widget.imageUrl != null) const SizedBox(height: 16),
+            if (widget.mediaItems.isNotEmpty) const SizedBox(height: 16),
 
             // Engagement stats
             PostStats(
@@ -796,346 +569,245 @@ class _SocialPostState extends State<SocialPost>
   }
 }
 
-// Post Header Component
-class PostHeader extends StatelessWidget {
-  final String userName;
-  final String userRole;
-  final String timeAgo;
-  final String? userAvatar;
-  final bool isVerified;
+// New MediaCarousel Widget to handle multiple media items
+class MediaCarousel extends StatefulWidget {
+  final List<Map<String, String>> mediaItems;
 
-  const PostHeader({
+  const MediaCarousel({
     super.key,
-    required this.userName,
-    required this.userRole,
-    required this.timeAgo,
-    this.userAvatar,
-    this.isVerified = false,
+    required this.mediaItems,
   });
 
   @override
+  State<MediaCarousel> createState() => _MediaCarouselState();
+}
+
+class _MediaCarouselState extends State<MediaCarousel> {
+  int currentIndex = 0;
+
+  @override
   Widget build(BuildContext context) {
-    return Row(
+    if (widget.mediaItems.isEmpty) return const SizedBox();
+
+    return Column(
       children: [
-        // User Avatar with gradient border
-        Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF667eea).withOpacity(0.8),
-                const Color(0xFF764ba2).withOpacity(0.8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF667eea).withOpacity(0.3),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(2),
-            child: CircleAvatar(
-              radius: 22,
-              backgroundColor: Colors.white,
-              child: CircleAvatar(
-                radius: 20,
-                backgroundColor: Colors.grey[300],
-                backgroundImage: userAvatar != null
-                    ? NetworkImage(userAvatar!)
-                    : null,
-                child: userAvatar == null
-                    ? Icon(Icons.person, color: Colors.grey[600], size: 20)
-                    : null,
-              ),
-            ),
+            child: _buildMediaItem(widget.mediaItems[currentIndex]),
           ),
         ),
-        const SizedBox(width: 12),
-
-        // User info
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        if (widget.mediaItems.length > 1) ...[
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      userName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                  ),
-                  if (isVerified) ...[
-                    const SizedBox(width: 4),
-                    const Icon(
-                      Icons.verified,
-                      color: Color(0xFF3B82F6),
-                      size: 16,
-                    ),
-                  ],
-                ],
+              IconButton(
+                onPressed: currentIndex > 0 ? () {
+                  setState(() {
+                    currentIndex--;
+                  });
+                } : null,
+                icon: const Icon(Icons.arrow_back_ios),
+                iconSize: 20,
               ),
-              const SizedBox(height: 2),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF667eea).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  userRole,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF667eea),
-                    fontWeight: FontWeight.w600,
+              ...List.generate(
+                widget.mediaItems.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: currentIndex == index 
+                        ? const Color(0xFF667eea) 
+                        : Colors.grey[400],
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: currentIndex < widget.mediaItems.length - 1 ? () {
+                  setState(() {
+                    currentIndex++;
+                  });
+                } : null,
+                icon: const Icon(Icons.arrow_forward_ios),
+                iconSize: 20,
               ),
             ],
           ),
-        ),
+        ],
+      ],
+    );
+  }
 
-        // Time and more options
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              timeAgo,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
+  Widget _buildMediaItem(Map<String, String> mediaItem) {
+    String url = mediaItem['url']!;
+    String type = mediaItem['type']!;
+
+    if (type == 'video') {
+      return VideoPlayerWidget(url: url);
+    } else {
+      return Image.network(
+        url,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: const Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
+        errorBuilder: (context, error, stackTrace) {
+          return Container(
+            height: 200,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Center(
               child: Icon(
-                Icons.more_horiz,
-                color: Colors.grey[600],
-                size: 18,
+                Icons.broken_image,
+                size: 50,
+                color: Colors.grey,
               ),
             ),
-          ],
-        ),
-      ],
-    );
+          );
+        },
+      );
+    }
   }
 }
 
-// Post Stats Component
-class PostStats extends StatelessWidget {
-  final int likes;
-  final int comments;
+// Video Player Widget
+class VideoPlayerWidget extends StatefulWidget {
+  final String url;
 
-  const PostStats({
+  const VideoPlayerWidget({
     super.key,
-    required this.likes,
-    required this.comments,
+    required this.url,
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        // Likes with heart icons
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFFFF6B6B), Color(0xFFEE5A52)],
-                ),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.favorite,
-                size: 12,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '${likes.toString()} likes',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(width: 20),
-
-        // Comments
-        Text(
-          '$comments comments',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
+  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
 }
 
-// Post Actions Component
-class PostActions extends StatelessWidget {
-  final VoidCallback? onLike;
-  final VoidCallback? onComment;
-  final VoidCallback? onShare;
-  final VoidCallback? onSend;
-  final bool isLiked;
-  final Animation<double> likeAnimation;
-
-  const PostActions({
-    super.key,
-    this.onLike,
-    this.onComment,
-    this.onShare,
-    this.onSend,
-    this.isLiked = false,
-    required this.likeAnimation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        ScaleTransition(
-          scale: likeAnimation,
-          child: _ActionButton(
-            icon: isLiked ? Icons.favorite : Icons.favorite_border,
-            label: 'Like',
-            onTap: onLike,
-            color: isLiked ? const Color(0xFFFF6B6B) : null,
-            isActive: isLiked,
-          ),
-        ),
-        _ActionButton(
-          icon: Icons.chat_bubble_outline,
-          label: 'Comment',
-          onTap: onComment,
-        ),
-        _ActionButton(
-          icon: Icons.share_outlined,
-          label: 'Share',
-          onTap: onShare,
-        ),
-        _ActionButton(
-          icon: Icons.send_outlined,
-          label: 'Send',
-          onTap: onSend,
-        ),
-      ],
-    );
-  }
-}
-
-// Action Button Helper Widget
-class _ActionButton extends StatefulWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback? onTap;
-  final Color? color;
-  final bool isActive;
-
-  const _ActionButton({
-    super.key,
-    required this.icon,
-    required this.label,
-    this.onTap,
-    this.color,
-    this.isActive = false,
-  });
-
-  @override
-  State<_ActionButton> createState() => _ActionButtonState();
-}
-
-class _ActionButtonState extends State<_ActionButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _scaleAnimation;
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  VideoPlayerController? _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _initializeVideo();
+  }
+
+  void _initializeVideo() async {
+    try {
+      _controller = VideoPlayerController.network(widget.url);
+      await _controller!.initialize();
+      setState(() {
+        _isInitialized = true;
+      });
+    } catch (e) {
+      setState(() {
+        _hasError = true;
+      });
+      print('Error initializing video: $e');
+    }
   }
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _animationController.forward(),
-      onTapUp: (_) => _animationController.reverse(),
-      onTapCancel: () => _animationController.reverse(),
-      onTap: widget.onTap,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: widget.isActive
-                ? widget.color?.withOpacity(0.1)
-                : Colors.grey[50],
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: widget.isActive
-                  ? widget.color?.withOpacity(0.3) ?? Colors.grey[200]!
-                  : Colors.grey[200]!,
-              width: 1,
-            ),
-          ),
+    if (_hasError) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                widget.icon,
-                size: 20,
-                color: widget.color ?? const Color(0xFF64748B),
+                Icons.error_outline,
+                size: 50,
+                color: Colors.grey,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 8),
               Text(
-                widget.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: widget.color ?? const Color(0xFF64748B),
-                  fontWeight: FontWeight.w600,
-                ),
+                'Failed to load video',
+                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),
         ),
+      );
+    }
+
+    if (!_isInitialized) {
+      return Container(
+        height: 200,
+        decoration: BoxDecoration(
+          color: Colors.grey[200],
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    return AspectRatio(
+      aspectRatio: _controller!.value.aspectRatio,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          VideoPlayer(_controller!),
+          IconButton(
+            onPressed: () {
+              setState(() {
+                if (_controller!.value.isPlaying) {
+                  _controller!.pause();
+                } else {
+                  _controller!.play();
+                }
+              });
+            },
+            icon: Icon(
+              _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 50,
+            ),
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.black54,
+            ),
+          ),
+        ],
       ),
     );
   }

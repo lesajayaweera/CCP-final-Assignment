@@ -61,4 +61,38 @@ class PostService {
     // Save post in Firestore
     await _firestore.collection('posts').add(postData);
   }
+
+  static Future<List<Map<String, dynamic>>> getPostsForUserSport(String role) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in");
+    }
+
+    // 🔹 Fetch current user's sport based on role
+    String? userSport;
+    if (role == 'Athlete') {
+      final doc = await  FirebaseFirestore.instance.collection('athlete').doc(user.uid).get();
+      userSport = doc.data()?['sport'];
+    } else if (role == 'Sponsor') {
+      final doc = await  FirebaseFirestore.instance.collection('sponsor').doc(user.uid).get();
+      userSport = doc.data()?['sportIntrested'];
+    }
+
+    if (userSport == null) {
+      throw Exception("User sport not found");
+    }
+
+    // 🔹 Query posts where audience == 'Anyone' AND sport == userSport
+    final querySnapshot = await  FirebaseFirestore.instance
+        .collection('posts')
+        .where('audience', isEqualTo: 'Anyone')
+        .where('sport', isEqualTo: userSport)
+        .orderBy('timestamp', descending: true) // optional: newest first
+        .get();
+
+    // 🔹 Convert to List<Map<String, dynamic>>
+    return querySnapshot.docs
+        .map((doc) => doc.data() as Map<String, dynamic>)
+        .toList();
+  }
 }
