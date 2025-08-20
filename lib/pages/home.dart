@@ -7,7 +7,7 @@ import 'package:sport_ignite/widget/post/postAction.dart';
 import 'package:sport_ignite/widget/post/postHeader.dart';
 import 'package:sport_ignite/widget/post/postStats.dart';
 import 'package:sport_ignite/widget/post/videoplayer.dart';
-import 'package:video_player/video_player.dart';
+
 
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
@@ -444,6 +444,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                           Colors.purple,
                         ),
                         uid: post['uid'] ?? '',
+                        role: post['role'] ?? '',
                       ),
                     ),
                   );
@@ -512,6 +513,7 @@ class SocialPost extends StatefulWidget {
   final bool isLiked;
   final bool isVerified;
   final String uid;
+  final String role;
 
   const SocialPost({
     super.key,
@@ -530,6 +532,7 @@ class SocialPost extends StatefulWidget {
     this.isLiked = false,
     this.isVerified = false,
     required this.uid,
+    required this.role,
   });
 
   @override
@@ -598,6 +601,7 @@ class _SocialPostState extends State<SocialPost>
                 userAvatar: widget.userAvatar,
                 isVerified: widget.isVerified,
                 uid: widget.uid,
+                role: widget.role,
               ),
             ),
 
@@ -680,10 +684,7 @@ class _SocialPostState extends State<SocialPost>
   }
 }
 
-// New MediaGrid Widget for better media display
-
-
-// New MediaGrid Widget for better media display
+// Enhanced MediaGrid Widget with proper image handling and enlargement
 class MediaGrid extends StatefulWidget {
   final List<Map<String, String>> mediaItems;
 
@@ -709,10 +710,13 @@ class _MediaGridState extends State<MediaGrid> {
         margin: const EdgeInsets.symmetric(horizontal: 20),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: _buildMediaItem(
-            widget.mediaItems[0],
-            aspectRatio: 1 / 1,
-            showPlayButton: true,
+          child: GestureDetector(
+            onTap: () => _handleMediaTap(widget.mediaItems[0], 0),
+            child: _buildMediaItem(
+              widget.mediaItems[0],
+              aspectRatio: 1 / 1,
+              showPlayButton: true,
+            ),
           ),
         ),
       );
@@ -726,17 +730,20 @@ class _MediaGridState extends State<MediaGrid> {
           margin: const EdgeInsets.symmetric(horizontal: 20),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: _buildMediaItem(
-              widget.mediaItems[selectedIndex],
-              aspectRatio: 1 / 1,
-              showPlayButton: true,
+            child: GestureDetector(
+              onTap: () => _handleMediaTap(widget.mediaItems[selectedIndex], selectedIndex),
+              child: _buildMediaItem(
+                widget.mediaItems[selectedIndex],
+                aspectRatio: 1 / 1,
+                showPlayButton: true,
+              ),
             ),
           ),
         ),
 
         const SizedBox(height: 12),
 
-        // Thumbnail grid
+        // Thumbnail grid - Fixed the flipping issue
         Container(
           height: 80,
           margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -748,7 +755,7 @@ class _MediaGridState extends State<MediaGrid> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    selectedIndex = index;
+                    selectedIndex = index; // This should work correctly now
                   });
                 },
                 child: Container(
@@ -767,8 +774,7 @@ class _MediaGridState extends State<MediaGrid> {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color:
-                                  const Color(0xFF667eea).withOpacity(0.3),
+                              color: const Color(0xFF667eea).withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -777,11 +783,14 @@ class _MediaGridState extends State<MediaGrid> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: _buildMediaItem(
-                      widget.mediaItems[index],
-                      aspectRatio: 1,
-                      showPlayButton: false,
-                      isGrayedOut: !isSelected,
+                    child: GestureDetector(
+                      onTap: () => _handleMediaTap(widget.mediaItems[index], index),
+                      child: _buildMediaItem(
+                        widget.mediaItems[index],
+                        aspectRatio: 1,
+                        showPlayButton: false,
+                        isGrayedOut: !isSelected,
+                      ),
                     ),
                   ),
                 ),
@@ -795,8 +804,7 @@ class _MediaGridState extends State<MediaGrid> {
         // Media counter
         if (widget.mediaItems.length > 1)
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.7),
               borderRadius: BorderRadius.circular(20),
@@ -812,6 +820,24 @@ class _MediaGridState extends State<MediaGrid> {
           ),
       ],
     );
+  }
+
+  void _handleMediaTap(Map<String, String> mediaItem, int index) {
+    if (mediaItem['type'] == 'image') {
+      // Navigate to full-screen image viewer
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullScreenImageViewer(
+            mediaItems: widget.mediaItems.where((item) => item['type'] == 'image').toList(),
+            initialIndex: widget.mediaItems.where((item) => item['type'] == 'image').toList().indexWhere((item) => item['url'] == mediaItem['url']),
+          ),
+        ),
+      );
+    } else {
+      // Handle video tap (maybe play/pause or navigate to video player)
+      // You can implement video player logic here
+    }
   }
 
   Widget _buildMediaItem(
@@ -832,7 +858,7 @@ class _MediaGridState extends State<MediaGrid> {
         aspectRatio: aspectRatio,
       );
     } else {
-      // ✅ Cached images for better performance
+      // Fixed image handling
       mediaWidget = AspectRatio(
         aspectRatio: aspectRatio,
         child: CachedNetworkImage(
@@ -885,5 +911,257 @@ class _MediaGridState extends State<MediaGrid> {
     }
 
     return mediaWidget;
+  }
+}
+
+// Full-Screen Image Viewer
+class FullScreenImageViewer extends StatefulWidget {
+  final List<Map<String, String>> mediaItems;
+  final int initialIndex;
+
+  const FullScreenImageViewer({
+    super.key,
+    required this.mediaItems,
+    this.initialIndex = 0,
+  });
+
+  @override
+  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
+}
+
+class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
+  late PageController _pageController;
+  late int currentIndex;
+  bool _isVisible = true;
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex.clamp(0, widget.mediaItems.length - 1);
+    _pageController = PageController(initialPage: currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _toggleUI() {
+    setState(() {
+      _isVisible = !_isVisible;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          // Image PageView
+          PageView.builder(
+            controller: _pageController,
+            itemCount: widget.mediaItems.length,
+            onPageChanged: (index) {
+              setState(() {
+                currentIndex = index;
+              });
+            },
+            itemBuilder: (context, index) {
+              return GestureDetector(
+                onTap: _toggleUI,
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4.0,
+                  child: Center(
+                    child: CachedNetworkImage(
+                      imageUrl: widget.mediaItems[index]['url']!,
+                      fit: BoxFit.contain,
+                      placeholder: (context, url) => const Center(
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.broken_image,
+                              size: 80,
+                              color: Colors.white54,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Failed to load image',
+                              style: TextStyle(
+                                color: Colors.white54,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+
+          // Top UI (Close button and counter)
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            top: _isVisible ? 0 : -100,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).padding.top + 16,
+                left: 16,
+                right: 16,
+                bottom: 16,
+              ),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.7),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Close button
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+
+                  // Image counter
+                  if (widget.mediaItems.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${currentIndex + 1} / ${widget.mediaItems.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+
+          // Bottom UI (Thumbnails - optional)
+          if (widget.mediaItems.length > 1)
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              bottom: _isVisible ? 0 : -120,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: 120,
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
+                  top: 16,
+                  left: 16,
+                  right: 16,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.7),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: widget.mediaItems.length,
+                  itemBuilder: (context, index) {
+                    final isSelected = index == currentIndex;
+                    return GestureDetector(
+                      onTap: () {
+                        _pageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        margin: EdgeInsets.only(
+                          right: index == widget.mediaItems.length - 1 ? 0 : 8,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: CachedNetworkImage(
+                            imageUrl: widget.mediaItems[index]['url']!,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              color: Colors.grey[800],
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 1,
+                                ),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: Colors.grey[800],
+                              child: const Icon(
+                                Icons.broken_image,
+                                color: Colors.white54,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

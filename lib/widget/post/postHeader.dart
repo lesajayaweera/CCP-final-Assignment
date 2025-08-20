@@ -1,4 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sport_ignite/pages/profile.dart';
 import 'package:sport_ignite/pages/profileView.dart';
 
 // Post Header Component
@@ -9,6 +12,7 @@ class PostHeader extends StatelessWidget {
   final String? userAvatar;
   final bool isVerified;
   final String? uid;
+  final String role;
 
   const PostHeader({
     super.key,
@@ -18,6 +22,7 @@ class PostHeader extends StatelessWidget {
     this.userAvatar,
     this.isVerified = false,
     required this.uid,
+    required this.role,
   });
 
   @override
@@ -27,9 +32,18 @@ class PostHeader extends StatelessWidget {
         // User Avatar with gradient border
         GestureDetector(
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(
-              builder: (context) => ProfileView(uid: uid, role: userRole,),
-            ));
+            if(uid != null && uid!.isNotEmpty) {
+              if(uid == FirebaseAuth.instance.currentUser?.uid) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(uid: uid!,role: role,),
+                  ),
+                );
+              }else{
+                Navigator.push(context, MaterialPageRoute(builder: (context)=> ProfileView(uid: uid!, role: role,)));
+              }
+            }
           },
           child: Container(
             decoration: BoxDecoration(
@@ -56,12 +70,21 @@ class PostHeader extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 20,
                   backgroundColor: Colors.grey[300],
-                  backgroundImage: userAvatar != null
-                      ? NetworkImage(userAvatar!)
-                      : null,
-                  child: userAvatar == null
-                      ? Icon(Icons.person, color: Colors.grey[600], size: 20)
-                      : null,
+                  backgroundImage: null,
+                  child: ClipOval(
+                    child: userAvatar != null
+                        ? CachedNetworkImage(
+                            imageUrl: userAvatar!,
+                            fit: BoxFit.cover,
+                            width: 40,
+                            height: 40,
+                            placeholder: (context, url) => 
+                                CircularProgressIndicator(strokeWidth: 2),
+                            errorWidget: (context, url, error) =>
+                                Icon(Icons.person, color: Colors.grey[600], size: 20),
+                          )
+                        : Icon(Icons.person, color: Colors.grey[600], size: 20),
+                  ),
                 ),
               ),
             ),
