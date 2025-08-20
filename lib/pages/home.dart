@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
@@ -5,7 +6,7 @@ import 'package:sport_ignite/model/postService.dart';
 import 'package:sport_ignite/widget/post/postAction.dart';
 import 'package:sport_ignite/widget/post/postHeader.dart';
 import 'package:sport_ignite/widget/post/postStats.dart';
-// Add video player dependency
+import 'package:sport_ignite/widget/post/videoplayer.dart';
 import 'package:video_player/video_player.dart';
 
 // Main Screen
@@ -31,11 +32,11 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   void initState() {
     super.initState();
     _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
     _loadPosts();
   }
@@ -112,7 +113,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     }
   }
 
-  // Enhanced method to get all media items with type detection
   List<Map<String, String>> _getPostMedia(dynamic media) {
     List<Map<String, String>> mediaList = [];
     
@@ -139,7 +139,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     return mediaList;
   }
 
-  // Helper method to determine media type based on URL/extension
   String _getMediaType(String url) {
     final videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
     final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
@@ -158,8 +157,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
       }
     }
     
-    // Default fallback - you might want to improve this logic
-    // based on your specific URL patterns or add API calls to check content type
     return 'image';
   }
 
@@ -178,12 +175,15 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
           end: Alignment.bottomCenter,
           colors: [
             Color(0xFFF8FAFC),
-            Color(0xFFEFF6FF),
+            Color(0xFFE7F3FF),
           ],
         ),
       ),
       child: RefreshIndicator(
         onRefresh: _loadPosts,
+        color: const Color(0xFF667eea),
+        backgroundColor: Colors.white,
+        strokeWidth: 3,
         child: FadeTransition(
           opacity: _fadeAnimation,
           child: _buildBody(),
@@ -194,80 +194,175 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
   Widget _buildBody() {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFF667eea),
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: const CircularProgressIndicator(
+                color: Color(0xFF667eea),
+                strokeWidth: 3,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Loading amazing content...',
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       );
     }
 
     if (error != null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Error loading posts',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              error!,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.red[50],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.red[400],
+                ),
               ),
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadPosts,
-              child: const Text('Try Again'),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Text(
+                'Oops! Something went wrong',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: _loadPosts,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF667eea),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  'Try Again',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     if (posts.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.sports_outlined,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'No posts available',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+        child: Container(
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Check back later for new posts in your sport',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF667eea).withOpacity(0.1),
+                      const Color(0xFF764ba2).withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  Icons.sports_outlined,
+                  size: 64,
+                  color: Colors.grey[500],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Text(
+                'No posts yet!',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Be the first to share something amazing\nin your sport community',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  height: 1.6,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -275,19 +370,15 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
         SliverList(
           delegate: SliverChildBuilderDelegate(
             (context, index) {
-              if (index == 0) {
-                return const SizedBox(height: 16);
-              }
-              
-              final postIndex = index - 1;
-              if (postIndex >= posts.length) {
-                return const SizedBox(height: 80);
+              if (index >= posts.length) {
+                return const SizedBox(height: 100);
               }
 
-              final post = posts[postIndex];
+              final post = posts[index];
               final postId = post['uid'] + '_' + post['timestamp'].toString();
               final userProfile = userProfiles[post['uid']];
               
@@ -295,57 +386,71 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                 animation: _animationController,
                 builder: (context, child) {
                   final slideAnimation = Tween<Offset>(
-                    begin: const Offset(0, 0.3),
+                    begin: const Offset(0, 0.5),
                     end: Offset.zero,
                   ).animate(CurvedAnimation(
                     parent: _animationController,
                     curve: Interval(
-                      (postIndex * 0.1).clamp(0.0, 0.8),
-                      ((postIndex * 0.1) + 0.6).clamp(0.2, 1.0),
-                      curve: Curves.easeOutBack,
+                      (index * 0.1).clamp(0.0, 0.7),
+                      ((index * 0.1) + 0.8).clamp(0.3, 1.0),
+                      curve: Curves.easeOutCubic,
                     ),
                   ));
 
-                  return SlideTransition(
-                    position: slideAnimation,
-                    child: SocialPost(
-                      userName: _getUserName(userProfile, post['role']),
-                      userAvatar: _getUserAvatar(userProfile),
-                      userRole: _getUserRole(userProfile, post['role']),
-                      timeAgo: _getTimeAgo(post['timestamp']),
-                      postText: post['text'] ?? '',
-                      mediaItems: _getPostMedia(post['media']), // Changed from imageUrl
-                      likes: post['likes'] ?? 0,
-                      comments: post['comments'] ?? 0,
-                      isLiked: likedPosts[postId] ?? false,
-                      isVerified: _isUserVerified(userProfile, post['role']),
-                      onLike: () {
-                        setState(() {
-                          likedPosts[postId] = !(likedPosts[postId] ?? false);
-                        });
-                      },
-                      onComment: () => showSnackBar(
-                        context,
-                        'Comments opened',
-                        Colors.blue,
+                  final opacityAnimation = Tween<double>(
+                    begin: 0.0,
+                    end: 1.0,
+                  ).animate(CurvedAnimation(
+                    parent: _animationController,
+                    curve: Interval(
+                      (index * 0.1).clamp(0.0, 0.7),
+                      ((index * 0.1) + 0.6).clamp(0.3, 1.0),
+                    ),
+                  ));
+
+                  return FadeTransition(
+                    opacity: opacityAnimation,
+                    child: SlideTransition(
+                      position: slideAnimation,
+                      child: SocialPost(
+                        userName: _getUserName(userProfile, post['role']),
+                        userAvatar: _getUserAvatar(userProfile),
+                        userRole: _getUserRole(userProfile, post['role']),
+                        timeAgo: _getTimeAgo(post['timestamp']),
+                        postText: post['text'] ?? '',
+                        mediaItems: _getPostMedia(post['media']),
+                        likes: post['likes'] ?? 0,
+                        comments: post['comments'] ?? 0,
+                        isLiked: likedPosts[postId] ?? false,
+                        isVerified: _isUserVerified(userProfile, post['role']),
+                        onLike: () {
+                          setState(() {
+                            likedPosts[postId] = !(likedPosts[postId] ?? false);
+                          });
+                        },
+                        onComment: () => showSnackBar(
+                          context,
+                          'Comments opened',
+                          Colors.blue,
+                        ),
+                        onShare: () => showSnackBar(
+                          context,
+                          'Post shared',
+                          Colors.green,
+                        ),
+                        onSend: () => showSnackBar(
+                          context,
+                          'Message sent',
+                          Colors.purple,
+                        ),
+                        uid: post['uid'] ?? '',
                       ),
-                      onShare: () => showSnackBar(
-                        context,
-                        'Post shared',
-                        Colors.green,
-                      ),
-                      onSend: () => showSnackBar(
-                        context,
-                        'Message sent',
-                        Colors.purple,
-                      ),
-                      uid: post['uid'] ?? '',
                     ),
                   );
                 },
               );
             },
-            childCount: posts.length + 2,
+            childCount: posts.length + 1,
           ),
         ),
       ],
@@ -390,14 +495,14 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   }
 }
 
-// Updated SocialPost Widget with Media Support
+// Enhanced SocialPost Widget
 class SocialPost extends StatefulWidget {
   final String userName;
   final String userRole;
   final String timeAgo;
   final String postText;
   final String? userAvatar;
-  final List<Map<String, String>> mediaItems; // Changed from imageUrl
+  final List<Map<String, String>> mediaItems;
   final int likes;
   final int comments;
   final VoidCallback? onLike;
@@ -415,7 +520,7 @@ class SocialPost extends StatefulWidget {
     required this.timeAgo,
     required this.postText,
     this.userAvatar,
-    this.mediaItems = const [], // Changed default
+    this.mediaItems = const [],
     this.likes = 0,
     this.comments = 0,
     this.onLike,
@@ -440,10 +545,10 @@ class _SocialPostState extends State<SocialPost>
   void initState() {
     super.initState();
     _likeAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 400),
       vsync: this,
     );
-    _likeScaleAnimation = Tween<double>(begin: 1.0, end: 1.3).animate(
+    _likeScaleAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(
       CurvedAnimation(
         parent: _likeAnimationController,
         curve: Curves.elasticOut,
@@ -460,107 +565,113 @@ class _SocialPostState extends State<SocialPost>
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey[50]!,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 25,
+            offset: const Offset(0, 10),
+            spreadRadius: 0,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with user info
-            PostHeader(
-              userName: widget.userName,
-              userRole: widget.userRole,
-              timeAgo: widget.timeAgo,
-              userAvatar: widget.userAvatar,
-              isVerified: widget.isVerified,
-              uid: widget.uid,
+            // Header
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: PostHeader(
+                userName: widget.userName,
+                userRole: widget.userRole,
+                timeAgo: widget.timeAgo,
+                userAvatar: widget.userAvatar,
+                isVerified: widget.isVerified,
+                uid: widget.uid,
+              ),
             ),
-            const SizedBox(height: 16),
 
             // Post content
             if (widget.postText.isNotEmpty)
-              Text(
-                widget.postText,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: Color(0xFF1E293B),
-                  height: 1.5,
-                  fontWeight: FontWeight.w400,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Text(
+                  widget.postText,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF1E293B),
+                    height: 1.6,
+                    fontWeight: FontWeight.w400,
+                    letterSpacing: 0.2,
+                  ),
                 ),
               ),
 
             if (widget.postText.isNotEmpty) const SizedBox(height: 16),
 
-            // Media content (images and videos)
+            // Media content
             if (widget.mediaItems.isNotEmpty)
-              MediaCarousel(mediaItems: widget.mediaItems),
+              MediaGrid(mediaItems: widget.mediaItems),
 
-            if (widget.mediaItems.isNotEmpty) const SizedBox(height: 16),
+            // Stats and actions
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Stats
+                  PostStats(
+                    likes: widget.likes,
+                    comments: widget.comments,
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Elegant divider
+                  Container(
+                    height: 1,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.transparent,
+                          Colors.grey[300]!,
+                          Colors.transparent,
+                        ],
+                      ),
+                    ),
+                  ),
 
-            // Engagement stats
-            PostStats(
-              likes: widget.likes,
-              comments: widget.comments,
-            ),
+                  const SizedBox(height: 16),
 
-            const SizedBox(height: 16),
-            
-            // Divider
-            Container(
-              height: 1,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.grey[300]!,
-                    Colors.grey[200]!,
-                    Colors.grey[300]!,
-                  ],
-                ),
+                  // Actions
+                  PostActions(
+                    onLike: () {
+                      if (widget.isLiked) {
+                        _likeAnimationController.reverse();
+                      } else {
+                        _likeAnimationController.forward().then((_) {
+                          _likeAnimationController.reverse();
+                        });
+                      }
+                      widget.onLike?.call();
+                    },
+                    onComment: widget.onComment,
+                    onShare: widget.onShare,
+                    onSend: widget.onSend,
+                    isLiked: widget.isLiked,
+                    likeAnimation: _likeScaleAnimation,
+                  ),
+                ],
               ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Action buttons
-            PostActions(
-              onLike: () {
-                if (widget.isLiked) {
-                  _likeAnimationController.reverse();
-                } else {
-                  _likeAnimationController.forward().then((_) {
-                    _likeAnimationController.reverse();
-                  });
-                }
-                widget.onLike?.call();
-              },
-              onComment: widget.onComment,
-              onShare: widget.onShare,
-              onSend: widget.onSend,
-              isLiked: widget.isLiked,
-              likeAnimation: _likeScaleAnimation,
             ),
           ],
         ),
@@ -569,246 +680,210 @@ class _SocialPostState extends State<SocialPost>
   }
 }
 
-// New MediaCarousel Widget to handle multiple media items
-class MediaCarousel extends StatefulWidget {
+// New MediaGrid Widget for better media display
+
+
+// New MediaGrid Widget for better media display
+class MediaGrid extends StatefulWidget {
   final List<Map<String, String>> mediaItems;
 
-  const MediaCarousel({
+  const MediaGrid({
     super.key,
     required this.mediaItems,
   });
 
   @override
-  State<MediaCarousel> createState() => _MediaCarouselState();
+  State<MediaGrid> createState() => _MediaGridState();
 }
 
-class _MediaCarouselState extends State<MediaCarousel> {
-  int currentIndex = 0;
+class _MediaGridState extends State<MediaGrid> {
+  int selectedIndex = 0;
 
   @override
   Widget build(BuildContext context) {
     if (widget.mediaItems.isEmpty) return const SizedBox();
 
-    return Column(
-      children: [
-        ClipRRect(
+    // Single media item
+    if (widget.mediaItems.length == 1) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: _buildMediaItem(widget.mediaItems[currentIndex]),
+          child: _buildMediaItem(
+            widget.mediaItems[0],
+            aspectRatio: 1 / 1,
+            showPlayButton: true,
           ),
         ),
-        if (widget.mediaItems.length > 1) ...[
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              IconButton(
-                onPressed: currentIndex > 0 ? () {
+      );
+    }
+
+    // Multiple media items - Grid layout
+    return Column(
+      children: [
+        // Main selected media
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: _buildMediaItem(
+              widget.mediaItems[selectedIndex],
+              aspectRatio: 1 / 1,
+              showPlayButton: true,
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Thumbnail grid
+        Container(
+          height: 80,
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: widget.mediaItems.length,
+            itemBuilder: (context, index) {
+              final isSelected = index == selectedIndex;
+              return GestureDetector(
+                onTap: () {
                   setState(() {
-                    currentIndex--;
+                    selectedIndex = index;
                   });
-                } : null,
-                icon: const Icon(Icons.arrow_back_ios),
-                iconSize: 20,
-              ),
-              ...List.generate(
-                widget.mediaItems.length,
-                (index) => Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: 8,
-                  height: 8,
+                },
+                child: Container(
+                  width: 80,
+                  margin: EdgeInsets.only(
+                    right: index == widget.mediaItems.length - 1 ? 0 : 8,
+                  ),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: currentIndex == index 
-                        ? const Color(0xFF667eea) 
-                        : Colors.grey[400],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFF667eea)
+                          : Colors.transparent,
+                      width: 2,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color:
+                                  const Color(0xFF667eea).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: _buildMediaItem(
+                      widget.mediaItems[index],
+                      aspectRatio: 1,
+                      showPlayButton: false,
+                      isGrayedOut: !isSelected,
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                onPressed: currentIndex < widget.mediaItems.length - 1 ? () {
-                  setState(() {
-                    currentIndex++;
-                  });
-                } : null,
-                icon: const Icon(Icons.arrow_forward_ios),
-                iconSize: 20,
-              ),
-            ],
+              );
+            },
           ),
-        ],
+        ),
+
+        const SizedBox(height: 8),
+
+        // Media counter
+        if (widget.mediaItems.length > 1)
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.7),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              '${selectedIndex + 1} of ${widget.mediaItems.length}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildMediaItem(Map<String, String> mediaItem) {
+  Widget _buildMediaItem(
+    Map<String, String> mediaItem, {
+    required double aspectRatio,
+    bool showPlayButton = false,
+    bool isGrayedOut = false,
+  }) {
     String url = mediaItem['url']!;
     String type = mediaItem['type']!;
 
+    Widget mediaWidget;
+
     if (type == 'video') {
-      return VideoPlayerWidget(url: url);
+      mediaWidget = VideoPlayerWidget(
+        url: url,
+        showControls: showPlayButton,
+        aspectRatio: aspectRatio,
+      );
     } else {
-      return Image.network(
-        url,
-        fit: BoxFit.cover,
-        width: double.infinity,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(16),
-            ),
+      // ✅ Cached images for better performance
+      mediaWidget = AspectRatio(
+        aspectRatio: aspectRatio,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            color: Colors.grey[200],
             child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          return Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Center(
-              child: Icon(
-                Icons.broken_image,
-                size: 50,
-                color: Colors.grey,
+              child: CircularProgressIndicator(
+                color: Color(0xFF667eea),
+                strokeWidth: 2,
               ),
             ),
-          );
-        },
-      );
-    }
-  }
-}
-
-// Video Player Widget
-class VideoPlayerWidget extends StatefulWidget {
-  final String url;
-
-  const VideoPlayerWidget({
-    super.key,
-    required this.url,
-  });
-
-  @override
-  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
-}
-
-class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
-  VideoPlayerController? _controller;
-  bool _isInitialized = false;
-  bool _hasError = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeVideo();
-  }
-
-  void _initializeVideo() async {
-    try {
-      _controller = VideoPlayerController.network(widget.url);
-      await _controller!.initialize();
-      setState(() {
-        _isInitialized = true;
-      });
-    } catch (e) {
-      setState(() {
-        _hasError = true;
-      });
-      print('Error initializing video: $e');
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_hasError) {
-      return Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 50,
-                color: Colors.grey,
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Failed to load video',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
+          ),
+          errorWidget: (context, url, error) => Container(
+            color: Colors.grey[200],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.broken_image_outlined,
+                  size: showPlayButton ? 40 : 24,
+                  color: Colors.grey[400],
+                ),
+                if (showPlayButton) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    'Image failed to load',
+                    style: TextStyle(
+                      color: Colors.grey[500],
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       );
     }
 
-    if (!_isInitialized) {
-      return Container(
-        height: 200,
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: BorderRadius.circular(16),
+    if (isGrayedOut) {
+      mediaWidget = ColorFiltered(
+        colorFilter: ColorFilter.mode(
+          Colors.black.withOpacity(0.3),
+          BlendMode.darken,
         ),
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: mediaWidget,
       );
     }
 
-    return AspectRatio(
-      aspectRatio: _controller!.value.aspectRatio,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          VideoPlayer(_controller!),
-          IconButton(
-            onPressed: () {
-              setState(() {
-                if (_controller!.value.isPlaying) {
-                  _controller!.pause();
-                } else {
-                  _controller!.play();
-                }
-              });
-            },
-            icon: Icon(
-              _controller!.value.isPlaying ? Icons.pause : Icons.play_arrow,
-              color: Colors.white,
-              size: 50,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
+    return mediaWidget;
   }
 }

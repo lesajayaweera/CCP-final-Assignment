@@ -54,7 +54,9 @@ dependencies:
   firebase_messaging: 15.2.10
   flutter_local_notifications: ^17.1.2
   awesome_notifications: ^0.10.1
-  
+
+  flutter_cache_manager: ^3.3.0
+
 flutter_icons:
   android: true
   ios: true
