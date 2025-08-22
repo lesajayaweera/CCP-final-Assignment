@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-// Post Actions Component
+// Final PostActions Component
 class PostActions extends StatelessWidget {
   final VoidCallback? onLike;
   final VoidCallback? onComment;

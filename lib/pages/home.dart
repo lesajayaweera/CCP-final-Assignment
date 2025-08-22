@@ -3,10 +3,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/postService.dart';
+import 'package:sport_ignite/widget/post/comments.dart';
 import 'package:sport_ignite/widget/post/postAction.dart';
+import 'package:sport_ignite/widget/post/postContainer.dart';
 import 'package:sport_ignite/widget/post/postHeader.dart';
 import 'package:sport_ignite/widget/post/postStats.dart';
 import 'package:sport_ignite/widget/post/videoplayer.dart';
+
+// Add this import at the top of your file
 
 
 // Main Screen
@@ -59,7 +63,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
       Map<String, Map<String, dynamic>?> profiles = {};
       for (var post in fetchedPosts) {
         final uid = post['uid'];
-        if (!profiles.containsKey(uid)) {  
+        if (!profiles.containsKey(uid)) {
           profiles[uid] = await _getUserProfile(uid, post['role']);
         }
       }
@@ -83,7 +87,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   Future<Map<String, dynamic>?> _getUserProfile(String uid, String role) async {
     try {
       String collection = role == 'Athlete' ? 'athlete' : 'sponsor';
-      final doc = await FirebaseFirestore.instance.collection(collection).doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection(collection)
+          .doc(uid)
+          .get();
       return doc.data();
     } catch (e) {
       print('Error fetching user profile: $e');
@@ -93,7 +100,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
   String _getTimeAgo(dynamic timestamp) {
     if (timestamp == null) return 'Unknown';
-    
+
     DateTime dateTime;
     if (timestamp is Timestamp) {
       dateTime = timestamp.toDate();
@@ -115,16 +122,16 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
   List<Map<String, String>> _getPostMedia(dynamic media) {
     List<Map<String, String>> mediaList = [];
-    
+
     if (media == null) return mediaList;
-    
+
     List<dynamic> mediaUrls = [];
     if (media is List) {
       mediaUrls = media;
     } else if (media is String && media.isNotEmpty) {
       mediaUrls = [media];
     }
-    
+
     for (var url in mediaUrls) {
       String urlString = url.toString();
       if (urlString.isNotEmpty) {
@@ -132,31 +139,32 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
         mediaList.add({
           'url': urlString,
           'type': mediaType,
+          'rotation': '180', // Add this for inverted images
         });
       }
     }
-    
+
     return mediaList;
   }
 
   String _getMediaType(String url) {
     final videoExtensions = ['.mp4', '.mov', '.avi', '.mkv', '.webm', '.m4v'];
     final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp'];
-    
+
     String lowerUrl = url.toLowerCase();
-    
+
     for (String ext in videoExtensions) {
       if (lowerUrl.contains(ext)) {
         return 'video';
       }
     }
-    
+
     for (String ext in imageExtensions) {
       if (lowerUrl.contains(ext)) {
         return 'image';
       }
     }
-    
+
     return 'image';
   }
 
@@ -173,10 +181,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFFF8FAFC),
-            Color(0xFFE7F3FF),
-          ],
+          colors: [Color(0xFFF8FAFC), Color(0xFFE7F3FF)],
         ),
       ),
       child: RefreshIndicator(
@@ -184,10 +189,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
         color: const Color(0xFF667eea),
         backgroundColor: Colors.white,
         strokeWidth: 3,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildBody(),
-        ),
+        child: FadeTransition(opacity: _fadeAnimation, child: _buildBody()),
       ),
     );
   }
@@ -242,7 +244,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 20,
-                offset: const Offset(0, 10),
+                offset: const Offset(0, 10),       
               ),
             ],
           ),
@@ -286,7 +288,10 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF667eea),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -294,10 +299,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                 ),
                 child: const Text(
                   'Try Again',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
                 ),
               ),
             ],
@@ -372,87 +374,79 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
       slivers: [
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
         SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              if (index >= posts.length) {
-                return const SizedBox(height: 100);
-              }
+          delegate: SliverChildBuilderDelegate((context, index) {
+            if (index >= posts.length) {
+              return const SizedBox(height: 100);
+            }
 
-              final post = posts[index];
-              final postId = post['uid'] + '_' + post['timestamp'].toString();
-              final userProfile = userProfiles[post['uid']];
-              
-              return AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  final slideAnimation = Tween<Offset>(
-                    begin: const Offset(0, 0.5),
-                    end: Offset.zero,
-                  ).animate(CurvedAnimation(
-                    parent: _animationController,
-                    curve: Interval(
-                      (index * 0.1).clamp(0.0, 0.7),
-                      ((index * 0.1) + 0.8).clamp(0.3, 1.0),
-                      curve: Curves.easeOutCubic,
-                    ),
-                  ));
+            final post = posts[index];
+            final postId = post['uid'] + '_' + post['timestamp'].toString();
+            final userProfile = userProfiles[post['uid']];
 
-                  final opacityAnimation = Tween<double>(
-                    begin: 0.0,
-                    end: 1.0,
-                  ).animate(CurvedAnimation(
-                    parent: _animationController,
-                    curve: Interval(
-                      (index * 0.1).clamp(0.0, 0.7),
-                      ((index * 0.1) + 0.6).clamp(0.3, 1.0),
-                    ),
-                  ));
-
-                  return FadeTransition(
-                    opacity: opacityAnimation,
-                    child: SlideTransition(
-                      position: slideAnimation,
-                      child: SocialPost(
-                        userName: _getUserName(userProfile, post['role']),
-                        userAvatar: _getUserAvatar(userProfile),
-                        userRole: _getUserRole(userProfile, post['role']),
-                        timeAgo: _getTimeAgo(post['timestamp']),
-                        postText: post['text'] ?? '',
-                        mediaItems: _getPostMedia(post['media']),
-                        likes: post['likes'] ?? 0,
-                        comments: post['comments'] ?? 0,
-                        isLiked: likedPosts[postId] ?? false,
-                        isVerified: _isUserVerified(userProfile, post['role']),
-                        onLike: () {
-                          setState(() {
-                            likedPosts[postId] = !(likedPosts[postId] ?? false);
-                          });
-                        },
-                        onComment: () => showSnackBar(
-                          context,
-                          'Comments opened',
-                          Colors.blue,
+            return AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                final slideAnimation =
+                    Tween<Offset>(
+                      begin: const Offset(0, 0.5),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Interval(
+                          (index * 0.1).clamp(0.0, 0.7),
+                          ((index * 0.1) + 0.8).clamp(0.3, 1.0),
+                          curve: Curves.easeOutCubic,
                         ),
-                        onShare: () => showSnackBar(
-                          context,
-                          'Post shared',
-                          Colors.green,
-                        ),
-                        onSend: () => showSnackBar(
-                          context,
-                          'Message sent',
-                          Colors.purple,
-                        ),
-                        uid: post['uid'] ?? '',
-                        role: post['role'] ?? '',
                       ),
+                    );
+
+                final opacityAnimation = Tween<double>(begin: 0.0, end: 1.0)
+                    .animate(
+                      CurvedAnimation(
+                        parent: _animationController,
+                        curve: Interval(
+                          (index * 0.1).clamp(0.0, 0.7),
+                          ((index * 0.1) + 0.6).clamp(0.3, 1.0),
+                        ),
+                      ),
+                    );
+
+                return FadeTransition(
+                  opacity: opacityAnimation,
+                  child: SlideTransition(
+                    position: slideAnimation,
+                    child: SocialPost(
+                      userName: _getUserName(userProfile, post['role']),
+                      userAvatar: _getUserAvatar(userProfile),
+                      userRole: _getUserRole(userProfile, post['role']),
+                      timeAgo: _getTimeAgo(post['timestamp']),
+                      postText: post['text'] ?? '',
+                      mediaItems: _getPostMedia(post['media']),
+                      likes: post['likes'] ?? 0,
+                      comments: post['comments'] ?? 0,
+                      isLiked: likedPosts[postId] ?? false,
+                      isVerified: _isUserVerified(userProfile, post['role']),
+                      onLike: () {
+                        setState(() {
+                          likedPosts[postId] = !(likedPosts[postId] ?? false);
+                        });
+                      },
+                      onComment: () {
+                        showCommentBottomSheet(context, postId: postId); 
+                      },
+                      onShare: () =>
+                          showSnackBar(context, 'Post shared', Colors.green),
+                      onSend: () =>
+                          showSnackBar(context, 'Message sent', Colors.purple),
+                      uid: post['uid'] ?? '',
+                      role: post['role'] ?? '',
                     ),
-                  );
-                },
-              );
-            },
-            childCount: posts.length + 1,
-          ),
+                  ),
+                );
+              },
+            );
+          }, childCount: posts.length + 1),
         ),
       ],
     );
@@ -460,7 +454,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
   String _getUserName(Map<String, dynamic>? profile, String role) {
     if (profile == null) return 'Unknown User';
-    
+
     if (role == 'Athlete') {
       return profile['name'] ?? 'Unknown Athlete';
     } else {
@@ -475,7 +469,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
   String _getUserRole(Map<String, dynamic>? profile, String role) {
     if (profile == null) return role;
-    
+
     if (role == 'Athlete') {
       final sport = profile['sport'] ?? '';
       final category = profile['role'] ?? '';
@@ -497,201 +491,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 }
 
 // Enhanced SocialPost Widget
-class SocialPost extends StatefulWidget {
-  final String userName;
-  final String userRole;
-  final String timeAgo;
-  final String postText;
-  final String? userAvatar;
-  final List<Map<String, String>> mediaItems;
-  final int likes;
-  final int comments;
-  final VoidCallback? onLike;
-  final VoidCallback? onComment;
-  final VoidCallback? onShare;
-  final VoidCallback? onSend;
-  final bool isLiked;
-  final bool isVerified;
-  final String uid;
-  final String role;
 
-  const SocialPost({
-    super.key,
-    required this.userName,
-    required this.userRole,
-    required this.timeAgo,
-    required this.postText,
-    this.userAvatar,
-    this.mediaItems = const [],
-    this.likes = 0,
-    this.comments = 0,
-    this.onLike,
-    this.onComment,
-    this.onShare,
-    this.onSend,
-    this.isLiked = false,
-    this.isVerified = false,
-    required this.uid,
-    required this.role,
-  });
-
-  @override
-  State<SocialPost> createState() => _SocialPostState();
-}
-
-class _SocialPostState extends State<SocialPost>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _likeAnimationController;
-  late Animation<double> _likeScaleAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _likeAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _likeScaleAnimation = Tween<double>(begin: 1.0, end: 1.4).animate(
-      CurvedAnimation(
-        parent: _likeAnimationController,
-        curve: Curves.elasticOut,
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _likeAnimationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
-            spreadRadius: 0,
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 6,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: PostHeader(
-                userName: widget.userName,
-                userRole: widget.userRole,
-                timeAgo: widget.timeAgo,
-                userAvatar: widget.userAvatar,
-                isVerified: widget.isVerified,
-                uid: widget.uid,
-                role: widget.role,
-              ),
-            ),
-
-            // Post content
-            if (widget.postText.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Text(
-                  widget.postText,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Color(0xFF1E293B),
-                    height: 1.6,
-                    fontWeight: FontWeight.w400,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ),
-
-            if (widget.postText.isNotEmpty) const SizedBox(height: 16),
-
-            // Media content
-            if (widget.mediaItems.isNotEmpty)
-              MediaGrid(mediaItems: widget.mediaItems),
-
-            // Stats and actions
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Stats
-                  PostStats(
-                    likes: widget.likes,
-                    comments: widget.comments,
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Elegant divider
-                  Container(
-                    height: 1,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.grey[300]!,
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Actions
-                  PostActions(
-                    onLike: () {
-                      if (widget.isLiked) {
-                        _likeAnimationController.reverse();
-                      } else {
-                        _likeAnimationController.forward().then((_) {
-                          _likeAnimationController.reverse();
-                        });
-                      }
-                      widget.onLike?.call();
-                    },
-                    onComment: widget.onComment,
-                    onShare: widget.onShare,
-                    onSend: widget.onSend,
-                    isLiked: widget.isLiked,
-                    likeAnimation: _likeScaleAnimation,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Enhanced MediaGrid Widget with proper image handling and enlargement
+// Enhanced MediaGrid Widget with orientation fix
 class MediaGrid extends StatefulWidget {
   final List<Map<String, String>> mediaItems;
 
-  const MediaGrid({
-    super.key,
-    required this.mediaItems,
-  });
+  const MediaGrid({super.key, required this.mediaItems});
 
   @override
   State<MediaGrid> createState() => _MediaGridState();
@@ -731,7 +536,10 @@ class _MediaGridState extends State<MediaGrid> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: GestureDetector(
-              onTap: () => _handleMediaTap(widget.mediaItems[selectedIndex], selectedIndex),
+              onTap: () => _handleMediaTap(
+                widget.mediaItems[selectedIndex],
+                selectedIndex,
+              ),
               child: _buildMediaItem(
                 widget.mediaItems[selectedIndex],
                 aspectRatio: 1 / 1,
@@ -743,7 +551,7 @@ class _MediaGridState extends State<MediaGrid> {
 
         const SizedBox(height: 12),
 
-        // Thumbnail grid - Fixed the flipping issue
+        // Thumbnail grid
         Container(
           height: 80,
           margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -755,7 +563,7 @@ class _MediaGridState extends State<MediaGrid> {
               return GestureDetector(
                 onTap: () {
                   setState(() {
-                    selectedIndex = index; // This should work correctly now
+                    selectedIndex = index;
                   });
                 },
                 child: Container(
@@ -784,7 +592,8 @@ class _MediaGridState extends State<MediaGrid> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: GestureDetector(
-                      onTap: () => _handleMediaTap(widget.mediaItems[index], index),
+                      onTap: () =>
+                          _handleMediaTap(widget.mediaItems[index], index),
                       child: _buildMediaItem(
                         widget.mediaItems[index],
                         aspectRatio: 1,
@@ -824,19 +633,20 @@ class _MediaGridState extends State<MediaGrid> {
 
   void _handleMediaTap(Map<String, String> mediaItem, int index) {
     if (mediaItem['type'] == 'image') {
-      // Navigate to full-screen image viewer
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => FullScreenImageViewer(
-            mediaItems: widget.mediaItems.where((item) => item['type'] == 'image').toList(),
-            initialIndex: widget.mediaItems.where((item) => item['type'] == 'image').toList().indexWhere((item) => item['url'] == mediaItem['url']),
+            mediaItems: widget.mediaItems
+                .where((item) => item['type'] == 'image')
+                .toList(),
+            initialIndex: widget.mediaItems
+                .where((item) => item['type'] == 'image')
+                .toList()
+                .indexWhere((item) => item['url'] == mediaItem['url']),
           ),
         ),
       );
-    } else {
-      // Handle video tap (maybe play/pause or navigate to video player)
-      // You can implement video player logic here
     }
   }
 
@@ -858,12 +668,25 @@ class _MediaGridState extends State<MediaGrid> {
         aspectRatio: aspectRatio,
       );
     } else {
-      // Fixed image handling
+      // Enhanced image handling with orientation fix
       mediaWidget = AspectRatio(
         aspectRatio: aspectRatio,
         child: CachedNetworkImage(
           imageUrl: url,
           fit: BoxFit.cover,
+          // Add these properties to handle orientation issues
+          imageBuilder: (context, imageProvider) {
+            return Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                  // This can help with some orientation issues
+                  alignment: Alignment.center,
+                ),
+              ),
+            );
+          },
           placeholder: (context, url) => Container(
             color: Colors.grey[200],
             child: const Center(
@@ -887,10 +710,7 @@ class _MediaGridState extends State<MediaGrid> {
                   const SizedBox(height: 8),
                   Text(
                     'Image failed to load',
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                 ],
               ],
@@ -912,6 +732,99 @@ class _MediaGridState extends State<MediaGrid> {
 
     return mediaWidget;
   }
+}
+
+// Alternative solution: Custom Image Widget with manual rotation
+class OrientationFixedImage extends StatelessWidget {
+  final String imageUrl;
+  final BoxFit fit;
+  final double? width;
+  final double? height;
+  final int rotationDegrees; // Add rotation parameter
+
+  const OrientationFixedImage({
+    super.key,
+    required this.imageUrl,
+    this.fit = BoxFit.cover,
+    this.width,
+    this.height,
+    this.rotationDegrees = 0, // Default no rotation
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.rotate(
+      angle: rotationDegrees * (3.14159 / 180), // Convert degrees to radians
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: fit,
+        width: width,
+        height: height,
+        placeholder: (context, url) => Container(
+          color: Colors.grey[200],
+          child: const Center(
+            child: CircularProgressIndicator(
+              color: Color(0xFF667eea),
+              strokeWidth: 2,
+            ),
+          ),
+        ),
+        errorWidget: (context, url, error) => Container(
+          color: Colors.grey[200],
+          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
+        ),
+      ),
+    );
+  }
+}
+
+// If you want to fix specific images, you can use this approach:
+Widget _buildMediaItemWithRotationFix(
+  Map<String, String> mediaItem, {
+  required double aspectRatio,
+  bool showPlayButton = false,
+  bool isGrayedOut = false,
+}) {
+  String url = mediaItem['url']!;
+  String type = mediaItem['type']!;
+
+  Widget mediaWidget;
+
+  if (type == 'video') {
+    mediaWidget = VideoPlayerWidget(
+      url: url,
+      showControls: showPlayButton,
+      aspectRatio: aspectRatio,
+    );
+  } else {
+    // Check if this specific URL needs rotation
+    int rotationDegrees = 0;
+    if (url.contains('specific-image-identifier') ||
+        mediaItem.containsKey('rotation')) {
+      rotationDegrees = int.tryParse(mediaItem['rotation'] ?? '0') ?? 0;
+    }
+
+    mediaWidget = AspectRatio(
+      aspectRatio: aspectRatio,
+      child: OrientationFixedImage(
+        imageUrl: url,
+        fit: BoxFit.cover,
+        rotationDegrees: rotationDegrees,
+      ),
+    );
+  }
+
+  if (isGrayedOut) {
+    mediaWidget = ColorFiltered(
+      colorFilter: ColorFilter.mode(
+        Colors.black.withOpacity(0.3),
+        BlendMode.darken,
+      ),
+      child: mediaWidget,
+    );
+  }
+
+  return mediaWidget;
 }
 
 // Full-Screen Image Viewer
@@ -979,9 +892,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                       imageUrl: widget.mediaItems[index]['url']!,
                       fit: BoxFit.contain,
                       placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
+                        child: CircularProgressIndicator(color: Colors.white),
                       ),
                       errorWidget: (context, url, error) => const Center(
                         child: Column(
@@ -1027,10 +938,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
                 ),
               ),
               child: Row(
@@ -1096,10 +1004,7 @@ class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.7),
-                      Colors.transparent,
-                    ],
+                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
                   ),
                 ),
                 child: ListView.builder(
