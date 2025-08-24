@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
@@ -6,6 +5,8 @@ import 'package:sport_ignite/model/postService.dart';
 import 'package:sport_ignite/widget/post/comments.dart';
 import 'package:sport_ignite/widget/post/postContainer.dart';
 import 'package:sport_ignite/widget/post/videoplayer.dart';
+import 'package:sport_ignite/widget/post/widget/homeScreenHelper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
@@ -26,9 +27,12 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
+  String? currentUserUid;
+
   @override
   void initState() {
     super.initState();
+    currentUserUid = FirebaseAuth.instance.currentUser?.uid;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -48,11 +52,15 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
       final fetchedPosts = await PostService.getPostsForUserSport(widget.role);
 
-      Map<String, bool> initialLikedStatus = {};
+      // Get like statuses for all posts
+      Map<String, bool> likeStatuses = {};
       for (var post in fetchedPosts) {
-        final postId = post['uid'] + '_' + post['timestamp'].toString();
-        initialLikedStatus[postId] = false;
-        print("pid " + post['pid']);
+        final postId = post['pid']; // Use the actual post ID from Firebase
+        if (postId != null && currentUserUid != null) {
+          bool isLiked = await _checkIfUserLikedPost(postId);
+          likeStatuses[postId] = isLiked;
+          print("Post $postId is liked: $isLiked"); // Debug print
+        }
       }
 
       Map<String, Map<String, dynamic>?> profiles = {};
@@ -65,7 +73,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
 
       setState(() {
         posts = fetchedPosts;
-        likedPosts = initialLikedStatus;
+        likedPosts = likeStatuses;
         userProfiles = profiles;
         isLoading = false;
       });
@@ -76,6 +84,25 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
         error = e.toString();
         isLoading = false;
       });
+    }
+  }
+
+  // Check if current user has liked a specific post
+  Future<bool> _checkIfUserLikedPost(String postId) async {
+    try {
+      if (currentUserUid == null) return false;
+
+      final likeDoc = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(currentUserUid!)
+          .get();
+
+      return likeDoc.exists;
+    } catch (e) {
+      print('Error checking like status for post $postId: $e');
+      return false;
     }
   }
 
@@ -239,7 +266,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 20,
-                offset: const Offset(0, 10),       
+                offset: const Offset(0, 10),
               ),
             ],
           ),
@@ -375,7 +402,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
             }
 
             final post = posts[index];
-            final postId = post['uid'] + '_' + post['timestamp'].toString();
+            final postId = post['pid'] ?? '';  
             final userProfile = userProfiles[post['uid']];
 
             return AnimatedBuilder(
@@ -422,13 +449,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                       comments: post['comments'] ?? 0,
                       isLiked: likedPosts[postId] ?? false,
                       isVerified: _isUserVerified(userProfile, post['role']),
-                      onLike: () {
-                        setState(() {
-                          likedPosts[postId] = !(likedPosts[postId] ?? false);
-                        });
-                      },
+
                       onComment: () {
-                        showCommentBottomSheet(context, postId: postId); 
+                        showCommentBottomSheet(context, postId: postId);
                       },
                       onShare: () =>
                           showSnackBar(context, 'Post shared', Colors.green),
@@ -486,294 +509,6 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   }
 }
 
-// Enhanced SocialPost Widget
-
-// Enhanced MediaGrid Widget with orientation fix
-class MediaGrid extends StatefulWidget {
-  final List<Map<String, String>> mediaItems;
-
-  const MediaGrid({super.key, required this.mediaItems});
-
-  @override
-  State<MediaGrid> createState() => _MediaGridState();
-}
-
-class _MediaGridState extends State<MediaGrid> {
-  int selectedIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.mediaItems.isEmpty) return const SizedBox();
-
-    // Single media item
-    if (widget.mediaItems.length == 1) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: GestureDetector(
-            onTap: () => _handleMediaTap(widget.mediaItems[0], 0),
-            child: _buildMediaItem(
-              widget.mediaItems[0],
-              aspectRatio: 1 / 1,
-              showPlayButton: true,
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Multiple media items - Grid layout
-    return Column(
-      children: [
-        // Main selected media
-        Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: GestureDetector(
-              onTap: () => _handleMediaTap(
-                widget.mediaItems[selectedIndex],
-                selectedIndex,
-              ),
-              child: _buildMediaItem(
-                widget.mediaItems[selectedIndex],
-                aspectRatio: 1 / 1,
-                showPlayButton: true,
-              ),
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // Thumbnail grid
-        Container(
-          height: 80,
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: widget.mediaItems.length,
-            itemBuilder: (context, index) {
-              final isSelected = index == selectedIndex;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedIndex = index;
-                  });
-                },
-                child: Container(
-                  width: 80,
-                  margin: EdgeInsets.only(
-                    right: index == widget.mediaItems.length - 1 ? 0 : 8,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFF667eea)
-                          : Colors.transparent,
-                      width: 2,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF667eea).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ]
-                        : [],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: GestureDetector(
-                      onTap: () =>
-                          _handleMediaTap(widget.mediaItems[index], index),
-                      child: _buildMediaItem(
-                        widget.mediaItems[index],
-                        aspectRatio: 1,
-                        showPlayButton: false,
-                        isGrayedOut: !isSelected,
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Media counter
-        if (widget.mediaItems.length > 1)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Text(
-              '${selectedIndex + 1} of ${widget.mediaItems.length}',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  void _handleMediaTap(Map<String, String> mediaItem, int index) {
-    if (mediaItem['type'] == 'image') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => FullScreenImageViewer(
-            mediaItems: widget.mediaItems
-                .where((item) => item['type'] == 'image')
-                .toList(),
-            initialIndex: widget.mediaItems
-                .where((item) => item['type'] == 'image')
-                .toList()
-                .indexWhere((item) => item['url'] == mediaItem['url']),
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget _buildMediaItem(
-    Map<String, String> mediaItem, {
-    required double aspectRatio,
-    bool showPlayButton = false,
-    bool isGrayedOut = false,
-  }) {
-    String url = mediaItem['url']!;
-    String type = mediaItem['type']!;
-
-    Widget mediaWidget;
-
-    if (type == 'video') {
-      mediaWidget = VideoPlayerWidget(
-        url: url,
-        showControls: showPlayButton,
-        aspectRatio: aspectRatio,
-      );
-    } else {
-      // Enhanced image handling with orientation fix
-      mediaWidget = AspectRatio(
-        aspectRatio: aspectRatio,
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          // Add these properties to handle orientation issues
-          imageBuilder: (context, imageProvider) {
-            return Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: imageProvider,
-                  fit: BoxFit.cover,
-                  // This can help with some orientation issues
-                  alignment: Alignment.center,
-                ),
-              ),
-            );
-          },
-          placeholder: (context, url) => Container(
-            color: Colors.grey[200],
-            child: const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFF667eea),
-                strokeWidth: 2,
-              ),
-            ),
-          ),
-          errorWidget: (context, url, error) => Container(
-            color: Colors.grey[200],
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.broken_image_outlined,
-                  size: showPlayButton ? 40 : 24,
-                  color: Colors.grey[400],
-                ),
-                if (showPlayButton) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    'Image failed to load',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 12),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (isGrayedOut) {
-      mediaWidget = ColorFiltered(
-        colorFilter: ColorFilter.mode(
-          Colors.black.withOpacity(0.3),
-          BlendMode.darken,
-        ),
-        child: mediaWidget,
-      );
-    }
-
-    return mediaWidget;
-  }
-}
-
-// Alternative solution: Custom Image Widget with manual rotation
-class OrientationFixedImage extends StatelessWidget {
-  final String imageUrl;
-  final BoxFit fit;
-  final double? width;
-  final double? height;
-  final int rotationDegrees; // Add rotation parameter
-
-  const OrientationFixedImage({
-    super.key,
-    required this.imageUrl,
-    this.fit = BoxFit.cover,
-    this.width,
-    this.height,
-    this.rotationDegrees = 0, // Default no rotation
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: rotationDegrees * (3.14159 / 180), // Convert degrees to radians
-      child: CachedNetworkImage(
-        imageUrl: imageUrl,
-        fit: fit,
-        width: width,
-        height: height,
-        placeholder: (context, url) => Container(
-          color: Colors.grey[200],
-          child: const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF667eea),
-              strokeWidth: 2,
-            ),
-          ),
-        ),
-        errorWidget: (context, url, error) => Container(
-          color: Colors.grey[200],
-          child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-        ),
-      ),
-    );
-  }
-}
-
 // If you want to fix specific images, you can use this approach:
 Widget _buildMediaItemWithRotationFix(
   Map<String, String> mediaItem, {
@@ -824,245 +559,3 @@ Widget _buildMediaItemWithRotationFix(
 }
 
 // Full-Screen Image Viewer
-class FullScreenImageViewer extends StatefulWidget {
-  final List<Map<String, String>> mediaItems;
-  final int initialIndex;
-
-  const FullScreenImageViewer({
-    super.key,
-    required this.mediaItems,
-    this.initialIndex = 0,
-  });
-
-  @override
-  State<FullScreenImageViewer> createState() => _FullScreenImageViewerState();
-}
-
-class _FullScreenImageViewerState extends State<FullScreenImageViewer> {
-  late PageController _pageController;
-  late int currentIndex;
-  bool _isVisible = true;
-
-  @override
-  void initState() {
-    super.initState();
-    currentIndex = widget.initialIndex.clamp(0, widget.mediaItems.length - 1);
-    _pageController = PageController(initialPage: currentIndex);
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _toggleUI() {
-    setState(() {
-      _isVisible = !_isVisible;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          // Image PageView
-          PageView.builder(
-            controller: _pageController,
-            itemCount: widget.mediaItems.length,
-            onPageChanged: (index) {
-              setState(() {
-                currentIndex = index;
-              });
-            },
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: _toggleUI,
-                child: InteractiveViewer(
-                  minScale: 0.5,
-                  maxScale: 4.0,
-                  child: Center(
-                    child: CachedNetworkImage(
-                      imageUrl: widget.mediaItems[index]['url']!,
-                      fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
-                      ),
-                      errorWidget: (context, url, error) => const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.broken_image,
-                              size: 80,
-                              color: Colors.white54,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'Failed to load image',
-                              style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-
-          // Top UI (Close button and counter)
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            top: _isVisible ? 0 : -100,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).padding.top + 16,
-                left: 16,
-                right: 16,
-                bottom: 16,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // Close button
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-
-                  // Image counter
-                  if (widget.mediaItems.length > 1)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '${currentIndex + 1} / ${widget.mediaItems.length}',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-
-          // Bottom UI (Thumbnails - optional)
-          if (widget.mediaItems.length > 1)
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 300),
-              bottom: _isVisible ? 0 : -120,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: 120,
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).padding.bottom + 16,
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Colors.black.withOpacity(0.7), Colors.transparent],
-                  ),
-                ),
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: widget.mediaItems.length,
-                  itemBuilder: (context, index) {
-                    final isSelected = index == currentIndex;
-                    return GestureDetector(
-                      onTap: () {
-                        _pageController.animateToPage(
-                          index,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        );
-                      },
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        margin: EdgeInsets.only(
-                          right: index == widget.mediaItems.length - 1 ? 0 : 8,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: isSelected
-                                ? Colors.white
-                                : Colors.transparent,
-                            width: 2,
-                          ),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: CachedNetworkImage(
-                            imageUrl: widget.mediaItems[index]['url']!,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[800],
-                              child: const Center(
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 1,
-                                ),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey[800],
-                              child: const Icon(
-                                Icons.broken_image,
-                                color: Colors.white54,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}

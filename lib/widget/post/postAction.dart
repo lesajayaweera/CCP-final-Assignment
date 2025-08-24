@@ -102,6 +102,19 @@ class _ActionButtonState extends State<_ActionButton>
 
   @override
   Widget build(BuildContext context) {
+    // Enhanced color logic for better visibility of liked state
+    final bool isLikeButton = widget.label == 'Like';
+    final Color activeColor = widget.color ?? const Color(0xFFFF6B6B);
+    final Color inactiveColor = const Color(0xFF64748B);
+    
+    final Color currentColor = widget.isActive ? activeColor : inactiveColor;
+    final Color backgroundColor = widget.isActive 
+        ? activeColor.withOpacity(0.15) 
+        : Colors.grey[50]!;
+    final Color borderColor = widget.isActive 
+        ? activeColor.withOpacity(0.3) 
+        : Colors.grey[200]!;
+
     return GestureDetector(
       onTapDown: (_) => _animationController.forward(),
       onTapUp: (_) => _animationController.reverse(),
@@ -112,31 +125,35 @@ class _ActionButtonState extends State<_ActionButton>
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           decoration: BoxDecoration(
-            color: widget.isActive
-                ? widget.color?.withOpacity(0.1)
-                : Colors.grey[50],
+            color: backgroundColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: widget.isActive
-                  ? widget.color?.withOpacity(0.3) ?? Colors.grey[200]!
-                  : Colors.grey[200]!,
-              width: 1,
+              color: borderColor,
+              width: widget.isActive ? 1.5 : 1,
             ),
+            // Add subtle shadow for active state
+            boxShadow: widget.isActive ? [
+              BoxShadow(
+                color: activeColor.withOpacity(0.2),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ] : null,
           ),
           child: Column(
             children: [
               Icon(
                 widget.icon,
                 size: 20,
-                color: widget.color ?? const Color(0xFF64748B),
+                color: currentColor,
               ),
               const SizedBox(height: 4),
               Text(
                 widget.label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: widget.color ?? const Color(0xFF64748B),
-                  fontWeight: FontWeight.w600,
+                  color: currentColor,
+                  fontWeight: widget.isActive ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
             ],

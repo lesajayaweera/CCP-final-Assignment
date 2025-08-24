@@ -142,4 +142,47 @@ class PostService {
       'comments': FieldValue.increment(1),
     });
   }
+
+  static Future<void> addLike({
+    required String postId,
+    required BuildContext context,
+  }) async {
+    final String uid = FirebaseAuth.instance.currentUser!.uid;
+
+    // Get user data
+    final Map<String, dynamic>? userdata = await Users.getUserDetailsByUid(
+      context,
+      uid,
+    );
+
+    final likeRef = FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(uid); // Use uid as doc ID to prevent duplicate likes
+
+    final docSnapshot = await likeRef.get();
+
+    if (docSnapshot.exists) {
+      // If user already liked -> Remove like (toggle)
+      await likeRef.delete();
+      await FirebaseFirestore.instance.collection('posts').doc(postId).update({
+        'likes': FieldValue.increment(-1),
+      });
+    } else {
+      // Add like
+      await likeRef.set({
+        'uid': uid,
+        'username': userdata?['name'],
+        'userRole': userdata?['role'],
+        'userAvatar': userdata?['profile'],
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Increment like count
+      await FirebaseFirestore.instance.collection('posts').doc(postId).update({
+        'likes': FieldValue.increment(1),
+      });
+    }
+  }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:sport_ignite/pages/home.dart';
+import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/widget/post/comments.dart';
 import 'package:sport_ignite/widget/post/postAction.dart';
 import 'package:sport_ignite/widget/post/postHeader.dart';
 import 'package:sport_ignite/widget/post/postStats.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:sport_ignite/widget/post/widget/homeScreenHelper.dart';
 
 class SocialPost extends StatefulWidget {
   final String userName;
@@ -15,7 +17,6 @@ class SocialPost extends StatefulWidget {
   final List<Map<String, String>> mediaItems;
   final int likes;
   final int comments;
-  final VoidCallback? onLike;
   final VoidCallback? onComment;
   final VoidCallback? onShare;
   final VoidCallback? onSend;
@@ -35,7 +36,6 @@ class SocialPost extends StatefulWidget {
     this.mediaItems = const [],
     this.likes = 0,
     this.comments = 0,
-    this.onLike,
     this.onComment,
     this.onShare,
     this.onSend,
@@ -54,10 +54,18 @@ class _SocialPostState extends State<SocialPost>
     with SingleTickerProviderStateMixin {
   late AnimationController _likeAnimationController;
   late Animation<double> _likeScaleAnimation;
+  
+  // Local state for like status and count
+  late bool _isLiked;
+  late int _likeCount;
+  bool _isLiking = false; // Prevent multiple simultaneous requests
 
   @override
   void initState() {
     super.initState();
+    _isLiked = widget.isLiked;
+    _likeCount = widget.likes;
+    
     _likeAnimationController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
@@ -76,11 +84,102 @@ class _SocialPostState extends State<SocialPost>
     super.dispose();
   }
 
+  // Add like method implementation
+  Future<void> _addLike() async {
+    if (_isLiking) return; // Prevent multiple requests
+    
+    setState(() {
+      _isLiking = true;
+    });
+
+    try {
+      final String currentUid = FirebaseAuth.instance.currentUser!.uid;
+
+      // Get user data (you'll need to import your Users class)
+      final Map<String, dynamic>? userdata = await Users.getUserDetailsByUid(
+        context,
+        currentUid,
+      );
+
+      final likeRef = FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.postId)
+          .collection('likes')
+          .doc(currentUid);
+
+      final docSnapshot = await likeRef.get();
+
+      if (docSnapshot.exists) {
+        // Remove like
+        await likeRef.delete();
+        await FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.postId)
+            .update({
+          'likes': FieldValue.increment(-1),
+        });
+        
+        // Update local state
+        setState(() {
+          _isLiked = false;
+          _likeCount = _likeCount - 1;
+        });
+      } else {
+        // Add like
+        await likeRef.set({
+          'uid': currentUid,
+          'username': userdata?['name'],
+          'userRole': userdata?['role'],
+          'userAvatar': userdata?['profile'],
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        await FirebaseFirestore.instance
+            .collection('posts')
+            .doc(widget.postId)
+            .update({
+          'likes': FieldValue.increment(1),
+        });
+        
+        // Update local state
+        setState(() {
+          _isLiked = true;
+          _likeCount = _likeCount + 1;
+        });
+      }
+    } catch (e) {
+      // Handle error - you might want to show a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error updating like: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLiking = false;
+      });
+    }
+  }
+
+  void _handleLike() async {
+    // Optimistic UI update
+    if (_isLiked) {
+      _likeAnimationController.reverse();
+    } else {
+      _likeAnimationController.forward().then((_) {
+        _likeAnimationController.reverse();
+      });
+    }
+    
+    // Call the actual like method
+    await _addLike();
+  }
+
   void _openComments() {
     showCommentBottomSheet(
       context,
       postId: widget.postId,
-      
     );
     print(widget.postId);
   }
@@ -152,8 +251,8 @@ class _SocialPostState extends State<SocialPost>
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  // Stats
-                  PostStats(likes: widget.likes, comments: widget.comments),
+                  // Stats - Use local state values
+                  PostStats(likes: _likeCount, comments: widget.comments),
 
                   const SizedBox(height: 16),
 
@@ -175,23 +274,11 @@ class _SocialPostState extends State<SocialPost>
 
                   // Actions
                   PostActions(
-                    onLike: () {
-                      if (widget.isLiked) {
-                        _likeAnimationController.reverse();
-                      } else {
-                        _likeAnimationController.forward().then((_) {
-                          _likeAnimationController.reverse();
-                        });
-                      }
-                      widget.onLike?.call();
-                    },
-                    onComment: () {
-                      _openComments();
-                     
-                    },
+                    onLike: _handleLike,
+                    onComment: _openComments,
                     onShare: widget.onShare,
                     onSend: widget.onSend,
-                    isLiked: widget.isLiked,
+                    isLiked: _isLiked, // Use local state
                     likeAnimation: _likeScaleAnimation,
                   ),
                 ],
