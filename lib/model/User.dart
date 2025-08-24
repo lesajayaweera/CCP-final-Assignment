@@ -137,7 +137,7 @@ class Users {
     }
   }
 
- static Future<List<Map<String, dynamic>>> getConnectedUsers() async {
+  static Future<List<Map<String, dynamic>>> getConnectedUsers() async {
     final String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
     if (currentUserUid == null) return [];
 
@@ -155,8 +155,10 @@ class Users {
         String connectedUid = connectionDoc.id;
 
         // Fetch the connected user's main profile
-        final userDoc =
-            await FirebaseFirestore.instance.collection('users').doc(connectedUid).get();
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(connectedUid)
+            .get();
 
         if (userDoc.exists) {
           final userData = userDoc.data()!;
@@ -166,13 +168,12 @@ class Users {
 
           if (role == 'Athlete') {
             // Fetch from athlete collection
-            final athleteDoc =
-                await FirebaseFirestore.instance.collection('athlete').doc(connectedUid).get();
+            final athleteDoc = await FirebaseFirestore.instance
+                .collection('athlete')
+                .doc(connectedUid)
+                .get();
             if (athleteDoc.exists) {
-              fullUserData = {
-                'uid': connectedUid,
-                ...athleteDoc.data()!,
-              };
+              fullUserData = {'uid': connectedUid, ...athleteDoc.data()!};
             }
           } else {
             // Fetch from another role collection
@@ -181,10 +182,7 @@ class Users {
                 .doc(connectedUid)
                 .get();
             if (otherDoc.exists) {
-              fullUserData = {
-                'uid': connectedUid,
-                ...otherDoc.data()!,
-              };
+              fullUserData = {'uid': connectedUid, ...otherDoc.data()!};
             }
           }
 
@@ -200,6 +198,54 @@ class Users {
     return connectedUsers;
   }
 
+  static Future<Map<String, dynamic>?> getUserDetailsByUid(
+    BuildContext context,
+    String uid,
+  ) async {
+    try {
+      // Step 1: Fetch the user document from 'users' collection to get the role
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
 
-  
+      if (!userDoc.exists) {
+        showSnackBar(context, 'User not found in users collection', Colors.red);
+        return null;
+      }
+
+      final userData = userDoc.data() as Map<String, dynamic>;
+      final role = userData['role']?.toString().toLowerCase();
+
+      if (role == null || (role != 'athlete' && role != 'sponsor')) {
+        showSnackBar(context, 'Invalid or missing role for user', Colors.red);
+        return null;
+      }
+
+      // Step 2: Based on role, fetch details from respective collection
+      String collectionName = role == 'athlete' ? 'athlete' : 'sponsor';
+
+      DocumentSnapshot roleDoc = await FirebaseFirestore.instance
+          .collection(collectionName)
+          .doc(uid)
+          .get();
+
+      if (roleDoc.exists) {
+        // Combine data from 'users' collection and role-specific collection
+        final roleData = roleDoc.data() as Map<String, dynamic>;
+
+        return {
+          'uid': uid,
+          ...userData, // Base user details
+          ...roleData, // Role-specific details
+        };
+      } else {
+        showSnackBar(context, '$role details not found', Colors.red);
+        return null;
+      }
+    } catch (e) {
+      showSnackBar(context, 'Error fetching user details: $e', Colors.red);
+      return null;
+    }
+  }
 }

@@ -23,7 +23,7 @@ class SocialPost extends StatefulWidget {
   final bool isVerified;
   final String uid;
   final String role;
-  final String? postId;
+  final String postId;
 
   const SocialPost({
     super.key,
@@ -43,7 +43,7 @@ class SocialPost extends StatefulWidget {
     this.isVerified = false,
     required this.uid,
     required this.role,
-    this.postId,
+    required this.postId,
   });
 
   @override
@@ -79,9 +79,10 @@ class _SocialPostState extends State<SocialPost>
   void _openComments() {
     showCommentBottomSheet(
       context,
-      postId: widget.postId ?? widget.uid,
-      comments: widget.comments,
+      postId: widget.postId,
+      
     );
+    print(widget.postId);
   }
 
   @override
@@ -186,7 +187,7 @@ class _SocialPostState extends State<SocialPost>
                     },
                     onComment: () {
                       _openComments();
-                      widget.onComment?.call();
+                     
                     },
                     onShare: widget.onShare,
                     onSend: widget.onSend,

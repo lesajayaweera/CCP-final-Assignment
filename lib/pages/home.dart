@@ -4,14 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/postService.dart';
 import 'package:sport_ignite/widget/post/comments.dart';
-import 'package:sport_ignite/widget/post/postAction.dart';
 import 'package:sport_ignite/widget/post/postContainer.dart';
-import 'package:sport_ignite/widget/post/postHeader.dart';
-import 'package:sport_ignite/widget/post/postStats.dart';
 import 'package:sport_ignite/widget/post/videoplayer.dart';
-
-// Add this import at the top of your file
-
 
 // Main Screen
 class SocialFeedScreen extends StatefulWidget {
@@ -58,6 +52,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
       for (var post in fetchedPosts) {
         final postId = post['uid'] + '_' + post['timestamp'].toString();
         initialLikedStatus[postId] = false;
+        print("pid " + post['pid']);
       }
 
       Map<String, Map<String, dynamic>?> profiles = {};
@@ -441,6 +436,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
                           showSnackBar(context, 'Message sent', Colors.purple),
                       uid: post['uid'] ?? '',
                       role: post['role'] ?? '',
+                      postId: post['pid'] ?? '',
                     ),
                   ),
                 );
