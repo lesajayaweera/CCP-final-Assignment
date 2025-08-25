@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/ViewSposnors.dart';
 import 'package:sport_ignite/pages/home.dart';
+import 'package:sport_ignite/pages/leaderboard.dart';
 import 'package:sport_ignite/pages/manageMyNetwork.dart';
 import 'package:sport_ignite/pages/post_create.dart';
 import 'package:sport_ignite/pages/shorts.dart';
@@ -40,7 +41,7 @@ class _DashboardState extends State<Dashboard> {
       NetworkManagementScreen(role:widget.role),
       SocialFeedScreen(role: widget.role),
       ShortsPlayerScreen(),
-      AthletesScreen(role: widget.role),
+      LeaderboardScreen(),
     ];
 
     final screens = widget.role == 'Athlete' ? athleteScreens : sponsorScreens;
