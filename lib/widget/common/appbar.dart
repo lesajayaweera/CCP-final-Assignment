@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/messageing.dart';
 import 'package:sport_ignite/pages/notifications.dart';
-import 'package:sport_ignite/pages/profile.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:sport_ignite/pages/search.dart';
 
