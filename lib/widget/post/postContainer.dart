@@ -8,6 +8,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sport_ignite/widget/post/widget/homeScreenHelper.dart';
 import 'package:share_plus/share_plus.dart';
+
+
 import 'package:flutter/services.dart';
 
 class SocialPost extends StatefulWidget {
@@ -86,6 +88,8 @@ class _SocialPostState extends State<SocialPost>
     _likeAnimationController.dispose();
     super.dispose();
   }
+
+
 
   // Add like method implementation
   Future<void> _addLike() async {

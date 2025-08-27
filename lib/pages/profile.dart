@@ -2045,7 +2045,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                           child: Text(
                             widget.role == 'Sponsor'
                                 ? "${userData?['company']} - ${userData?['role']}"
-                                : userData?['sport'] ?? '',
+                                : "${userData?['sport']} - ${userData?['positions']} " ?? '',
                             style: TextStyle(
                               color: widget.role == 'Sponsor' 
                                   ? Colors.orange.shade700 

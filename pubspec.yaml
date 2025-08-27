@@ -57,6 +57,7 @@ dependencies:
   share_plus: ^7.2.0
   flutter_cache_manager: ^3.3.0
   path_provider: ^2.1.1
+  
 
 flutter_icons:
   android: true

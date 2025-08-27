@@ -27,6 +27,7 @@ class Athlete {
   late String province;
   late String city;
   late String date;
+  late String positions;
 
   Athlete(
     this.name,
@@ -43,6 +44,7 @@ class Athlete {
     this.gender,
     this.profile,
     this.fullName,
+    this.positions,
   );
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -128,6 +130,8 @@ class Athlete {
         "institute": institute,
         "gender": gender,
         'profile': imageUrl ?? '', // Save image URL or empty string
+        'background': '',
+        'positions': positions
       });
 
       return true;
