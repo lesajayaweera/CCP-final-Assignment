@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/config/essentials.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   @override
@@ -19,15 +20,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   late Animation<double> _bounceAnimation;
 
   final Map<String, List<String>> sportsPositions = {
-    'Cricket': ['Batsman', 'Bowler', 'All-rounder', 'Wicket-keeper'],
-    'Football': ['Forward', 'Midfielder', 'Defender', 'Goalkeeper'],
-    'Basketball': [
-      'Point Guard',
-      'Shooting Guard',
-      'Small Forward',
-      'Power Forward',
-      'Center'
-    ],
+    'Cricket': cricketPositions,
+    'Football': footballPositions,
+    'Basketball': basketballPositions,
+     
+    
   };
 
   final List<Player> dummyPlayers = [

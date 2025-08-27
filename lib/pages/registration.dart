@@ -143,51 +143,15 @@ class _RegistrationState extends State<Registration> with TickerProviderStateMix
   }
 
   List<String> _getCricketPositions() {
-    return [
-      'Batsman',
-      'Bowler',
-      'All-rounder',
-      'Wicket-keeper',
-      'Captain',
-      'Opening Batsman',
-      'Middle Order Batsman',
-      'Fast Bowler',
-      'Spin Bowler',
-      'Wicket-keeper Batsman',
-    ];
+    return cricketPositions;
   }
 
   List<String> _getFootballPositions() {
-    return [
-      'Goalkeeper',
-      'Right Back',
-      'Left Back',
-      'Center Back',
-      'Sweeper',
-      'Defensive Midfielder',
-      'Central Midfielder',
-      'Attacking Midfielder',
-      'Right Midfielder',
-      'Left Midfielder',
-      'Right Winger',
-      'Left Winger',
-      'Striker',
-      'Center Forward',
-      'False 9',
-    ];
+    return footballPositions;
   }
 
   List<String> _getBasketballPositions() {
-    return [
-      'Point Guard',
-      'Shooting Guard',
-      'Small Forward',
-      'Power Forward',
-      'Center',
-      'Combo Guard',
-      'Forward',
-      'Sixth Man',
-    ];
+    return basketballPositions;
   }
 
   List<String> _getPositionsForSport(String sport) {

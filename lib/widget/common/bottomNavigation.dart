@@ -45,7 +45,7 @@ class _CustomBottomNavigationState extends State<CustomBottomNavigation>
         NavBarItem(icon: Icons.people_rounded, label: 'Network'),
         NavBarItem(icon: Icons.add_circle_rounded, label: 'Post', isSpecial: true),
         NavBarItem(icon: Icons.play_circle_rounded, label: 'Shorts'),
-        NavBarItem(icon: Icons.sports_rounded, label: 'Athletes'),
+        NavBarItem(icon: Icons.leaderboard, label: 'Leaderboard'),
       ];
     }
   }

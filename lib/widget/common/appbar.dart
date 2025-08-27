@@ -119,8 +119,9 @@ class _LinkedInAppBarState extends State<LinkedInAppBar>
 
   Widget _buildProfileAvatar() {
     return GestureDetector(
-      onTap: widget.onTap ??
-          () => _navigateToPage(ProfilePage(role: widget.role)),
+      onTap: widget.onTap 
+          // () => _navigateToPage(ProfilePage(role: widget.role)),
+          ,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
