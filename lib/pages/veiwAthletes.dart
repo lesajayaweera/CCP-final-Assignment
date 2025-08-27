@@ -5,6 +5,7 @@ import 'package:sport_ignite/model/ConnectionService.dart';
 import 'package:sport_ignite/model/Sponsor.dart';
 import 'package:sport_ignite/model/userCardData.dart';
 import 'package:sport_ignite/pages/profileView.dart';
+import 'package:sport_ignite/widget/common/appbar.dart';
 
 class AthletesScreen extends StatefulWidget {
   final String role;
@@ -77,6 +78,7 @@ class _AthletesScreenState extends State<AthletesScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+       appBar: LinkedInAppBar(page: true, role: widget.role),
       backgroundColor: const Color(0xFFF8FAFC),
       body: FadeTransition(
         opacity: _fadeAnimation,

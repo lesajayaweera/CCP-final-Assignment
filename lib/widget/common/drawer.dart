@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/pages/profile.dart';
 import 'package:sport_ignite/model/User.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sport_ignite/pages/settings.dart';
+import 'package:sport_ignite/pages/veiwAthletes.dart';
 
 class LinkedInDrawer extends StatefulWidget {
   final String role;
@@ -105,42 +107,21 @@ class _LinkedInDrawerState extends State<LinkedInDrawer>
                         isFirst: true,
                       ),
                       const SizedBox(height: 12),
-                      if (widget.role == "Athlete") ...[
-                        _buildMenuItem(
-                          icon: Icons.fitness_center_rounded,
-                          title: 'My Trainings',
-                          subtitle: 'Track your progress',
-                          onTap: () => _handleNavigation(() {
-                            // Navigate to athlete-specific page
-                          }),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildMenuItem(
-                          icon: Icons.trending_up_rounded,
-                          title: 'Performance',
-                          subtitle: 'View analytics',
-                          onTap: () => _handleNavigation(() {
-                            // Navigate to performance page
-                          }),
-                        ),
-                      ] else if (widget.role == "Sponsor") ...[
+                       if (widget.role == "Sponsor") ...[
                         _buildMenuItem(
                           icon: Icons.handshake_rounded,
-                          title: 'Sponsorship Deals',
-                          subtitle: 'Manage partnerships',
+                          title: 'Verified Athlete',
+                          subtitle: 'Connect with talented Athletes',
                           onTap: () => _handleNavigation(() {
-                            // Navigate to sponsor-specific page
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AthletesScreen(role: widget.role,),
+                              ),
+                            );
                           }),
                         ),
-                        const SizedBox(height: 12),
-                        _buildMenuItem(
-                          icon: Icons.analytics_rounded,
-                          title: 'Analytics',
-                          subtitle: 'Track ROI and metrics',
-                          onTap: () => _handleNavigation(() {
-                            // Navigate to analytics page
-                          }),
-                        ),
+                       
                       ],
                       const SizedBox(height: 12),
                       _buildMenuItem(
@@ -149,6 +130,7 @@ class _LinkedInDrawerState extends State<LinkedInDrawer>
                         subtitle: 'App preferences',
                         onTap: () => _handleNavigation(() {
                           // Navigate to settings
+                          Navigator.push(context, MaterialPageRoute(builder:  (context) => SettingsScreen()));
                         }),
                       ),
                       const SizedBox(height: 32),
