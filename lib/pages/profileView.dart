@@ -481,6 +481,7 @@ class _ProfileViewState extends State<ProfileView>
     }
 
     String sport = userData!['sport'] ?? '';
+    print(sport);
     List<Widget> statsWidgets = [];
 
     if (sport == 'Cricket') {
