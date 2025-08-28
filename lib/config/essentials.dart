@@ -45,6 +45,7 @@ final List<String> cricketPositions = [
 ];
 
 final List<String> footballPositions = [
+  
   'Goalkeeper',
   'Right Back',
   'Left Back',

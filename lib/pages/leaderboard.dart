@@ -104,9 +104,15 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
           )
           .toList();
     }
-
-    // For position filtering, you might need to add position data to your athlete collection
-    // or handle it based on your sport-specific logic
+    if (selectedPosition != 'All Positions') {
+      filtered = filtered
+          .where(
+            (player) =>
+                player['positions']?.toLowerCase() ==
+                selectedPosition.toLowerCase(),
+          )
+          .toList();
+    }
 
     return filtered;
   }
@@ -827,410 +833,528 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildEnhancedPlayerListItem(
-    Map<String, dynamic> player,
-    int position,
+  Map<String, dynamic> player,
+  int position,
   ) {
-    String name = player['name'] ?? 'Unknown';
-    String imageUrl = player['profile'] ?? '';
-    double score = (player['score'] ?? 0.0).toDouble();
-    Map<String, dynamic> stats = player['stats'] ?? {};
-    String sport = player['sport'] ?? '';
-    String city = player['city'] ?? 'Unknown';
-    int age = player['age'] ?? 0;
+  String name = player['name'] ?? 'Unknown';
+  String imageUrl = player['profile'] ?? '';
+  double score = (player['score'] ?? 0.0).toDouble();
+  Map<String, dynamic> stats = player['stats'] ?? {};
+  String sport = player['sport'] ?? '';
 
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 600 + (position * 100)),
-      tween: Tween<double>(begin: 0.0, end: 1.0),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(30 * (1 - value), 0),
-          child: Opacity(
-            opacity: value,
-            child: Container(
-              margin: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: position <= 3
-                    ? Color(0xFF667EEA).withOpacity(0.05)
-                    : Colors.white.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: position <= 3
-                      ? Color(0xFF667EEA).withOpacity(0.2)
-                      : Colors.transparent,
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: position <= 3
-                          ? LinearGradient(
-                              colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                            )
-                          : LinearGradient(
-                              colors: [Color(0xFFF1F5F9), Color(0xFFE2E8F0)],
-                            ),
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: position <= 3
-                              ? Color(0xFF667EEA).withOpacity(0.3)
-                              : Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 4),
-                        ),
+  // Medal colors for top 3 positions
+  final medalColors = [
+    Color(0xFFFFD700), // Gold
+    Color(0xFFC0C0C0), // Silver
+    Color(0xFFCD7F32), // Bronze
+  ];
+
+  return TweenAnimationBuilder<double>(
+    duration: Duration(milliseconds: 600 + (position * 100)),
+    tween: Tween<double>(begin: 0.0, end: 1.0),
+    curve: Curves.easeOutCubic,
+    builder: (context, value, child) {
+      return Transform.translate(
+        offset: Offset(30 * (1 - value), 0),
+        child: Opacity(
+          opacity: value,
+          child: Container(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              gradient: position <= 3
+                  ? LinearGradient(
+                      colors: [
+                        medalColors[position - 1].withOpacity(0.1),
+                        medalColors[position - 1].withOpacity(0.05),
                       ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.9),
+                        Colors.grey[50]!.withOpacity(0.9),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    child: Center(
-                      child: Text(
-                        '$position',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: position <= 3
-                              ? Colors.white
-                              : Color(0xFF475569),
-                        ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 16,
+                  offset: Offset(0, 6),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // Background decoration for top players
+                if (position <= 3)
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Opacity(
+                      opacity: 0.1,
+                      child: Icon(
+                        Icons.emoji_events,
+                        size: 120,
+                        color: medalColors[position - 1],
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFF94A3B8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 12,
-                          offset: Offset(0, 4),
-                        ),
-                      ],
+                
+                Column(
+                  children: [
+                    // First Row: Player Name Only
+                    Container(
+                      padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+                      child: Row(
+                        children: [
+                          // Player avatar with decorative border
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: _getSportColor(sport).withOpacity(0.3),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 12,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipOval(
+                              child: imageUrl.isNotEmpty
+                                  ? Image.network(
+                                      imageUrl,
+                                      fit: BoxFit.cover,
+                                      width: 48,
+                                      height: 48,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Color(0xFF667EEA),
+                                                Color(0xFF764BA2),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.person,
+                                            color: Colors.white,
+                                            size: 24,
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            Color(0xFF667EEA),
+                                            Color(0xFF764BA2),
+                                          ],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                      ),
+                                      child: Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          
+                          SizedBox(width: 16),
+                          
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFF1E293B),
+                                letterSpacing: 0.2,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: ClipOval(
-                      child: imageUrl.isNotEmpty
-                          ? Image.network(
-                              imageUrl,
-                              fit: BoxFit.cover,
-                              width: 56,
-                              height: 56,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 30,
-                                );
-                              },
-                            )
-                          : Icon(Icons.person, color: Colors.white, size: 30),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
+                    
+                    // Second Row: Score, Sport, and Position
+                    Container(
+                      padding: EdgeInsets.fromLTRB(20, 0, 20, 16),
+                      child: Row(
+                        children: [
+                          // Position indicator with medal for top 3
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: position <= 3
+                                  ? medalColors[position - 1]
+                                  : Color(0xFFF8FAFC),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (position <= 3
+                                          ? medalColors[position - 1]
+                                          : Colors.black)
+                                      .withOpacity(0.2),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Center(
                               child: Text(
-                                name,
+                                '$position',
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1A202C),
-                                  letterSpacing: 0.3,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: position <= 3
+                                      ? Colors.white
+                                      : Color(0xFF475569),
                                 ),
                               ),
                             ),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getSportColor(sport).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: _getSportColor(sport).withOpacity(0.3),
-                                ),
-                              ),
-                              child: Text(
-                                sport,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w600,
-                                  color: _getSportColor(sport),
-                                ),
+                          ),
+                          
+                          SizedBox(width: 12),
+                          
+                          // Sport badge
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getSportColor(sport).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: _getSportColor(sport).withOpacity(0.3),
+                                width: 1.5,
                               ),
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.location_on,
-                              size: 12,
-                              color: Color(0xFF64748B),
-                            ),
-                            SizedBox(width: 4),
-                            Text(
-                              city,
+                            child: Text(
+                              "${sport.toUpperCase()} \n ${player['positions']}",
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w700,
+                                color: _getSportColor(sport),
+                                letterSpacing: 0.5,
                               ),
                             ),
-                            SizedBox(width: 12),
-                            Icon(
-                              Icons.cake,
-                              size: 12,
-                              color: Color(0xFF64748B),
+                          ),
+                          
+                          Spacer(),
+                          
+                          // Score badge
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
                             ),
-                            SizedBox(width: 4),
-                            Text(
-                              '${age}y',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFF10B981).withOpacity(0.15),
+                                  Color(0xFF10B981).withOpacity(0.05),
+                                ],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Color(0xFF10B981).withOpacity(0.3),
+                                width: 1,
                               ),
                             ),
-                            Spacer(),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Color(0xFF10B981).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.star,
-                                    size: 12,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  size: 16,
+                                  color: Color(0xFF10B981),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  '${score.toInt()}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
                                     color: Color(0xFF10B981),
                                   ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    '${score.toInt()}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF10B981),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          children: _buildStatsChips(sport, stats),
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    
+                    // Divider between profile and stats
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Divider(
+                        height: 1,
+                        color: Colors.grey[200],
+                      ),
+                    ),
+                    
+                    // Third Row: Stats
+                    Container(
+                      padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PERFORMANCE STATS',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.grey[600],
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: _buildStatsChips(sport, stats),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+List<Widget> _buildStatsChips(String sport, Map<String, dynamic> stats) {
+  List<Widget> chips = [];
+
+  switch (sport.toLowerCase()) {
+    case 'basketball':
+      if (stats['Points'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.sports_basketball_rounded,
+            label: '${stats['Points']}',
+            sublabel: 'Points',
+            color: Color(0xFF10B981),
           ),
         );
-      },
-    );
-  }
-
-  List<Widget> _buildStatsChips(String sport, Map<String, dynamic> stats) {
-    List<Widget> chips = [];
-
-    switch (sport.toLowerCase()) {
-      case 'basketball':
-        if (stats['Points'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.sports_basketball,
-              label: '${stats['Points']}',
-              sublabel: 'Points',
-              color: Color(0xFF10B981),
-            ),
-          );
-        }
-        if (stats['Assists'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.handshake,
-              label: '${stats['Assists']}',
-              sublabel: 'Assists',
-              color: Color(0xFF3B82F6),
-            ),
-          );
-        }
-        if (stats['Rebounds'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.sports,
-              label: '${stats['Rebounds']}',
-              sublabel: 'Rebounds',
-              color: Color(0xFF8B5CF6),
-            ),
-          );
-        }
-        break;
-
-      case 'cricket':
-        if (stats['Runs'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.sports_cricket,
-              label: '${stats['Runs']}',
-              sublabel: 'Runs',
-              color: Color(0xFF10B981),
-            ),
-          );
-        }
-        if (stats['BattingAverage'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.trending_up,
-              label: '${stats['BattingAverage'].toStringAsFixed(1)}',
-              sublabel: 'Average',
-              color: Color(0xFF3B82F6),
-            ),
-          );
-        }
-        if (stats['StrikeRate'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.speed,
-              label: '${stats['StrikeRate'].toStringAsFixed(1)}',
-              sublabel: 'Strike Rate',
-              color: Color(0xFF8B5CF6),
-            ),
-          );
-        }
-        break;
-
-      case 'football':
-        if (stats['Goals'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.sports_soccer,
-              label: '${stats['Goals']}',
-              sublabel: 'Goals',
-              color: Color(0xFF10B981),
-            ),
-          );
-        }
-        if (stats['Assists'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.handshake,
-              label: '${stats['Assists']}',
-              sublabel: 'Assists',
-              color: Color(0xFF3B82F6),
-            ),
-          );
-        }
-        if (stats['PassAccuracy'] != null) {
-          chips.add(
-            _buildEnhancedStatChip(
-              icon: Icons.check_circle,
-              label: '${stats['PassAccuracy'].toStringAsFixed(1)}%',
-              sublabel: 'Pass Acc.',
-              color: Color(0xFF8B5CF6),
-            ),
-          );
-        }
-        break;
-    }
-
-    return chips;
-  }
-
-  Color _getSportColor(String sport) {
-    switch (sport.toLowerCase()) {
-      case 'basketball':
-        return Color(0xFFFF6B35);
-      case 'cricket':
-        return Color(0xFF4CAF50);
-      case 'football':
-        return Color(0xFF2196F3);
-      default:
-        return Color(0xFF667EEA);
-    }
-  }
-
-  Widget _buildEnhancedStatChip({
-    required IconData icon,
-    required String label,
-    required String sublabel,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.1),
-            blurRadius: 4,
-            offset: Offset(0, 2),
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['Assists'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.handshake_rounded,
+            label: '${stats['Assists']}',
+            sublabel: 'Assists',
+            color: Color(0xFF3B82F6),
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          SizedBox(width: 6),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: color,
-                ),
-              ),
-              Text(
-                sublabel,
-                style: TextStyle(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w500,
-                  color: color.withOpacity(0.7),
-                ),
-              ),
-            ],
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['Rebounds'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.all_inclusive_rounded,
+            label: '${stats['Rebounds']}',
+            sublabel: 'Rebounds',
+            color: Color(0xFF8B5CF6),
           ),
-        ],
-      ),
-    );
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      break;
+
+    case 'cricket':
+      if (stats['Runs'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.sports_cricket_rounded,
+            label: '${stats['Runs']}',
+            sublabel: 'Runs',
+            color: Color(0xFF10B981),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['BattingAverage'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.trending_up_rounded,
+            label: '${stats['BattingAverage'].toStringAsFixed(1)}',
+            sublabel: 'Average',
+            color: Color(0xFF3B82F6),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['StrikeRate'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.speed_rounded,
+            label: '${stats['StrikeRate'].toStringAsFixed(1)}',
+            sublabel: 'Strike Rate',
+            color: Color(0xFF8B5CF6),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      break;
+
+    case 'football':
+      if (stats['Goals'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.sports_soccer_rounded,
+            label: '${stats['Goals']}',
+            sublabel: 'Goals',
+            color: Color(0xFF10B981),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['Assists'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.handshake_rounded,
+            label: '${stats['Assists']}',
+            sublabel: 'Assists',
+            color: Color(0xFF3B82F6),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      if (stats['PassAccuracy'] != null) {
+        chips.add(
+          _buildEnhancedStatChip(
+            icon: Icons.assistant_rounded,
+            label: '${stats['PassAccuracy'].toStringAsFixed(1)}%',
+            sublabel: 'Pass Acc.',
+            color: Color(0xFF8B5CF6),
+          ),
+        );
+        chips.add(SizedBox(width: 8));
+      }
+      break;
   }
+
+  // Remove the last SizedBox if exists
+  if (chips.isNotEmpty) {
+    chips.removeLast();
+  }
+  
+  return chips;
+}
+
+Widget _buildEnhancedStatChip({
+  required IconData icon,
+  required String label,
+  required String sublabel,
+  required Color color,
+}) {
+  return Container(
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      gradient: LinearGradient(
+        colors: [
+          color.withOpacity(0.15),
+          color.withOpacity(0.05),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: color.withOpacity(0.3), width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: color.withOpacity(0.1),
+          blurRadius: 6,
+          offset: Offset(0, 2),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: color),
+        SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: color,
+              ),
+            ),
+            Text(
+              sublabel,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: color.withOpacity(0.7),
+              ),
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+}
+
+Color _getSportColor(String sport) {
+  switch (sport.toLowerCase()) {
+    case 'basketball':
+      return Color(0xFFFF6B35);
+    case 'cricket':
+      return Color(0xFF4CAF50);
+    case 'football':
+      return Color(0xFF2196F3);
+    default:
+      return Color(0xFF667EEA);
+  }
+}
+
+  // Color _getSportColor(String sport) {
+  //   switch (sport.toLowerCase()) {
+  //     case 'basketball':
+  //       return Color(0xFFFF6B35);
+  //     case 'cricket':
+  //       return Color(0xFF4CAF50);
+  //     case 'football':
+  //       return Color(0xFF2196F3);
+  //     default:
+  //       return Color(0xFF667EEA);
+  //   }
+  // }
 }
