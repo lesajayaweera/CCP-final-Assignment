@@ -11,6 +11,63 @@ class PostService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseStorage _storage = FirebaseStorage.instance;
 
+  // Future<void> createPost({
+  //   required String text,
+  //   required String audience,
+  //   required List<XFile> mediaFiles,
+  //   required String role,
+  // }) async {
+  //   final user = _auth.currentUser;
+  //   if (user == null) {
+  //     throw Exception("User not logged in");
+  //   }
+
+  //   // Upload media and get URLs
+  //   List<String> mediaUrls = [];
+  //   for (var file in mediaFiles) {
+  //     final ref = _storage
+  //         .ref()
+  //         .child('posts')
+  //         .child(user.uid)
+  //         .child('${DateTime.now().millisecondsSinceEpoch}_${file.name}');
+
+  //     await ref.putFile(File(file.path));
+  //     final url = await ref.getDownloadURL();
+  //     mediaUrls.add(url);
+  //   }
+
+  //   // 🔹 Fetch user's sport based on role
+  //   String? sport;
+  //   if (role == 'Athlete') {
+  //     final doc = await _firestore.collection('athlete').doc(user.uid).get();
+  //     sport = doc.data()?['sport'];
+  //   } else if (role == 'Sponsor') {
+  //     final doc = await _firestore.collection('sponsor').doc(user.uid).get();
+  //     sport = doc.data()?['sportIntrested'];
+  //   }
+
+  //   // 🔹 Create document reference first
+  //   final docRef = _firestore.collection('posts').doc();
+  //   final postId = docRef.id; // ✅ Firestore-generated unique ID
+
+  //   // Build post data
+  //   final postData = {
+  //     'pid': postId, // ✅ store the generated ID
+  //     'uid': user.uid,
+  //     'text': text,
+  //     'audience': audience,
+  //     'timestamp': FieldValue.serverTimestamp(),
+  //     'media': mediaUrls,
+  //     'likes': 0,
+  //     'comments': 0,
+  //     'role': role,
+  //     'sport': sport,
+  //   };
+
+  //   // Save post in Firestore
+  //   await docRef.set(postData);
+  // }
+
   Future<void> createPost({
     required String text,
     required String audience,
@@ -24,6 +81,8 @@ class PostService {
 
     // Upload media and get URLs
     List<String> mediaUrls = [];
+    List<String> mediaTypes = []; // track each uploaded file type
+
     for (var file in mediaFiles) {
       final ref = _storage
           .ref()
@@ -34,6 +93,36 @@ class PostService {
       await ref.putFile(File(file.path));
       final url = await ref.getDownloadURL();
       mediaUrls.add(url);
+
+      // detect file type by extension
+      final ext = file.path.toLowerCase();
+      if (ext.endsWith('.mp4') ||
+          ext.endsWith('.mov') ||
+          ext.endsWith('.avi') ||
+          ext.endsWith('.mkv')) {
+        mediaTypes.add("video");
+      } else if (ext.endsWith('.jpg') ||
+          ext.endsWith('.jpeg') ||
+          ext.endsWith('.png') ||
+          ext.endsWith('.gif') ||
+          ext.endsWith('.webp')) {
+        mediaTypes.add("photo");
+      } else {
+        mediaTypes.add("unknown");
+      }
+    }
+
+    // 🔹 Decide overall postType
+    String postType;
+    if (mediaFiles.isEmpty) {
+      postType = "text";
+    } else {
+      final uniqueTypes = mediaTypes.toSet();
+      if (uniqueTypes.length == 1) {
+        postType = uniqueTypes.first; // photo OR video
+      } else {
+        postType = "mixed"; // if both photo + video
+      }
     }
 
     // 🔹 Fetch user's sport based on role
@@ -62,6 +151,7 @@ class PostService {
       'comments': 0,
       'role': role,
       'sport': sport,
+      'postType': postType, // ✅ new field
     };
 
     // Save post in Firestore
@@ -184,5 +274,38 @@ class PostService {
         'likes': FieldValue.increment(1),
       });
     }
+  }
+
+  Future<List<Map<String, dynamic>>> getVideoPosts() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .orderBy('timestamp', descending: true)
+        .get();
+
+    // Keep only documents where media contains a video file
+    final videoPosts = querySnapshot.docs
+        .where((doc) {
+          final data = doc.data();
+          if (data['media'] == null || (data['media'] as List).isEmpty)
+            return false;
+
+          // ✅ Check if media list has a video file
+          return (data['media'] as List).any((url) {
+            final lower = url.toString().toLowerCase();
+            return lower.endsWith('.mp4') ||
+                lower.endsWith('.mov') ||
+                lower.endsWith('.avi') ||
+                lower.endsWith('.mkv');
+          });
+        })
+        .map((doc) {
+          // ✅ Return the full post data (including pid, uid, role, sport, etc.)
+          final postData = doc.data();
+          postData['id'] = doc.id; // include Firestore doc ID if you need it
+          return postData;
+        })
+        .toList();
+
+    return videoPosts;
   }
 }
