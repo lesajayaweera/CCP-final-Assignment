@@ -130,7 +130,7 @@ class _LinkedInDrawerState extends State<LinkedInDrawer>
                         subtitle: 'App preferences',
                         onTap: () => _handleNavigation(() {
                           // Navigate to settings
-                          Navigator.push(context, MaterialPageRoute(builder:  (context) => SettingsScreen()));
+                          Navigator.push(context, MaterialPageRoute(builder:  (context) => SettingsScreen(role: widget.role,)));
                         }),
                       ),
                       const SizedBox(height: 32),

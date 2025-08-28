@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/pages/EditProfile.dart';
 import 'package:sport_ignite/pages/Login.dart';
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  final String role;
+  const SettingsScreen({super.key, required this.role});
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +81,14 @@ class SettingsScreen extends StatelessWidget {
                     _buildSettingsItem(
                       icon: Icons.person_outline,
                       title: 'Account preferences',
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>  EditProfilePage(uid: FirebaseAuth.instance.currentUser!.uid, role:role),
+                          ),
+                        );
+                      },
                     ),
                     _buildDivider(),
                     _buildSettingsItem(

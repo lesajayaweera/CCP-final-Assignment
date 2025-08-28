@@ -1975,7 +1975,7 @@ class _ProfilePageState extends State<ProfilePage> with TickerProviderStateMixin
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => SettingsScreen(),
+                          builder: (context) => SettingsScreen(role: widget.role),
                         ),
                       );
                     },
