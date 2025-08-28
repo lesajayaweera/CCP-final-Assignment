@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:sport_ignite/config/essentials.dart';
+import 'package:sport_ignite/model/User.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String uid;
@@ -15,6 +16,8 @@ class EditProfilePage extends StatefulWidget {
     required this.uid,
     required this.role,
   }) : super(key: key);
+
+
 
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
@@ -73,7 +76,7 @@ class _EditProfilePageState extends State<EditProfilePage> with TickerProviderSt
         _isDataLoading = true;
       });
 
-      final userData = await getUserDetailsByUid(context, widget.uid);
+      final userData = await Users.getUserDetailsByUid(context, widget.uid);
       
       if (userData != null) {
         setState(() {
@@ -92,6 +95,9 @@ class _EditProfilePageState extends State<EditProfilePage> with TickerProviderSt
   }
 
   void _initializeControllers() {
+  print("user role: ${widget.role}");
+  print("uid : ${widget.uid}");
+
     _nameController = TextEditingController(text: _editedData['name'] ?? '');
     _fullNameController = TextEditingController(text: _editedData['fullName'] ?? '');
     _companyController = TextEditingController(text: _editedData['company'] ?? '');
@@ -230,9 +236,9 @@ class _EditProfilePageState extends State<EditProfilePage> with TickerProviderSt
               'email': _editedData['email'],
             });
 
-        final collectionName = widget.role == 'Athlete' ? 'Athlete' : 'sponsor';
+        final collectionName = widget.role == 'Athlete' ? 'Athlete' : 'Sponsor';
         await FirebaseFirestore.instance
-            .collection(collectionName)
+            .collection(collectionName.toLowerCase())
             .doc(widget.uid)
             .update(_editedData);
 
@@ -251,61 +257,7 @@ class _EditProfilePageState extends State<EditProfilePage> with TickerProviderSt
     }
   }
 
-  static Future<Map<String, dynamic>?> getUserDetailsByUid(
-    BuildContext context,
-    String uid,
-  ) async {
-    try {
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-
-      if (!userDoc.exists) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User not found in users collection'), backgroundColor: Colors.red),
-        );
-        return null;
-      }
-
-      final userData = userDoc.data() as Map<String, dynamic>;
-      final role = userData['role']?.toString().toLowerCase();
-
-      if (role == null || (role != 'athlete' && role != 'sponsor')) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Invalid or missing role for user'), backgroundColor: Colors.red),
-        );
-        return null;
-      }
-
-      String collectionName = role == 'athlete' ? 'Athlete' : 'sponsor';
-
-      DocumentSnapshot roleDoc = await FirebaseFirestore.instance
-          .collection(collectionName)
-          .doc(uid)
-          .get();
-
-      if (roleDoc.exists) {
-        final roleData = roleDoc.data() as Map<String, dynamic>;
-
-        return {
-          'uid': uid,
-          ...userData,
-          ...roleData,
-        };
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$role details not found'), backgroundColor: Colors.red),
-        );
-        return null;
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error fetching user details: $e'), backgroundColor: Colors.red),
-      );
-      return null;
-    }
-  }
+  
 
   @override
   Widget build(BuildContext context) {

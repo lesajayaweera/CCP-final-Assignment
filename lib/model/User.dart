@@ -216,6 +216,7 @@ class Users {
 
       final userData = userDoc.data() as Map<String, dynamic>;
       final role = userData['role']?.toString().toLowerCase();
+      print("Fetched role: $role");
 
       if (role == null || (role != 'athlete' && role != 'sponsor')) {
         showSnackBar(context, 'Invalid or missing role for user', Colors.red);
