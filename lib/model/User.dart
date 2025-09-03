@@ -5,13 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:sport_ignite/Services/PushNotifications.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sport_ignite/pages/Login.dart';
 
 class Users {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // login method
-  Future<String?> login(String email, String password) async {
+  Future<String?> login(
+    String email,
+    String password,
+    BuildContext context,
+  ) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -22,9 +27,22 @@ class Users {
       if (user == null) return null;
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      // 🔑 Generate a new session ID
+      String sessionId = DateTime.now().millisecondsSinceEpoch.toString();
+      await prefs.setString('sessionId', sessionId);
       await prefs.setString('uid', user.uid);
 
+      // Save session ID in Firestore
+      await _firestore.collection('users').doc(user.uid).update({
+        "activeSession": sessionId,
+        "lastLogin": FieldValue.serverTimestamp(),
+      });
+
       await PushNotificationService.initialize();
+
+      // Start listening for session changes
+      _listenForSessionChanges(user.uid, sessionId, context);
 
       DocumentSnapshot userDoc = await _firestore
           .collection('users')
@@ -45,6 +63,36 @@ class Users {
     } catch (e) {
       return "error:$e";
     }
+  }
+
+  void _listenForSessionChanges(
+    String uid,
+    String localSessionId,
+    BuildContext context,
+  ) {
+    _firestore.collection('users').doc(uid).snapshots().listen((doc) async {
+      if (!doc.exists) return;
+
+      final data = doc.data() as Map<String, dynamic>;
+      String? currentSession = data['activeSession'];
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? storedSession = prefs.getString('sessionId');
+
+      // If Firestore session != local session, logout
+      if (currentSession != null && currentSession != storedSession) {
+        await _auth.signOut();
+        await prefs.clear();
+
+        if (context.mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const Login()),
+            (route) => false,
+          );
+        }
+      }
+    });
   }
 
   //  get the user profile image
@@ -248,5 +296,31 @@ class Users {
       showSnackBar(context, 'Error fetching user details: $e', Colors.red);
       return null;
     }
+  }
+
+  static Future<void> logout(BuildContext context) async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update(
+        {
+          "activeSession": null, // clear the session
+        },
+      );
+    }
+
+    // 🔐 Sign out the user
+    await FirebaseAuth.instance.signOut();
+
+    // Clear local storage if you’re using SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    // 🚪 Navigate to Login page
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+      (Route<dynamic> route) => false,
+    );
   }
 }

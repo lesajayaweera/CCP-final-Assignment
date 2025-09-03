@@ -276,36 +276,29 @@ class PostService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getVideoPosts() async {
+  static Future<List<Map<String, dynamic>>> getVideoPosts() async {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('posts')
         .orderBy('timestamp', descending: true)
         .get();
-
-    // Keep only documents where media contains a video file
-    final videoPosts = querySnapshot.docs
-        .where((doc) {
-          final data = doc.data();
-          if (data['media'] == null || (data['media'] as List).isEmpty)
-            return false;
-
-          // ✅ Check if media list has a video file
-          return (data['media'] as List).any((url) {
-            final lower = url.toString().toLowerCase();
-            return lower.endsWith('.mp4') ||
-                lower.endsWith('.mov') ||
-                lower.endsWith('.avi') ||
-                lower.endsWith('.mkv');
-          });
-        })
-        .map((doc) {
-          // ✅ Return the full post data (including pid, uid, role, sport, etc.)
-          final postData = doc.data();
-          postData['id'] = doc.id; // include Firestore doc ID if you need it
-          return postData;
-        })
-        .toList();
-
+    final videoPosts = querySnapshot.docs.where((doc) {
+      final data = doc.data();
+      if (data['media'] == null || (data['media'] as List).isEmpty) {
+        return false;
+      }
+      return (data['media'] as List).any((url) {
+        final lower = url.toString().toLowerCase();
+        return lower.contains('.mp4') ||
+               lower.contains('.mov') ||
+               lower.contains('.avi') ||
+               lower.contains('.mkv');
+      });
+    }).map((doc) {
+      final postData = doc.data();
+      postData['id'] = doc.id;
+      return postData;
+    }).toList();
+    print("Video Posts Found: $videoPosts");
     return videoPosts;
   }
 }

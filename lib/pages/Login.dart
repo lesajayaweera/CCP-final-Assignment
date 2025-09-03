@@ -526,6 +526,7 @@ class _LoginState extends State<Login> with TickerProviderStateMixin {
         String? result = await Users().login(
           _emailController.text.trim(),
           _passwordController.text.trim(),
+          context
         );
 
         if (!mounted) return;

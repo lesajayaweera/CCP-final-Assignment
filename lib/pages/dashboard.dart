@@ -36,14 +36,14 @@ class _DashboardState extends State<Dashboard> {
       SocialFeedScreen(role: widget.role),
       NetworkManagementScreen(role: widget.role),
       SocialFeedScreen(role: widget.role),
-      ShortsPage(),
+      ShortsPage(role: widget.role,),
       SponsorScreen(role: widget.role),
     ];
     final List<Widget> sponsorScreens = [
       SocialFeedScreen(role: widget.role),
       NetworkManagementScreen(role: widget.role),
       SocialFeedScreen(role: widget.role),
-      ShortsPage(),
+      ShortsPage(role: widget.role),
       LeaderboardScreen(),
     ];
 

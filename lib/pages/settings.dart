@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/model/User.dart';
 import 'package:sport_ignite/pages/EditProfile.dart';
 import 'package:sport_ignite/pages/Login.dart';
 
@@ -146,16 +147,7 @@ class SettingsScreen extends StatelessWidget {
                   _buildFooterLink('End User License Agreement', () {}),
                   const SizedBox(height: 24),
                   _buildFooterLink('Sign Out', () async {
-                    await FirebaseAuth.instance
-                        .signOut(); // 🔐 Sign out the user
-
-                    // Optional: Navigate to Login page or close the app
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Login()),
-                      (Route<dynamic> route) => false,
-                    );
-                    // Handle sign out
+                    await Users.logout(context);
                   }, isSignOut: true),
                 ],
               ),

@@ -1,38 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sport_ignite/model/postService.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShortsPage extends StatefulWidget {
-  const ShortsPage({super.key});
+  final String role;
+  const ShortsPage({super.key, required this.role});
 
   @override
   State<ShortsPage> createState() => _ShortsPageState();
 }
 
-class _ShortsPageState extends State<ShortsPage> {
+class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
   PageController _pageController = PageController();
   List<Map<String, dynamic>> _videoPosts = [];
   List<VideoPlayerController?> _controllers = [];
   int _currentIndex = 0;
   bool _isLoading = true;
+  late AnimationController _loadingController;
 
   @override
   void initState() {
     super.initState();
+    _loadingController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
     _loadVideos();
+  }
+
+  @override
+  void dispose() {
+    _loadingController.dispose();
+    for (var controller in _controllers) {
+      controller?.dispose();
+    }
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadVideos() async {
     try {
-      final videos = await getVideoPosts();
+      final videos = await PostService.getVideoPosts();
       setState(() {
         _videoPosts = videos;
         _controllers = List.generate(videos.length, (_) => null);
         _isLoading = false;
       });
       
-      // Only initialize the first video immediately
       if (videos.isNotEmpty) {
         _initializeController(0);
       }
@@ -42,110 +58,76 @@ class _ShortsPageState extends State<ShortsPage> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> getVideoPosts() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('posts')
-        .orderBy('timestamp', descending: true)
-        .get();
-    final videoPosts = querySnapshot.docs.where((doc) {
-      final data = doc.data();
-      if (data['media'] == null || (data['media'] as List).isEmpty) {
-        return false;
-      }
-      return (data['media'] as List).any((url) {
-        final lower = url.toString().toLowerCase();
-        return lower.contains('.mp4') ||
-               lower.contains('.mov') ||
-               lower.contains('.avi') ||
-               lower.contains('.mkv');
-      });
-    }).map((doc) {
-      final postData = doc.data();
-      postData['id'] = doc.id;
-      return postData;
-    }).toList();
-    print("Video Posts Found: $videoPosts");
-    return videoPosts;
-  }
-
+  
   void _initializeController(int index) {
-  if (index >= _videoPosts.length || _controllers[index] != null) return;
+    if (index >= _videoPosts.length || _controllers[index] != null) return;
 
-  final videoUrl = _getVideoUrl(_videoPosts[index]);
-  if (videoUrl != null && videoUrl.isNotEmpty) {
-    final uri = Uri.tryParse(videoUrl);
+    final videoUrl = _getVideoUrl(_videoPosts[index]);
+    if (videoUrl != null && videoUrl.isNotEmpty) {
+      final uri = Uri.tryParse(videoUrl);
 
-    // Validate the URI
-    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
-      print('Skipping invalid video URL at index $index: $videoUrl');
-      return;
+      if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+        print('Skipping invalid video URL at index $index: $videoUrl');
+        return;
+      }
+
+      _controllers[index] = VideoPlayerController.networkUrl(uri)
+        ..setLooping(true)
+        ..initialize().then((_) {
+          if (mounted && index == _currentIndex) {
+            setState(() {});
+            _controllers[index]?.play();
+          }
+        }).catchError((error) {
+          print('Error initializing video $index: $error');
+          _controllers[index]?.dispose();
+          _controllers[index] = null;
+        });
+    } else {
+      print('No valid video URL found at index $index');
     }
-
-    _controllers[index] = VideoPlayerController.networkUrl(uri)
-      ..setLooping(true)
-      ..initialize().then((_) {
-        if (mounted && index == _currentIndex) {
-          setState(() {});
-          _controllers[index]?.play();
-        }
-      }).catchError((error) {
-        print('Error initializing video $index: $error');
-        // Dispose the controller if initialization fails
-        _controllers[index]?.dispose();
-        _controllers[index] = null;
-      });
-  } else {
-    print('No valid video URL found at index $index');
   }
-}
-
 
   String? _getVideoUrl(Map<String, dynamic> post) {
-  final media = post['media'] as List?;
-  if (media == null || media.isEmpty) return null;
+    final media = post['media'] as List?;
+    if (media == null || media.isEmpty) return null;
 
-  for (var url in media) {
-    if (url == null) continue;
+    for (var url in media) {
+      if (url == null) continue;
 
-    final urlString = url.toString().trim();
-    if (urlString.isEmpty) continue;
+      final urlString = url.toString().trim();
+      if (urlString.isEmpty) continue;
 
-    // ✅ Validate before parsing
-    if ((urlString.startsWith('http://') || urlString.startsWith('https://')) &&
-        (urlString.toLowerCase().contains('.mp4') ||
-         urlString.toLowerCase().contains('.mov') ||
-         urlString.toLowerCase().contains('.avi') ||
-         urlString.toLowerCase().contains('.mkv'))) {
-      return urlString;
+      if ((urlString.startsWith('http://') || urlString.startsWith('https://')) &&
+          (urlString.toLowerCase().contains('.mp4') ||
+           urlString.toLowerCase().contains('.mov') ||
+           urlString.toLowerCase().contains('.avi') ||
+           urlString.toLowerCase().contains('.mkv'))) {
+        return urlString;
+      }
     }
+    return null;
   }
-  return null;
-}
-
 
   void _onPageChanged(int index) {
-    // Pause current video
     _controllers[_currentIndex]?.pause();
     
     setState(() {
       _currentIndex = index;
     });
 
-    // Initialize and play new video if not already loaded
     if (_controllers[index] == null) {
       _initializeController(index);
     } else {
       _controllers[index]?.play();
     }
 
-    // Pre-load next video only
     if (index + 1 < _videoPosts.length && _controllers[index + 1] == null) {
       Future.delayed(const Duration(milliseconds: 500), () {
         _initializeController(index + 1);
       });
     }
 
-    // Dispose videos that are too far away (keep only current and next 2)
     for (int i = 0; i < _controllers.length; i++) {
       if (i < index - 1 || i > index + 2) {
         if (_controllers[i] != null) {
@@ -157,27 +139,13 @@ class _ShortsPageState extends State<ShortsPage> {
   }
 
   @override
-  void dispose() {
-    for (var controller in _controllers) {
-      controller?.dispose();
-    }
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? _buildLoadingScreen()
           : _videoPosts.isEmpty
-              ? const Center(
-                  child: Text(
-                    'No videos found',
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                )
+              ? _buildEmptyState()
               : PageView.builder(
                   controller: _pageController,
                   scrollDirection: Axis.vertical,
@@ -191,6 +159,83 @@ class _ShortsPageState extends State<ShortsPage> {
                     );
                   },
                 ),
+    );
+  }
+
+  Widget _buildLoadingScreen() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          RotationTransition(
+            turns: _loadingController,
+            child: Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.purple, Colors.blue, Colors.pink],
+                ),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 30,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'Loading awesome content...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: BorderRadius.circular(50),
+            ),
+            child: const Icon(
+              Icons.video_library_outlined,
+              color: Colors.white70,
+              size: 50,
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Text(
+            'No videos available',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Check back later for new content',
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 14,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -220,9 +265,13 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   String totalTime = "0:00";
   bool isLiked = false;
   bool isBookmarked = false;
+  bool _showControls = true;
 
   late AnimationController _playPauseController;
   late AnimationController _likeController;
+  late AnimationController _pulseController;
+  late AnimationController _fadeController;
+  late AnimationController _scaleController;
 
   @override
   void initState() {
@@ -234,11 +283,48 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     );
 
     _likeController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+
+    _fadeController = AnimationController(
       duration: const Duration(milliseconds: 300),
+      vsync: this,
+      value: 1.0,
+    );
+
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 150),
       vsync: this,
     );
 
     _setupVideoListener();
+    _startAutoHideControls();
+  }
+
+  void _startAutoHideControls() {
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _showControls) {
+        _fadeController.reverse();
+        setState(() => _showControls = false);
+      }
+    });
+  }
+
+  void _showControlsTemporary() {
+    setState(() => _showControls = true);
+    _fadeController.forward();
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _showControls) {
+        _fadeController.reverse();
+        setState(() => _showControls = false);
+      }
+    });
   }
 
   void _setupVideoListener() {
@@ -270,6 +356,9 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   void dispose() {
     _playPauseController.dispose();
     _likeController.dispose();
+    _pulseController.dispose();
+    _fadeController.dispose();
+    _scaleController.dispose();
     super.dispose();
   }
 
@@ -281,6 +370,8 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   void _togglePlayPause() {
     if (widget.controller == null) return;
 
+    _scaleController.forward().then((_) => _scaleController.reverse());
+    
     setState(() {
       isPlaying = !isPlaying;
     });
@@ -293,6 +384,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
       _playPauseController.reverse();
     }
 
+    _showControlsTemporary();
     HapticFeedback.lightImpact();
   }
 
@@ -303,6 +395,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
       isMuted = !isMuted;
     });
     widget.controller!.setVolume(isMuted ? 0 : 1);
+    _showControlsTemporary();
     HapticFeedback.lightImpact();
   }
 
@@ -313,13 +406,32 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     
     if (isLiked) {
       _likeController.forward();
+      _pulseController.repeat(max: 2);
     } else {
       _likeController.reverse();
+      _pulseController.stop();
     }
 
-    HapticFeedback.lightImpact();
+    HapticFeedback.mediumImpact();
+    
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(isLiked ? 'Video liked!' : 'Like removed')),
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isLiked ? Icons.favorite : Icons.favorite_border,
+              color: Colors.red,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(isLiked ? 'Video liked!' : 'Like removed'),
+          ],
+        ),
+        backgroundColor: Colors.grey[900],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(milliseconds: 1500),
+      ),
     );
   }
 
@@ -327,19 +439,20 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.grey[900],
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.3,
-        builder: (context, scrollController) => Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          maxChildSize: 0.95,
+          minChildSize: 0.3,
+          builder: (context, scrollController) => Column(
             children: [
               Container(
+                margin: const EdgeInsets.only(top: 12),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
@@ -347,32 +460,122 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'Comments (${widget.post['comments'] ?? 0})',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    Text(
+                      'Comments',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${widget.post['comments'] ?? 0}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
                   controller: scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   itemCount: 10,
-                  itemBuilder: (context, index) => ListTile(
-                    leading: CircleAvatar(
-                      backgroundColor: Colors.grey[700],
-                      child: Text('${index + 1}'),
-                    ),
-                    title: Text(
-                      'User ${index + 1}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    subtitle: Text(
-                      'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content!',
-                      style: TextStyle(color: Colors.grey[400]),
+                  itemBuilder: (context, index) => Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.purple.withOpacity(0.8),
+                                Colors.blue.withOpacity(0.8),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'User ${index + 1}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content! This is so inspiring',
+                                style: TextStyle(
+                                  color: Colors.grey[300],
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text(
+                                    '2h',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Text(
+                                    'Reply',
+                                    style: TextStyle(
+                                      color: Colors.grey[500],
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          children: [
+                            Icon(Icons.favorite_border, color: Colors.grey[600], size: 18),
+                            Text('${index + 1}', style: TextStyle(color: Colors.grey[600], fontSize: 10)),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -391,13 +594,53 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(isBookmarked ? 'Video bookmarked!' : 'Bookmark removed')),
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+              color: Colors.orange,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(isBookmarked ? 'Video saved!' : 'Bookmark removed'),
+          ],
+        ),
+        backgroundColor: Colors.grey[900],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(milliseconds: 1500),
+      ),
     );
   }
 
   void _shareVideo() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Share options opened!')),
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.share, color: Colors.blue, size: 20),
+            SizedBox(width: 8),
+            Text('Share options opened!'),
+          ],
+        ),
+        backgroundColor: Colors.grey[900],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(milliseconds: 1500),
+      ),
+    );
+  }
+
+  void _navigateToProfile() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Navigate to ${widget.post['username'] ?? 'User'}\'s profile'),
+        backgroundColor: Colors.grey[900],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        duration: const Duration(milliseconds: 1500),
+      ),
     );
   }
 
@@ -405,137 +648,210 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   Widget build(BuildContext context) {
     final isInitialized = widget.controller?.value.isInitialized ?? false;
     
-    return Stack(
-      children: [
-        // Video Player
-        if (isInitialized)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _togglePlayPause,
-              child: FittedBox(
-                fit: BoxFit.cover,
-                child: SizedBox(
-                  width: widget.controller!.value.size.width,
-                  height: widget.controller!.value.size.height,
-                  child: VideoPlayer(widget.controller!),
-                ),
-              ),
-            ),
-          )
-        else
-          const Center(child: CircularProgressIndicator()),
-
-        // Center play icon when paused
-        if (!isPlaying && isInitialized)
-          Center(
-            child: GestureDetector(
-              onTap: _togglePlayPause,
+    return GestureDetector(
+      onTap: _showControlsTemporary,
+      child: Stack(
+        children: [
+          // Video Player
+          if (isInitialized)
+            Positioned.fill(
               child: Container(
-                width: 80,
-                height: 80,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
-                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withOpacity(0.1),
+                    ],
+                  ),
                 ),
-                child: const Icon(
-                  Icons.play_arrow,
+                child: FittedBox(
+                  fit: BoxFit.cover,
+                  child: SizedBox(
+                    width: widget.controller!.value.size.width,
+                    height: widget.controller!.value.size.height,
+                    child: VideoPlayer(widget.controller!),
+                  ),
+                ),
+              ),
+            )
+          else
+            Center(
+              child: Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: const CircularProgressIndicator(
                   color: Colors.white,
-                  size: 40,
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+
+          // Top gradient overlay for better text visibility
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 120,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(0.6),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
           ),
 
-        // Right side actions (TikTok style)
-        Positioned(
-          right: 16,
-          bottom: 120,
-          child: Column(
-            children: [
-              _SideActionButton(
-                icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                label: '${widget.post['likes'] ?? 0}',
-                onTap: _likeVideo,
-                isActive: isLiked,
-              ),
-              const SizedBox(height: 20),
-              _SideActionButton(
-                icon: Icons.chat_bubble_outline,
-                label: '${widget.post['comments'] ?? 0}',
-                onTap: _openComments,
-              ),
-              const SizedBox(height: 20),
-              _SideActionButton(
-                icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                label: 'Save',
-                onTap: _bookmarkVideo,
-                isActive: isBookmarked,
-              ),
-              const SizedBox(height: 20),
-              _SideActionButton(
-                icon: Icons.send,
-                label: 'Share',
-                onTap: _shareVideo,
-              ),
-            ],
-          ),
-        ),
-
-        // Bottom info section
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 80, // Leave space for right side actions
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
-                colors: [
-                  Colors.black.withOpacity(0.8),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // User info
-                Row(
+          // Top User Profile Section
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 100,
+            child: FadeTransition(
+              opacity: _fadeController,
+              child: GestureDetector(
+                onTap: _navigateToProfile,
+                child: Row(
                   children: [
+                    // Profile Picture
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      width: 50,
+                      height: 50,
                       decoration: BoxDecoration(
-                        color: _getRoleColor(widget.post['role']),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        widget.post['role'] ?? 'User',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: _getRoleColor(widget.post['role']),
+                          width: 2.5,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: widget.post['profilePicUrl'] != null && 
+                               widget.post['profilePicUrl'].toString().isNotEmpty
+                            ? Image.network(
+                                widget.post['profilePicUrl'],
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => 
+                                    _buildDefaultAvatar(),
+                              )
+                            : _buildDefaultAvatar(),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 12),
+                    // User Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Username
+                          Text(
+                            widget.post['username'] ?? 'Anonymous User',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          // Role and Sport badges
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: _getRoleGradient(widget.post['role']),
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: _getRoleColor(widget.post['role']).withOpacity(0.3),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  widget.post['role'] ?? 'User',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [Colors.orange, Colors.deepOrange],
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.orange.withOpacity(0.3),
+                                      blurRadius: 6,
+                                      spreadRadius: 1,
+                                    ),
+                                  ],
+                                ),
+                                child: Text(
+                                  widget.post['sport'] ?? 'Sports',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Follow button
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.orange,
-                        borderRadius: BorderRadius.circular(12),
+                        gradient: const LinearGradient(
+                          colors: [Colors.pink, Colors.purple],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.pink.withOpacity(0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        widget.post['sport'] ?? 'Sports',
-                        style: const TextStyle(
+                      child: const Text(
+                        'Follow',
+                        style: TextStyle(
                           color: Colors.white,
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -544,90 +860,278 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+              ),
+            ),
+          ),
 
-                // Description
-                if (widget.post['text'] != null && widget.post['text'].isNotEmpty)
-                  Text(
-                    widget.post['text'],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
+          // Center play/pause with scale animation
+          if (!isPlaying && isInitialized)
+            Center(
+              child: ScaleTransition(
+                scale: Tween<double>(begin: 1.0, end: 0.9).animate(
+                  CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+                ),
+                child: GestureDetector(
+                  onTap: _togglePlayPause,
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.9),
+                          Colors.white.withOpacity(0.7),
+                        ],
+                      ),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
                     ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  )
-                else
-                  Text(
-                    'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content!',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.black,
+                      size: 40,
                     ),
                   ),
+                ),
+              ),
+            ),
 
-                const SizedBox(height: 16),
-
-                // Video controls
-                if (isInitialized)
-                  Row(
-                    children: [
-                      GestureDetector(
-                        onTap: _togglePlayPause,
-                        child: Icon(
-                          isPlaying ? Icons.pause : Icons.play_arrow,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            trackHeight: 2,
-                            thumbShape: const RoundSliderThumbShape(
-                              enabledThumbRadius: 6,
-                            ),
-                            overlayShape: const RoundSliderOverlayShape(
-                              overlayRadius: 12,
-                            ),
-                          ),
-                          child: Slider(
-                            value: currentPosition,
-                            onChanged: (value) {
-                              final duration = widget.controller!.value.duration;
-                              final newPosition = Duration(
-                                milliseconds: (duration.inMilliseconds * value).toInt(),
-                              );
-                              widget.controller!.seekTo(newPosition);
-                            },
-                            activeColor: Colors.white,
-                            inactiveColor: Colors.white.withOpacity(0.3),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        "$currentTime / $totalTime",
-                        style: const TextStyle(color: Colors.white, fontSize: 12),
-                      ),
-                      const SizedBox(width: 16),
-                      GestureDetector(
-                        onTap: _toggleMute,
-                        child: Icon(
-                          isMuted ? Icons.volume_off : Icons.volume_up,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                    ],
-                  ),
+          // Enhanced right side actions
+          Positioned(
+            right: 16,
+            bottom: 120,
+            child: Column(
+              children: [
+                _SideActionButton(
+                  icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                  label: _formatNumber(widget.post['likes'] ?? 0),
+                  onTap: _likeVideo,
+                  isActive: isLiked,
+                  activeColor: Colors.red,
+                  pulseController: isLiked ? _pulseController : null,
+                ),
+                const SizedBox(height: 20),
+                _SideActionButton(
+                  icon: Icons.chat_bubble_outline,
+                  label: _formatNumber(widget.post['comments'] ?? 0),
+                  onTap: _openComments,
+                  activeColor: Colors.white,
+                ),
+                const SizedBox(height: 20),
+                _SideActionButton(
+                  icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                  label: 'Save',
+                  onTap: _bookmarkVideo,
+                  isActive: isBookmarked,
+                  activeColor: Colors.orange,
+                ),
+                const SizedBox(height: 20),
+                _SideActionButton(
+                  icon: Icons.send,
+                  label: 'Share',
+                  onTap: _shareVideo,
+                  activeColor: Colors.blue,
+                ),
               ],
             ),
           ),
-        ),
-      ],
+
+          // Enhanced bottom info section
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 80,
+            child: FadeTransition(
+              opacity: _fadeController,
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.8),
+                      Colors.black.withOpacity(0.4),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Enhanced description
+                    if (widget.post['text'] != null && widget.post['text'].isNotEmpty)
+                      Text(
+                        widget.post['text'],
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          height: 1.4,
+                        ),
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    else
+                      Text(
+                        'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content!',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w400,
+                          height: 1.4,
+                        ),
+                      ),
+
+                    const SizedBox(height: 20),
+
+                    // Enhanced video controls
+                    if (isInitialized)
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: _togglePlayPause,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Icon(
+                                  isPlaying ? Icons.pause : Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              currentTime,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SliderTheme(
+                                data: SliderTheme.of(context).copyWith(
+                                  trackHeight: 3,
+                                  thumbShape: const RoundSliderThumbShape(
+                                    enabledThumbRadius: 8,
+                                  ),
+                                  overlayShape: const RoundSliderOverlayShape(
+                                    overlayRadius: 16,
+                                  ),
+                                  activeTrackColor: Colors.white,
+                                  inactiveTrackColor: Colors.white.withOpacity(0.3),
+                                  thumbColor: Colors.white,
+                                  overlayColor: Colors.white.withOpacity(0.3),
+                                ),
+                                child: Slider(
+                                  value: currentPosition,
+                                  onChanged: (value) {
+                                    final duration = widget.controller!.value.duration;
+                                    final newPosition = Duration(
+                                      milliseconds: (duration.inMilliseconds * value).toInt(),
+                                    );
+                                    widget.controller!.seekTo(newPosition);
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              totalTime,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: _toggleMute,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Icon(
+                                  isMuted ? Icons.volume_off : Icons.volume_up,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildDefaultAvatar() {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: _getRoleGradient(widget.post['role']),
+        ),
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: Text(
+          _getInitials(widget.post['username']),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getInitials(String? name) {
+    if (name == null || name.isEmpty) return '?';
+    List<String> nameParts = name.trim().split(' ');
+    if (nameParts.length == 1) {
+      return nameParts[0].substring(0, 1).toUpperCase();
+    } else {
+      return (nameParts[0].substring(0, 1) + nameParts[1].substring(0, 1)).toUpperCase();
+    }
+  }
+
+  String _formatNumber(int number) {
+    if (number >= 1000000) {
+      return '${(number / 1000000).toStringAsFixed(1)}M';
+    } else if (number >= 1000) {
+      return '${(number / 1000).toStringAsFixed(1)}K';
+    }
+    return number.toString();
   }
 
   Color _getRoleColor(String? role) {
@@ -644,6 +1148,21 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
         return Colors.grey;
     }
   }
+
+  List<Color> _getRoleGradient(String? role) {
+    switch (role?.toLowerCase()) {
+      case 'athlete':
+        return [Colors.blue, Colors.lightBlue];
+      case 'coach':
+        return [Colors.green, Colors.lightGreen];
+      case 'sponsor':
+        return [Colors.purple, Colors.deepPurple];
+      case 'fan':
+        return [Colors.red, Colors.pink];
+      default:
+        return [Colors.grey, Colors.grey[700]!];
+    }
+  }
 }
 
 class _SideActionButton extends StatelessWidget {
@@ -651,12 +1170,16 @@ class _SideActionButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final bool isActive;
+  final Color activeColor;
+  final AnimationController? pulseController;
 
   const _SideActionButton({
     required this.icon,
     required this.label,
     required this.onTap,
     this.isActive = false,
+    this.activeColor = Colors.white,
+    this.pulseController,
   });
 
   @override
@@ -665,27 +1188,64 @@ class _SideActionButton extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              icon,
-              color: isActive ? Colors.red : Colors.white,
-              size: 28,
-            ),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // Pulse effect for likes
+              if (pulseController != null && isActive)
+                AnimatedBuilder(
+                  animation: pulseController!,
+                  builder: (context, child) {
+                    return Container(
+                      width: 56 + (pulseController!.value * 20),
+                      height: 56 + (pulseController!.value * 20),
+                      decoration: BoxDecoration(
+                        color: activeColor.withOpacity(0.3 - (pulseController!.value * 0.3)),
+                        shape: BoxShape.circle,
+                      ),
+                    );
+                  },
+                ),
+              // Main button
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  shape: BoxShape.circle,
+                  border: isActive ? Border.all(color: activeColor.withOpacity(0.5), width: 2) : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  icon,
+                  color: isActive ? activeColor : Colors.white,
+                  size: 28,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(12),
             ),
-            textAlign: TextAlign.center,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),
