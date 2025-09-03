@@ -1,7 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/SearchService.dart';
-
+import 'package:sport_ignite/pages/profile.dart';
+import 'package:sport_ignite/pages/profileView.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -18,12 +21,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Map<String, dynamic>> searchResults = [];
   bool hasSearched = false;
 
-  List<String> filters = [
-    'All',
-    'Athletes',
-    'Sponsors',
-    'Users',
-  ];
+  List<String> filters = ['All', 'Athletes', 'Sponsors', 'Users'];
 
   @override
   void initState() {
@@ -35,42 +33,42 @@ class _SearchScreenState extends State<SearchScreen> {
     {
       'title': 'Qualified Athletes',
       'icon': Icons.run_circle_outlined,
-      'category': 'Athletes'
+      'category': 'Athletes',
     },
     {
       'title': 'Sponsors',
       'icon': Icons.smart_toy_outlined,
-      'category': 'Sponsors'
+      'category': 'Sponsors',
     },
     {
       'title': 'balancing work and personal life',
       'icon': Icons.balance_outlined,
-      'category': 'Cricket'
+      'category': 'Cricket',
     },
     {
       'title': 'remote work',
       'icon': Icons.home_work_outlined,
-      'category': 'Work'
+      'category': 'Work',
     },
     {
       'title': 'when\'s the best time to switch jobs',
       'icon': Icons.swap_horiz_outlined,
-      'category': 'Career'
+      'category': 'Career',
     },
     {
       'title': 'productivity hacks',
       'icon': Icons.trending_up_outlined,
-      'category': 'Tips'
+      'category': 'Tips',
     },
     {
       'title': 'machine learning trends',
       'icon': Icons.psychology_outlined,
-      'category': 'Technology'
+      'category': 'Technology',
     },
     {
       'title': 'work life balance strategies',
       'icon': Icons.self_improvement_outlined,
-      'category': 'Lifestyle'
+      'category': 'Lifestyle',
     },
   ];
 
@@ -87,7 +85,7 @@ class _SearchScreenState extends State<SearchScreen> {
     if (selectedFilter == 'All') {
       return searchResults;
     }
-    
+
     String filterCollection = '';
     switch (selectedFilter) {
       case 'Athletes':
@@ -102,7 +100,7 @@ class _SearchScreenState extends State<SearchScreen> {
       default:
         return searchResults;
     }
-    
+
     return searchResults
         .where((result) => result['collection'] == filterCollection)
         .toList();
@@ -143,10 +141,15 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildUserCard(Map<String, dynamic> user) {
+    print(user);
     String collection = user['collection'] ?? 'user';
     String name = user['name'] ?? user['fullName'] ?? 'Unknown';
     String email = user['email'] ?? '';
     String profileImage = user['profile'] ?? '';
+    String uid = user['id'] ?? '';
+    String role = user['role'] ?? '';
+
+    print(user['id']);
 
     // Collection specific data
     String subtitle = '';
@@ -161,33 +164,50 @@ class _SearchScreenState extends State<SearchScreen> {
         primaryColor = Colors.orange[600]!;
         backgroundColor = Colors.orange[50]!;
         subtitle = user['sport'] ?? 'Athlete';
-        
+
         List<String> infoParts = [];
-        if (user['positions'] != null) infoParts.add(user['positions']);
-        if (user['experience'] != null) infoParts.add('${user['experience']} years exp');
-        if (user['city'] != null) infoParts.add(user['city']);
+        if (user['positions'] != null &&
+            user['positions'].toString().isNotEmpty) {
+          infoParts.add(user['positions'].toString());
+        }
+        if (user['experience'] != null) {
+          infoParts.add('${user['experience']} years exp');
+        }
+        if (user['city'] != null && user['city'].toString().isNotEmpty) {
+          infoParts.add(user['city'].toString());
+        }
         extraInfo = infoParts.join(' • ');
         break;
-        
+
       case 'sponsor':
         icon = Icons.business_center;
         primaryColor = Colors.blue[600]!;
         backgroundColor = Colors.blue[50]!;
         subtitle = user['company'] ?? 'Sponsor';
-        
+
         List<String> infoParts = [];
-        if (user['sportIntrested'] != null) infoParts.add(user['sportIntrested']);
-        if (user['orgStructure'] != null) infoParts.add(user['orgStructure']);
-        if (user['city'] != null) infoParts.add(user['city']);
+        if (user['sportIntrested'] != null &&
+            user['sportIntrested'].toString().isNotEmpty) {
+          infoParts.add(user['sportIntrested'].toString());
+        }
+        if (user['orgStructure'] != null &&
+            user['orgStructure'].toString().isNotEmpty) {
+          infoParts.add(user['orgStructure'].toString());
+        }
+        if (user['city'] != null && user['city'].toString().isNotEmpty) {
+          infoParts.add(user['city'].toString());
+        }
         extraInfo = infoParts.join(' • ');
         break;
-        
+
       default:
         icon = Icons.person;
         primaryColor = Colors.grey[600]!;
         backgroundColor = Colors.grey[50]!;
         subtitle = 'User';
-        if (user['city'] != null) extraInfo = user['city'];
+        if (user['city'] != null && user['city'].toString().isNotEmpty) {
+          extraInfo = user['city'].toString();
+        }
     }
 
     return Container(
@@ -195,18 +215,27 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Card(
         elevation: 2,
         shadowColor: Colors.black26,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           onTap: () {
             // Handle user selection
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Selected: $name'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+
+           String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+            if (uid != currentUserUid) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileView(role: role, uid: uid),
+                ),
+              );
+            }else{
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfilePage(role: role, uid: uid),
+                ),
+              );
+            }
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(
@@ -214,29 +243,15 @@ class _SearchScreenState extends State<SearchScreen> {
             child: Row(
               children: [
                 // Profile Image or Icon
-                Container(
-                  width: 56,
-                  height: 56,
-                  child: profileImage.isNotEmpty
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(28),
-                          child: Image.network(
-                            profileImage,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return _buildDefaultAvatar(icon, primaryColor, backgroundColor);
-                            },
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return _buildDefaultAvatar(icon, primaryColor, backgroundColor);
-                            },
-                          ),
-                        )
-                      : _buildDefaultAvatar(icon, primaryColor, backgroundColor),
+                _buildProfileImage(
+                  profileImage,
+                  icon,
+                  primaryColor,
+                  backgroundColor,
                 ),
-                
+
                 SizedBox(width: 16),
-                
+
                 // User Info
                 Expanded(
                   child: Column(
@@ -253,33 +268,34 @@ class _SearchScreenState extends State<SearchScreen> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      
+
                       SizedBox(height: 4),
-                      
+
                       // Role/Company with badge
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: backgroundColor,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: primaryColor.withOpacity(0.3)),
-                            ),
-                            child: Text(
-                              subtitle,
-                              style: TextStyle(
-                                color: primaryColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: backgroundColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: primaryColor.withOpacity(0.3),
                           ),
-                        ],
+                        ),
+                        child: Text(
+                          subtitle,
+                          style: TextStyle(
+                            color: primaryColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
-                      
+
                       SizedBox(height: 8),
-                      
+
                       // Email
                       if (email.isNotEmpty) ...[
                         Row(
@@ -305,7 +321,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         ),
                         SizedBox(height: 6),
                       ],
-                      
+
                       // Extra info
                       if (extraInfo.isNotEmpty) ...[
                         Row(
@@ -333,7 +349,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     ],
                   ),
                 ),
-                
+
                 // Arrow icon
                 Container(
                   padding: EdgeInsets.all(8),
@@ -351,20 +367,73 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  Widget _buildDefaultAvatar(IconData icon, Color primaryColor, Color backgroundColor) {
+  Widget _buildProfileImage(
+    String profileImage,
+    IconData icon,
+    Color primaryColor,
+    Color backgroundColor,
+  ) {
     return Container(
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: backgroundColor,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: primaryColor.withOpacity(0.2), width: 2),
       ),
-      child: Icon(
-        icon,
-        color: primaryColor,
-        size: 28,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: profileImage.isNotEmpty
+            ? Image.network(
+                profileImage,
+                width: 56,
+                height: 56,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildDefaultAvatar(
+                    icon,
+                    primaryColor,
+                    backgroundColor,
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    width: 56,
+                    height: 56,
+                    color: backgroundColor,
+                    child: Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            primaryColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )
+            : _buildDefaultAvatar(icon, primaryColor, backgroundColor),
       ),
+    );
+  }
+
+  Widget _buildDefaultAvatar(
+    IconData icon,
+    Color primaryColor,
+    Color backgroundColor,
+  ) {
+    return Container(
+      width: 54,
+      height: 54,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(27),
+      ),
+      child: Icon(icon, color: primaryColor, size: 28),
     );
   }
 
@@ -393,7 +462,11 @@ class _SearchScreenState extends State<SearchScreen> {
               prefixIcon: Icon(Icons.search, color: Colors.blue[600], size: 20),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+                      icon: Icon(
+                        Icons.clear,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
                       onPressed: () {
                         _searchController.clear();
                         _performSearch('');
@@ -453,8 +526,12 @@ class _SearchScreenState extends State<SearchScreen> {
                               label: Text(
                                 filter,
                                 style: TextStyle(
-                                  color: isSelected ? Colors.white : Colors.grey[700],
-                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.grey[700],
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.normal,
                                 ),
                               ),
                               selected: isSelected,
@@ -474,12 +551,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   )
                 : SizedBox.shrink(),
           ),
-          
+
           // Content area
           Expanded(
-            child: hasSearched
-                ? _buildSearchResults()
-                : SizedBox.shrink()
+            child: hasSearched ? _buildSearchResults() : SizedBox.shrink(),
           ),
         ],
       ),
@@ -496,10 +571,7 @@ class _SearchScreenState extends State<SearchScreen> {
             SizedBox(height: 16),
             Text(
               'Searching...',
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 16,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 16),
             ),
           ],
         ),
@@ -513,11 +585,7 @@ class _SearchScreenState extends State<SearchScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 64,
-              color: Colors.grey[400],
-            ),
+            Icon(Icons.search_off, size: 64, color: Colors.grey[400]),
             SizedBox(height: 16),
             Text(
               'No results found',
@@ -530,10 +598,7 @@ class _SearchScreenState extends State<SearchScreen> {
             SizedBox(height: 8),
             Text(
               'Try adjusting your search or filters',
-              style: TextStyle(
-                color: Colors.grey[500],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[500], fontSize: 14),
             ),
           ],
         ),
@@ -571,11 +636,7 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search,
-            size: 64,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.search, size: 64, color: Colors.grey[400]),
           SizedBox(height: 16),
           Text(
             'Search for users',
@@ -588,10 +649,7 @@ class _SearchScreenState extends State<SearchScreen> {
           SizedBox(height: 8),
           Text(
             'Type in the search box to find athletes, sponsors, and users',
-            style: TextStyle(
-              color: Colors.grey[500],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[500], fontSize: 14),
             textAlign: TextAlign.center,
           ),
         ],
