@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
-
+import 'package:sport_ignite/model/SearchService.dart';
 
 
 class SearchScreen extends StatefulWidget {
@@ -14,11 +14,15 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   String selectedFilter = 'All';
   bool showFilters = false;
+  bool isLoading = false;
+  List<Map<String, dynamic>> searchResults = [];
+  bool hasSearched = false;
 
-   List<String> filters = [
+  List<String> filters = [
     'All',
     'Athletes',
     'Sponsors',
+    'Users',
   ];
 
   @override
@@ -26,56 +30,140 @@ class _SearchScreenState extends State<SearchScreen> {
     super.initState();
     filters.addAll(sports);
   }
-  final List<Map<String, dynamic>> searchSuggestions = [
-    {
-      'title': 'Qualified Athletes',
-      'icon': Icons.run_circle_outlined,
-      'category': 'Athletes'
-    },
-    {
-      'title': 'Sponsors',
-      'icon': Icons.smart_toy_outlined,
-      'category': 'Sponsors'
-    },
-    {
-      'title': 'balancing work and personal life',
-      'icon': Icons.balance_outlined,
-      'category': 'Cricket'
-    },
-    {
-      'title': 'remote work',
-      'icon': Icons.home_work_outlined,
-      'category': 'Work'
-    },
-    {
-      'title': 'when\'s the best time to switch jobs',
-      'icon': Icons.swap_horiz_outlined,
-      'category': 'Career'
-    },
-    {
-      'title': 'productivity hacks',
-      'icon': Icons.trending_up_outlined,
-      'category': 'Tips'
-    },
-    {
-      'title': 'machine learning trends',
-      'icon': Icons.psychology_outlined,
-      'category': 'Technology'
-    },
-    {
-      'title': 'work life balance strategies',
-      'icon': Icons.self_improvement_outlined,
-      'category': 'Lifestyle'
-    },
-  ];
 
-  List<Map<String, dynamic>> get filteredSuggestions {
+  
+  
+
+  List<Map<String, dynamic>> get filteredSearchResults {
     if (selectedFilter == 'All') {
-      return searchSuggestions;
+      return searchResults;
     }
-    return searchSuggestions
-        .where((suggestion) => suggestion['category'] == selectedFilter)
+    
+    String filterCollection = '';
+    switch (selectedFilter) {
+      case 'Athletes':
+        filterCollection = 'athlete';
+        break;
+      case 'Sponsors':
+        filterCollection = 'sponsor';
+        break;
+      case 'Users':
+        filterCollection = 'user';
+        break;
+      default:
+        return searchResults;
+    }
+    
+    return searchResults
+        .where((result) => result['collection'] == filterCollection)
         .toList();
+  }
+
+  Future<void> _performSearch(String query) async {
+    if (query.trim().isEmpty) {
+      setState(() {
+        searchResults = [];
+        hasSearched = false;
+      });
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      hasSearched = true;
+    });
+
+    try {
+      final results = await SearchService.searchAllUsers(query.trim());
+      setState(() {
+        searchResults = results;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        searchResults = [];
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error searching: $e'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Widget _buildUserCard(Map<String, dynamic> user) {
+    String collection = user['collection'] ?? 'user';
+    IconData icon;
+    Color iconColor;
+    String subtitle = collection.toUpperCase();
+
+    switch (collection) {
+      case 'athlete':
+        icon = Icons.sports;
+        iconColor = Colors.orange;
+        break;
+      case 'sponsor':
+        icon = Icons.business;
+        iconColor = Colors.green;
+        break;
+      default:
+        icon = Icons.person;
+        iconColor = Colors.blue;
+        subtitle = 'USER';
+    }
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      elevation: 1,
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: iconColor.withOpacity(0.1),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        title: Text(
+          user['name'] ?? 'Unknown',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 16,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              subtitle,
+              style: TextStyle(
+                color: iconColor,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (user['email'] != null) ...[
+              SizedBox(height: 2),
+              Text(
+                user['email'],
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ],
+        ),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+        onTap: () {
+          // Handle user selection
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selected: ${user['name']}'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -98,16 +186,32 @@ class _SearchScreenState extends State<SearchScreen> {
           child: TextField(
             controller: _searchController,
             decoration: InputDecoration(
-              hintText: 'Search',
+              hintText: 'Search users, athletes, sponsors...',
               hintStyle: TextStyle(color: Colors.grey[600]),
               prefixIcon: Icon(Icons.search, color: Colors.blue[600], size: 20),
+              suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.clear, color: Colors.grey[600], size: 20),
+                      onPressed: () {
+                        _searchController.clear();
+                        _performSearch('');
+                      },
+                    )
+                  : null,
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
             style: TextStyle(fontSize: 16),
             onChanged: (value) {
               setState(() {});
+              // Debounce search - you might want to implement proper debouncing
+              Future.delayed(Duration(milliseconds: 500), () {
+                if (_searchController.text == value) {
+                  _performSearch(value);
+                }
+              });
             },
+            onSubmitted: _performSearch,
           ),
         ),
         actions: [
@@ -169,127 +273,98 @@ class _SearchScreenState extends State<SearchScreen> {
                 : SizedBox.shrink(),
           ),
           
-          // // Search suggestions header
-          // Container(
-          //   color: Colors.white,
-          //   padding: EdgeInsets.all(16),
-          //   child: Row(
-          //     children: [
-          //       Text(
-          //         'Try searching for',
-          //         style: TextStyle(
-          //           fontSize: 18,
-          //           fontWeight: FontWeight.w600,
-          //           color: Colors.black87,
-          //         ),
-          //       ),
-          //       if (selectedFilter != 'All') ...[
-          //         SizedBox(width: 8),
-          //         Container(
-          //           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          //           decoration: BoxDecoration(
-          //             color: Colors.blue[100],
-          //             borderRadius: BorderRadius.circular(12),
-          //           ),
-          //           child: Text(
-          //             selectedFilter,
-          //             style: TextStyle(
-          //               fontSize: 12,
-          //               color: Colors.blue[700],
-          //               fontWeight: FontWeight.w500,
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ],
-          //   ),
-          // ),
-          
-          // // Search suggestions list
-          // Expanded(
-          //   child: Container(
-          //     color: Colors.white,
-          //     child: ListView.builder(
-          //       padding: EdgeInsets.symmetric(horizontal: 16),
-          //       itemCount: filteredSuggestions.length,
-          //       itemBuilder: (context, index) {
-          //         final suggestion = filteredSuggestions[index];
-          //         return InkWell(
-          //           onTap: () {
-          //             _searchController.text = suggestion['title'];
-          //             // Handle search action here
-          //             ScaffoldMessenger.of(context).showSnackBar(
-          //               SnackBar(
-          //                 content: Text('Searching for: ${suggestion['title']}'),
-          //                 behavior: SnackBarBehavior.floating,
-          //               ),
-          //             );
-          //           },
-          //           child: Container(
-          //             padding: EdgeInsets.symmetric(vertical: 16),
-          //             decoration: BoxDecoration(
-          //               border: Border(
-          //                 bottom: BorderSide(
-          //                   color: Colors.grey[200]!,
-          //                   width: 0.5,
-          //                 ),
-          //               ),
-          //             ),
-          //             child: Row(
-          //               children: [
-          //                 Container(
-          //                   padding: EdgeInsets.all(8),
-          //                   decoration: BoxDecoration(
-          //                     color: Colors.grey[100],
-          //                     borderRadius: BorderRadius.circular(8),
-          //                   ),
-          //                   child: Icon(
-          //                     suggestion['icon'],
-          //                     color: Colors.grey[600],
-          //                     size: 20,
-          //                   ),
-          //                 ),
-          //                 SizedBox(width: 16),
-          //                 Expanded(
-          //                   child: Column(
-          //                     crossAxisAlignment: CrossAxisAlignment.start,
-          //                     children: [
-          //                       Text(
-          //                         suggestion['title'],
-          //                         style: TextStyle(
-          //                           fontSize: 16,
-          //                           color: Colors.black87,
-          //                           fontWeight: FontWeight.w400,
-          //                         ),
-          //                       ),
-          //                       SizedBox(height: 2),
-          //                       Text(
-          //                         suggestion['category'],
-          //                         style: TextStyle(
-          //                           fontSize: 12,
-          //                           color: Colors.grey[500],
-          //                         ),
-          //                       ),
-          //                     ],
-          //                   ),
-          //                 ),
-          //                 Icon(
-          //                   Icons.arrow_outward,
-          //                   color: Colors.grey[400],
-          //                   size: 16,
-          //                 ),
-          //               ],
-          //             ),
-          //           ),
-          //         );
-          //       },
-          //     ),
-          //   ),
-          // ),
+          // Content area
+          Expanded(
+            child: hasSearched
+                ? _buildSearchResults()
+                : SizedBox.shrink(),
+          ),
         ],
       ),
     );
   }
+
+  Widget _buildSearchResults() {
+    if (isLoading) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: Colors.blue[600]),
+            SizedBox(height: 16),
+            Text(
+              'Searching...',
+              style: TextStyle(
+                color: Colors.grey[600],
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final displayResults = filteredSearchResults;
+
+    if (displayResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No results found',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[600],
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Try adjusting your search or filters',
+              style: TextStyle(
+                color: Colors.grey[500],
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            '${displayResults.length} result${displayResults.length == 1 ? '' : 's'} found',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: displayResults.length,
+            itemBuilder: (context, index) {
+              return _buildUserCard(displayResults[index]);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  
 
   @override
   void dispose() {
