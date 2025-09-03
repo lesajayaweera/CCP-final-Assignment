@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:sport_ignite/widget/post/shorts/FullScreenVideoPlayer.dart';
 import 'package:sport_ignite/widget/post/videoplayer.dart';
 import 'package:sport_ignite/widget/post/widget/fullScreenImageView.dart';
+
 // Enhanced MediaGrid Widget with orientation fix
 class MediaGrid extends StatefulWidget {
   final List<Map<String, String>> mediaItems;
@@ -152,6 +154,21 @@ class _MediaGridState extends State<MediaGrid> {
                 .toList(),
             initialIndex: widget.mediaItems
                 .where((item) => item['type'] == 'image')
+                .toList()
+                .indexWhere((item) => item['url'] == mediaItem['url']),
+          ),
+        ),
+      );
+    } else if (mediaItem['type'] == 'video') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FullScreenVideoViewer(
+            mediaItems: widget.mediaItems
+                .where((item) => item['type'] == 'video')
+                .toList(),
+            initialIndex: widget.mediaItems
+                .where((item) => item['type'] == 'video')
                 .toList()
                 .indexWhere((item) => item['url'] == mediaItem['url']),
           ),
