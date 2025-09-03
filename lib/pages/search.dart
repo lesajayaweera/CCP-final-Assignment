@@ -169,123 +169,123 @@ class _SearchScreenState extends State<SearchScreen> {
                 : SizedBox.shrink(),
           ),
           
-          // Search suggestions header
-          Container(
-            color: Colors.white,
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Text(
-                  'Try searching for',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                ),
-                if (selectedFilter != 'All') ...[
-                  SizedBox(width: 8),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      selectedFilter,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          // // Search suggestions header
+          // Container(
+          //   color: Colors.white,
+          //   padding: EdgeInsets.all(16),
+          //   child: Row(
+          //     children: [
+          //       Text(
+          //         'Try searching for',
+          //         style: TextStyle(
+          //           fontSize: 18,
+          //           fontWeight: FontWeight.w600,
+          //           color: Colors.black87,
+          //         ),
+          //       ),
+          //       if (selectedFilter != 'All') ...[
+          //         SizedBox(width: 8),
+          //         Container(
+          //           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          //           decoration: BoxDecoration(
+          //             color: Colors.blue[100],
+          //             borderRadius: BorderRadius.circular(12),
+          //           ),
+          //           child: Text(
+          //             selectedFilter,
+          //             style: TextStyle(
+          //               fontSize: 12,
+          //               color: Colors.blue[700],
+          //               fontWeight: FontWeight.w500,
+          //             ),
+          //           ),
+          //         ),
+          //       ],
+          //     ],
+          //   ),
+          // ),
           
-          // Search suggestions list
-          Expanded(
-            child: Container(
-              color: Colors.white,
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                itemCount: filteredSuggestions.length,
-                itemBuilder: (context, index) {
-                  final suggestion = filteredSuggestions[index];
-                  return InkWell(
-                    onTap: () {
-                      _searchController.text = suggestion['title'];
-                      // Handle search action here
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Searching for: ${suggestion['title']}'),
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.grey[200]!,
-                            width: 0.5,
-                          ),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              suggestion['icon'],
-                              color: Colors.grey[600],
-                              size: 20,
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  suggestion['title'],
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  suggestion['category'],
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(
-                            Icons.arrow_outward,
-                            color: Colors.grey[400],
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
+          // // Search suggestions list
+          // Expanded(
+          //   child: Container(
+          //     color: Colors.white,
+          //     child: ListView.builder(
+          //       padding: EdgeInsets.symmetric(horizontal: 16),
+          //       itemCount: filteredSuggestions.length,
+          //       itemBuilder: (context, index) {
+          //         final suggestion = filteredSuggestions[index];
+          //         return InkWell(
+          //           onTap: () {
+          //             _searchController.text = suggestion['title'];
+          //             // Handle search action here
+          //             ScaffoldMessenger.of(context).showSnackBar(
+          //               SnackBar(
+          //                 content: Text('Searching for: ${suggestion['title']}'),
+          //                 behavior: SnackBarBehavior.floating,
+          //               ),
+          //             );
+          //           },
+          //           child: Container(
+          //             padding: EdgeInsets.symmetric(vertical: 16),
+          //             decoration: BoxDecoration(
+          //               border: Border(
+          //                 bottom: BorderSide(
+          //                   color: Colors.grey[200]!,
+          //                   width: 0.5,
+          //                 ),
+          //               ),
+          //             ),
+          //             child: Row(
+          //               children: [
+          //                 Container(
+          //                   padding: EdgeInsets.all(8),
+          //                   decoration: BoxDecoration(
+          //                     color: Colors.grey[100],
+          //                     borderRadius: BorderRadius.circular(8),
+          //                   ),
+          //                   child: Icon(
+          //                     suggestion['icon'],
+          //                     color: Colors.grey[600],
+          //                     size: 20,
+          //                   ),
+          //                 ),
+          //                 SizedBox(width: 16),
+          //                 Expanded(
+          //                   child: Column(
+          //                     crossAxisAlignment: CrossAxisAlignment.start,
+          //                     children: [
+          //                       Text(
+          //                         suggestion['title'],
+          //                         style: TextStyle(
+          //                           fontSize: 16,
+          //                           color: Colors.black87,
+          //                           fontWeight: FontWeight.w400,
+          //                         ),
+          //                       ),
+          //                       SizedBox(height: 2),
+          //                       Text(
+          //                         suggestion['category'],
+          //                         style: TextStyle(
+          //                           fontSize: 12,
+          //                           color: Colors.grey[500],
+          //                         ),
+          //                       ),
+          //                     ],
+          //                   ),
+          //                 ),
+          //                 Icon(
+          //                   Icons.arrow_outward,
+          //                   color: Colors.grey[400],
+          //                   size: 16,
+          //                 ),
+          //               ],
+          //             ),
+          //           ),
+          //         );
+          //       },
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );
