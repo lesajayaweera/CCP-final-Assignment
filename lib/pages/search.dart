@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/SearchService.dart';
-
+// Import your SearchService
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -22,7 +22,7 @@ class _SearchScreenState extends State<SearchScreen> {
     'All',
     'Athletes',
     'Sponsors',
-    'Users',
+    
   ];
 
   @override
@@ -32,6 +32,7 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   
+
   
 
   List<Map<String, dynamic>> get filteredSearchResults {
@@ -277,7 +278,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: hasSearched
                 ? _buildSearchResults()
-                : SizedBox.shrink(),
+                : SizedBox.shrink()
           ),
         ],
       ),
@@ -364,7 +365,38 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Search for users',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[600],
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Type in the search box to find athletes, sponsors, and users',
+            style: TextStyle(
+              color: Colors.grey[500],
+              fontSize: 14,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void dispose() {
