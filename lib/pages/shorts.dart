@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +8,6 @@ import 'package:sport_ignite/pages/profileView.dart';
 import 'package:sport_ignite/widget/post/comments.dart';
 import 'package:sport_ignite/widget/post/shorts/sideActions.dart';
 import 'package:video_player/video_player.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShortsPage extends StatefulWidget {
   final String role;
@@ -53,7 +53,7 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
         _controllers = List.generate(videos.length, (_) => null);
         _isLoading = false;
       });
-      
+
       if (videos.isNotEmpty) {
         _initializeController(0);
       }
@@ -63,7 +63,6 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
     }
   }
 
-  
   void _initializeController(int index) {
     if (index >= _videoPosts.length || _controllers[index] != null) return;
 
@@ -78,16 +77,18 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
 
       _controllers[index] = VideoPlayerController.networkUrl(uri)
         ..setLooping(true)
-        ..initialize().then((_) {
-          if (mounted && index == _currentIndex) {
-            setState(() {});
-            _controllers[index]?.play();
-          }
-        }).catchError((error) {
-          print('Error initializing video $index: $error');
-          _controllers[index]?.dispose();
-          _controllers[index] = null;
-        });
+        ..initialize()
+            .then((_) {
+              if (mounted && index == _currentIndex) {
+                setState(() {});
+                _controllers[index]?.play();
+              }
+            })
+            .catchError((error) {
+              print('Error initializing video $index: $error');
+              _controllers[index]?.dispose();
+              _controllers[index] = null;
+            });
     } else {
       print('No valid video URL found at index $index');
     }
@@ -103,11 +104,12 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
       final urlString = url.toString().trim();
       if (urlString.isEmpty) continue;
 
-      if ((urlString.startsWith('http://') || urlString.startsWith('https://')) &&
+      if ((urlString.startsWith('http://') ||
+              urlString.startsWith('https://')) &&
           (urlString.toLowerCase().contains('.mp4') ||
-           urlString.toLowerCase().contains('.mov') ||
-           urlString.toLowerCase().contains('.avi') ||
-           urlString.toLowerCase().contains('.mkv'))) {
+              urlString.toLowerCase().contains('.mov') ||
+              urlString.toLowerCase().contains('.avi') ||
+              urlString.toLowerCase().contains('.mkv'))) {
         return urlString;
       }
     }
@@ -116,7 +118,7 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
 
   void _onPageChanged(int index) {
     _controllers[_currentIndex]?.pause();
-    
+
     setState(() {
       _currentIndex = index;
     });
@@ -150,20 +152,20 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
       body: _isLoading
           ? _buildLoadingScreen()
           : _videoPosts.isEmpty
-              ? _buildEmptyState()
-              : PageView.builder(
-                  controller: _pageController,
-                  scrollDirection: Axis.vertical,
-                  onPageChanged: _onPageChanged,
-                  itemCount: _videoPosts.length,
-                  itemBuilder: (context, index) {
-                    return ShortsPlayerWidget(
-                      post: _videoPosts[index],
-                      controller: _controllers[index],
-                      isActive: index == _currentIndex,
-                    );
-                  },
-                ),
+          ? _buildEmptyState()
+          : PageView.builder(
+              controller: _pageController,
+              scrollDirection: Axis.vertical,
+              onPageChanged: _onPageChanged,
+              itemCount: _videoPosts.length,
+              itemBuilder: (context, index) {
+                return ShortsPlayerWidget(
+                  post: _videoPosts[index],
+                  controller: _controllers[index],
+                  isActive: index == _currentIndex,
+                );
+              },
+            ),
     );
   }
 
@@ -234,10 +236,7 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
           const SizedBox(height: 8),
           Text(
             'Check back later for new content',
-            style: TextStyle(
-              color: Colors.grey[400],
-              fontSize: 14,
-            ),
+            style: TextStyle(color: Colors.grey[400], fontSize: 14),
           ),
         ],
       ),
@@ -261,6 +260,801 @@ class ShortsPlayerWidget extends StatefulWidget {
   State<ShortsPlayerWidget> createState() => _ShortsPlayerWidgetState();
 }
 
+// class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
+//     with TickerProviderStateMixin {
+//   bool isPlaying = false;
+//   bool isMuted = false;
+//   double currentPosition = 0.0;
+//   String currentTime = "0:00";
+//   String totalTime = "0:00";
+//   bool isLiked = false;
+//   bool isBookmarked = false;
+//   bool _showControls = true;
+
+//   late AnimationController _playPauseController;
+//   late AnimationController _likeController;
+//   late AnimationController _pulseController;
+//   late AnimationController _fadeController;
+//   late AnimationController _scaleController;
+
+//   @override
+//   void initState() {
+//     super.initState();
+
+//     _playPauseController = AnimationController(
+//       duration: const Duration(milliseconds: 300),
+//       vsync: this,
+//     );
+
+//     _likeController = AnimationController(
+//       duration: const Duration(milliseconds: 600),
+//       vsync: this,
+//     );
+
+//     _pulseController = AnimationController(
+//       duration: const Duration(milliseconds: 1000),
+//       vsync: this,
+//     );
+
+//     _fadeController = AnimationController(
+//       duration: const Duration(milliseconds: 300),
+//       vsync: this,
+//       value: 1.0,
+//     );
+
+//     _scaleController = AnimationController(
+//       duration: const Duration(milliseconds: 150),
+//       vsync: this,
+//     );
+
+//     _setupVideoListener();
+//     _startAutoHideControls();
+//   }
+
+//   void _startAutoHideControls() {
+//     Future.delayed(const Duration(seconds: 3), () {
+//       if (mounted && _showControls) {
+//         _fadeController.reverse();
+//         setState(() => _showControls = false);
+//       }
+//     });
+//   }
+
+//   void _showControlsTemporary() {
+//     setState(() => _showControls = true);
+//     _fadeController.forward();
+//     Future.delayed(const Duration(seconds: 3), () {
+//       if (mounted && _showControls) {
+//         _fadeController.reverse();
+//         setState(() => _showControls = false);
+//       }
+//     });
+//   }
+
+//   void _setupVideoListener() {
+//     widget.controller?.addListener(() {
+//       if (widget.controller!.value.isInitialized && mounted) {
+//         final pos = widget.controller!.value.position;
+//         final dur = widget.controller!.value.duration;
+//         setState(() {
+//           currentPosition = dur.inMilliseconds > 0
+//               ? pos.inMilliseconds / dur.inMilliseconds
+//               : 0.0;
+//           currentTime = _formatDuration(pos);
+//           totalTime = _formatDuration(dur);
+//           isPlaying = widget.controller!.value.isPlaying;
+//         });
+//       }
+//     });
+//   }
+
+//   @override
+//   void didUpdateWidget(ShortsPlayerWidget oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     if (widget.controller != oldWidget.controller) {
+//       _setupVideoListener();
+//     }
+//   }
+
+//   @override
+//   void dispose() {
+//     _playPauseController.dispose();
+//     _likeController.dispose();
+//     _pulseController.dispose();
+//     _fadeController.dispose();
+//     _scaleController.dispose();
+//     super.dispose();
+//   }
+
+//   String _formatDuration(Duration duration) {
+//     String twoDigits(int n) => n.toString().padLeft(2, '0');
+//     return "${twoDigits(duration.inMinutes)}:${twoDigits(duration.inSeconds % 60)}";
+//   }
+
+//   void _togglePlayPause() {
+//     if (widget.controller == null) return;
+
+//     _scaleController.forward().then((_) => _scaleController.reverse());
+
+//     setState(() {
+//       isPlaying = !isPlaying;
+//     });
+
+//     if (isPlaying) {
+//       widget.controller!.play();
+//       _playPauseController.forward();
+//     } else {
+//       widget.controller!.pause();
+//       _playPauseController.reverse();
+//     }
+
+//     _showControlsTemporary();
+//     HapticFeedback.lightImpact();
+//   }
+
+//   void _toggleMute() {
+//     if (widget.controller == null) return;
+
+//     setState(() {
+//       isMuted = !isMuted;
+//     });
+//     widget.controller!.setVolume(isMuted ? 0 : 1);
+//     _showControlsTemporary();
+//     HapticFeedback.lightImpact();
+//   }
+
+//   void _likeVideo() {
+//     setState(() {
+//       isLiked = !isLiked;
+//     });
+
+//     if (isLiked) {
+//       _likeController.forward();
+//       _pulseController.repeat(max: 2);
+//     } else {
+//       _likeController.reverse();
+//       _pulseController.stop();
+//     }
+
+//     HapticFeedback.mediumImpact();
+
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Row(
+//           children: [
+//             Icon(
+//               isLiked ? Icons.favorite : Icons.favorite_border,
+//               color: Colors.red,
+//               size: 20,
+//             ),
+//             const SizedBox(width: 8),
+//             Text(isLiked ? 'Video liked!' : 'Like removed'),
+//           ],
+//         ),
+//         backgroundColor: Colors.grey[900],
+//         behavior: SnackBarBehavior.floating,
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//         duration: const Duration(milliseconds: 1500),
+//       ),
+//     );
+//   }
+
+//   void _openComments() {
+//     showCommentBottomSheet(context, postId: widget.post['pid']);
+//     print(widget.post['pid']);
+//   }
+
+//   // void _bookmarkVideo() {
+//   //   setState(() {
+//   //     isBookmarked = !isBookmarked;
+//   //   });
+
+//   //   HapticFeedback.lightImpact();
+//   //   ScaffoldMessenger.of(context).showSnackBar(
+//   //     SnackBar(
+//   //       content: Row(
+//   //         children: [
+//   //           Icon(
+//   //             isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+//   //             color: Colors.orange,
+//   //             size: 20,
+//   //           ),
+//   //           const SizedBox(width: 8),
+//   //           Text(isBookmarked ? 'Video saved!' : 'Bookmark removed'),
+//   //         ],
+//   //       ),
+//   //       backgroundColor: Colors.grey[900],
+//   //       behavior: SnackBarBehavior.floating,
+//   //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//   //       duration: const Duration(milliseconds: 1500),
+//   //     ),
+//   //   );
+//   // }
+
+//   void _shareVideo() {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: const Row(
+//           children: [
+//             Icon(Icons.share, color: Colors.blue, size: 20),
+//             SizedBox(width: 8),
+//             Text('Share options opened!'),
+//           ],
+//         ),
+//         backgroundColor: Colors.grey[900],
+//         behavior: SnackBarBehavior.floating,
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+//         duration: const Duration(milliseconds: 1500),
+//       ),
+//     );
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final isInitialized = widget.controller?.value.isInitialized ?? false;
+
+//     return GestureDetector(
+//       onTap: _showControlsTemporary,
+//       child: Stack(
+//         children: [
+//           // Video Player
+//           if (isInitialized)
+//             Positioned.fill(
+//               child: Container(
+//                 decoration: BoxDecoration(
+//                   gradient: LinearGradient(
+//                     begin: Alignment.topCenter,
+//                     end: Alignment.bottomCenter,
+//                     colors: [Colors.transparent, Colors.black.withOpacity(0.1)],
+//                   ),
+//                 ),
+//                 child: FittedBox(
+//                   fit: BoxFit.cover,
+//                   child: SizedBox(
+//                     width: widget.controller!.value.size.width,
+//                     height: widget.controller!.value.size.height,
+//                     child: VideoPlayer(widget.controller!),
+//                   ),
+//                 ),
+//               ),
+//             )
+//           else
+//             Center(
+//               child: Container(
+//                 width: 60,
+//                 height: 60,
+//                 decoration: BoxDecoration(
+//                   color: Colors.white.withOpacity(0.1),
+//                   borderRadius: BorderRadius.circular(30),
+//                 ),
+//                 child: const CircularProgressIndicator(
+//                   color: Colors.white,
+//                   strokeWidth: 2,
+//                 ),
+//               ),
+//             ),
+
+//           // Top gradient overlay for better text visibility
+//           Positioned(
+//             top: 0,
+//             left: 0,
+//             right: 0,
+//             height: 120,
+//             child: Container(
+//               decoration: BoxDecoration(
+//                 gradient: LinearGradient(
+//                   begin: Alignment.topCenter,
+//                   end: Alignment.bottomCenter,
+//                   colors: [Colors.black.withOpacity(0.6), Colors.transparent],
+//                 ),
+//               ),
+//             ),
+//           ),
+
+//           // Top User Profile Section
+//           Positioned(
+//             top: MediaQuery.of(context).padding.top + 16,
+//             left: 16,
+//             right: 100,
+//             child: FadeTransition(
+//               opacity: _fadeController,
+//               child: Row(
+//                 children: [
+//                   // Profile Picture
+//                   GestureDetector(
+//                     onTap: () {
+//                       String currentUid =
+//                           FirebaseAuth.instance.currentUser!.uid;
+//                       if (currentUid != null) {
+//                         if (currentUid == widget.post['user']['uid']) {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                               builder: (context) => ProfilePage(
+//                                 role: widget.post['user']['role'],
+//                                 uid: widget.post['user']['uid'],
+//                               ),
+//                             ),
+//                           );
+//                         } else {
+//                           Navigator.push(
+//                             context,
+//                             MaterialPageRoute(
+//                               builder: (context) => ProfileView(
+//                                 role: widget.post['user']['role'],
+//                                 uid: widget.post['user']['uid'],
+//                               ),
+//                             ),
+//                           );
+//                         }
+//                       }
+//                     },
+//                     child: Container(
+//                       width: 50,
+//                       height: 50,
+//                       decoration: BoxDecoration(
+//                         shape: BoxShape.circle,
+//                         border: Border.all(
+//                           color: _getRoleColor(widget.post['role']),
+//                           width: 2.5,
+//                         ),
+//                         boxShadow: [
+//                           BoxShadow(
+//                             color: Colors.black.withOpacity(0.3),
+//                             blurRadius: 10,
+//                             spreadRadius: 2,
+//                           ),
+//                         ],
+//                       ),
+//                       child: ClipOval(
+//                         child:
+//                             widget.post['user']['profile'] != null &&
+//                                 widget.post['profile'].toString().isNotEmpty
+//                             ? Image.network(
+//                                 widget.post['user']['profile'],
+//                                 fit: BoxFit.cover,
+//                                 errorBuilder: (context, error, stackTrace) =>
+//                                     _buildDefaultAvatar(),
+//                               )
+//                             : _buildDefaultAvatar(),
+//                       ),
+//                     ),
+//                   ),
+//                   const SizedBox(width: 12),
+//                   // User Info
+//                   Expanded(
+//                     child: Column(
+//                       crossAxisAlignment: CrossAxisAlignment.start,
+//                       children: [
+//                         // Username
+//                         Text(
+//                           widget.post['user']['name'] ?? 'Anonymous User',
+//                           style: const TextStyle(
+//                             color: Colors.white,
+//                             fontSize: 16,
+//                             fontWeight: FontWeight.bold,
+//                           ),
+//                           overflow: TextOverflow.ellipsis,
+//                         ),
+//                         const SizedBox(height: 4),
+//                         // Role and Sport badges
+//                         Row(
+//                           children: [
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(
+//                                 horizontal: 8,
+//                                 vertical: 3,
+//                               ),
+//                               decoration: BoxDecoration(
+//                                 gradient: LinearGradient(
+//                                   colors: _getRoleGradient(widget.post['role']),
+//                                 ),
+//                                 borderRadius: BorderRadius.circular(12),
+//                                 boxShadow: [
+//                                   BoxShadow(
+//                                     color: _getRoleColor(
+//                                       widget.post['role'],
+//                                     ).withOpacity(0.3),
+//                                     blurRadius: 6,
+//                                     spreadRadius: 1,
+//                                   ),
+//                                 ],
+//                               ),
+//                               child: Text(
+//                                 widget.post['role'] ?? 'User',
+//                                 style: const TextStyle(
+//                                   color: Colors.white,
+//                                   fontSize: 10,
+//                                   fontWeight: FontWeight.bold,
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 6),
+//                             Container(
+//                               padding: const EdgeInsets.symmetric(
+//                                 horizontal: 8,
+//                                 vertical: 3,
+//                               ),
+//                               decoration: BoxDecoration(
+//                                 gradient: const LinearGradient(
+//                                   colors: [Colors.orange, Colors.deepOrange],
+//                                 ),
+//                                 borderRadius: BorderRadius.circular(12),
+//                                 boxShadow: [
+//                                   BoxShadow(
+//                                     color: Colors.orange.withOpacity(0.3),
+//                                     blurRadius: 6,
+//                                     spreadRadius: 1,
+//                                   ),
+//                                 ],
+//                               ),
+//                               child: Text(
+//                                 widget.post['sport'] ?? 'Sports',
+//                                 style: const TextStyle(
+//                                   color: Colors.white,
+//                                   fontSize: 10,
+//                                   fontWeight: FontWeight.bold,
+//                                 ),
+//                               ),
+//                             ),
+//                           ],
+//                         ),
+//                       ],
+//                     ),
+//                   ),
+//                   // Follow button
+//                   Material(
+//                     color: Colors.transparent, // Keep background transparent
+//                     borderRadius: BorderRadius.circular(20),
+//                     child: InkWell(
+//                       borderRadius: BorderRadius.circular(20),
+//                       onTap: () {
+//                         print("Follow button clicked!");
+//                       },
+//                       child: Container(
+//                         padding: const EdgeInsets.symmetric(
+//                           horizontal: 16,
+//                           vertical: 8,
+//                         ),
+//                         decoration: BoxDecoration(
+//                           gradient: const LinearGradient(
+//                             colors: [Colors.pink, Colors.purple],
+//                           ),
+//                           borderRadius: BorderRadius.circular(20),
+//                           boxShadow: [
+//                             BoxShadow(
+//                               color: Colors.pink.withOpacity(0.3),
+//                               blurRadius: 8,
+//                               spreadRadius: 1,
+//                             ),
+//                           ],
+//                         ),
+//                         child: const Text(
+//                           'Follow',
+//                           style: TextStyle(
+//                             color: Colors.white,
+//                             fontSize: 12,
+//                             fontWeight: FontWeight.bold,
+//                           ),
+//                         ),
+//                       ),
+//                     ),
+//                   ),
+//                 ],
+//               ),
+//             ),
+//           ),
+
+//           // Center play/pause with scale animation
+//           if (!isPlaying && isInitialized)
+//             Center(
+//               child: ScaleTransition(
+//                 scale: Tween<double>(begin: 1.0, end: 0.9).animate(
+//                   CurvedAnimation(
+//                     parent: _scaleController,
+//                     curve: Curves.easeInOut,
+//                   ),
+//                 ),
+//                 child: GestureDetector(
+//                   onTap: _togglePlayPause,
+//                   child: Container(
+//                     width: 80,
+//                     height: 80,
+//                     decoration: BoxDecoration(
+//                       gradient: LinearGradient(
+//                         colors: [
+//                           Colors.white.withOpacity(0.9),
+//                           Colors.white.withOpacity(0.7),
+//                         ],
+//                       ),
+//                       shape: BoxShape.circle,
+//                       boxShadow: [
+//                         BoxShadow(
+//                           color: Colors.black.withOpacity(0.3),
+//                           blurRadius: 20,
+//                           spreadRadius: 5,
+//                         ),
+//                       ],
+//                     ),
+//                     child: const Icon(
+//                       Icons.play_arrow,
+//                       color: Colors.black,
+//                       size: 40,
+//                     ),
+//                   ),
+//                 ),
+//               ),
+//             ),
+
+//           // Enhanced right side actions
+//           Positioned(
+//             right: 16,
+//             bottom: 120,
+//             child: Column(
+//               children: [
+//                 SideActionButton(
+//                   icon: isLiked ? Icons.favorite : Icons.favorite_border,
+//                   label: _formatNumber(widget.post['likes'] ?? 0),
+//                   onTap: _likeVideo,
+//                   isActive: isLiked,
+//                   activeColor: Colors.red,
+//                   pulseController: isLiked ? _pulseController : null,
+//                 ),
+//                 const SizedBox(height: 20),
+//                 SideActionButton(
+//                   icon: Icons.chat_bubble_outline,
+//                   label: _formatNumber(widget.post['comments'] ?? 0),
+//                   onTap: _openComments,
+//                   activeColor: Colors.white,
+//                 ),
+//                 const SizedBox(height: 20),
+//                 // SideActionButton(
+//                 //   icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+//                 //   label: 'Save',
+//                 //   onTap: _bookmarkVideo,
+//                 //   isActive: isBookmarked,
+//                 //   activeColor: Colors.orange,
+//                 // ),
+//                 // const SizedBox(height: 20),
+//                 // SideActionButton(
+//                 //   icon: Icons.send,
+//                 //   label: 'Share',
+//                 //   onTap: _shareVideo,
+//                 //   activeColor: Colors.blue,
+//                 // ),
+//               ],
+//             ),
+//           ),
+
+//           // Enhanced bottom info section
+//           Positioned(
+//             bottom: 0,
+//             left: 0,
+//             right: 80,
+//             child: FadeTransition(
+//               opacity: _fadeController,
+//               child: Container(
+//                 padding: const EdgeInsets.all(20),
+//                 decoration: BoxDecoration(
+//                   gradient: LinearGradient(
+//                     begin: Alignment.bottomCenter,
+//                     end: Alignment.topCenter,
+//                     colors: [
+//                       Colors.black.withOpacity(0.8),
+//                       Colors.black.withOpacity(0.4),
+//                       Colors.transparent,
+//                     ],
+//                   ),
+//                 ),
+//                 child: Column(
+//                   mainAxisSize: MainAxisSize.min,
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   children: [
+//                     // Enhanced description
+//                     if (widget.post['text'] != null &&
+//                         widget.post['text'].isNotEmpty)
+//                       Text(
+//                         widget.post['text'],
+//                         style: const TextStyle(
+//                           color: Colors.white,
+//                           fontSize: 15,
+//                           fontWeight: FontWeight.w400,
+//                           height: 1.4,
+//                         ),
+//                         maxLines: 3,
+//                         overflow: TextOverflow.ellipsis,
+//                       )
+//                     else
+//                       Text(
+//                         'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content!',
+//                         style: const TextStyle(
+//                           color: Colors.white,
+//                           fontSize: 15,
+//                           fontWeight: FontWeight.w400,
+//                           height: 1.4,
+//                         ),
+//                       ),
+
+//                     const SizedBox(height: 20),
+
+//                     // Enhanced video controls
+//                     if (isInitialized)
+//                       Container(
+//                         padding: const EdgeInsets.symmetric(vertical: 8),
+//                         decoration: BoxDecoration(
+//                           color: Colors.black.withOpacity(0.3),
+//                           borderRadius: BorderRadius.circular(25),
+//                         ),
+//                         child: Row(
+//                           children: [
+//                             const SizedBox(width: 12),
+//                             GestureDetector(
+//                               onTap: _togglePlayPause,
+//                               child: Container(
+//                                 padding: const EdgeInsets.all(8),
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.white.withOpacity(0.2),
+//                                   borderRadius: BorderRadius.circular(20),
+//                                 ),
+//                                 child: Icon(
+//                                   isPlaying ? Icons.pause : Icons.play_arrow,
+//                                   color: Colors.white,
+//                                   size: 20,
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 12),
+//                             Text(
+//                               currentTime,
+//                               style: const TextStyle(
+//                                 color: Colors.white,
+//                                 fontSize: 12,
+//                                 fontWeight: FontWeight.w500,
+//                               ),
+//                             ),
+//                             const SizedBox(width: 8),
+//                             Expanded(
+//                               child: SliderTheme(
+//                                 data: SliderTheme.of(context).copyWith(
+//                                   trackHeight: 3,
+//                                   thumbShape: const RoundSliderThumbShape(
+//                                     enabledThumbRadius: 8,
+//                                   ),
+//                                   overlayShape: const RoundSliderOverlayShape(
+//                                     overlayRadius: 16,
+//                                   ),
+//                                   activeTrackColor: Colors.white,
+//                                   inactiveTrackColor: Colors.white.withOpacity(
+//                                     0.3,
+//                                   ),
+//                                   thumbColor: Colors.white,
+//                                   overlayColor: Colors.white.withOpacity(0.3),
+//                                 ),
+//                                 child: Slider(
+//                                   value: currentPosition,
+//                                   onChanged: (value) {
+//                                     final duration =
+//                                         widget.controller!.value.duration;
+//                                     final newPosition = Duration(
+//                                       milliseconds:
+//                                           (duration.inMilliseconds * value)
+//                                               .toInt(),
+//                                     );
+//                                     widget.controller!.seekTo(newPosition);
+//                                   },
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 8),
+//                             Text(
+//                               totalTime,
+//                               style: const TextStyle(
+//                                 color: Colors.white70,
+//                                 fontSize: 12,
+//                                 fontWeight: FontWeight.w400,
+//                               ),
+//                             ),
+//                             const SizedBox(width: 12),
+//                             GestureDetector(
+//                               onTap: _toggleMute,
+//                               child: Container(
+//                                 padding: const EdgeInsets.all(8),
+//                                 decoration: BoxDecoration(
+//                                   color: Colors.white.withOpacity(0.2),
+//                                   borderRadius: BorderRadius.circular(20),
+//                                 ),
+//                                 child: Icon(
+//                                   isMuted ? Icons.volume_off : Icons.volume_up,
+//                                   color: Colors.white,
+//                                   size: 20,
+//                                 ),
+//                               ),
+//                             ),
+//                             const SizedBox(width: 12),
+//                           ],
+//                         ),
+//                       ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+
+//   Widget _buildDefaultAvatar() {
+//     return Container(
+//       decoration: BoxDecoration(
+//         gradient: LinearGradient(colors: _getRoleGradient(widget.post['role'])),
+//         shape: BoxShape.circle,
+//       ),
+//       child: Center(
+//         child: Text(
+//           _getInitials(widget.post['username']),
+//           style: const TextStyle(
+//             color: Colors.white,
+//             fontSize: 18,
+//             fontWeight: FontWeight.bold,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+
+//   String _getInitials(String? name) {
+//     if (name == null || name.isEmpty) return '?';
+//     List<String> nameParts = name.trim().split(' ');
+//     if (nameParts.length == 1) {
+//       return nameParts[0].substring(0, 1).toUpperCase();
+//     } else {
+//       return (nameParts[0].substring(0, 1) + nameParts[1].substring(0, 1))
+//           .toUpperCase();
+//     }
+//   }
+
+//   String _formatNumber(int number) {
+//     if (number >= 1000000) {
+//       return '${(number / 1000000).toStringAsFixed(1)}M';
+//     } else if (number >= 1000) {
+//       return '${(number / 1000).toStringAsFixed(1)}K';
+//     }
+//     return number.toString();
+//   }
+
+//   Color _getRoleColor(String? role) {
+//     switch (role?.toLowerCase()) {
+//       case 'athlete':
+//         return Colors.blue;
+//       case 'coach':
+//         return Colors.green;
+//       case 'sponsor':
+//         return Colors.purple;
+//       case 'fan':
+//         return Colors.red;
+//       default:
+//         return Colors.grey;
+//     }
+//   }
+
+//   List<Color> _getRoleGradient(String? role) {
+//     switch (role?.toLowerCase()) {
+//       case 'athlete':
+//         return [Colors.blue, Colors.lightBlue];
+//       case 'coach':
+//         return [Colors.green, Colors.lightGreen];
+//       case 'sponsor':
+//         return [Colors.purple, Colors.deepPurple];
+//       case 'fan':
+//         return [Colors.red, Colors.pink];
+//       default:
+//         return [Colors.grey, Colors.grey[700]!];
+//     }
+//   }
+// }
+
+
 class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     with TickerProviderStateMixin {
   bool isPlaying = false;
@@ -271,6 +1065,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   bool isLiked = false;
   bool isBookmarked = false;
   bool _showControls = true;
+  bool _isCheckingLikeStatus = true; // Add loading state
 
   late AnimationController _playPauseController;
   late AnimationController _likeController;
@@ -310,6 +1105,174 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
 
     _setupVideoListener();
     _startAutoHideControls();
+    _checkInitialLikeStatus(); // Check like status on init
+  }
+
+  // Add this method to check initial like status
+  Future<void> _checkInitialLikeStatus() async {
+    if (widget.post['pid'] != null) {
+      try {
+        final likeStatus = await checkIfUserLikedPost(widget.post['pid']);
+        if (mounted) {
+          setState(() {
+            isLiked = likeStatus;
+            _isCheckingLikeStatus = false;
+          });
+          
+          // If already liked, set the animation state
+          if (isLiked) {
+            _likeController.value = 1.0;
+          }
+        }
+      } catch (e) {
+        print('Error checking initial like status: $e');
+        if (mounted) {
+          setState(() {
+            _isCheckingLikeStatus = false;
+          });
+        }
+      }
+    } else {
+      setState(() {
+        _isCheckingLikeStatus = false;
+      });
+    }
+  }
+
+  // Add the checkIfUserLikedPost method here
+  Future<bool> checkIfUserLikedPost(String postId) async {
+    try {
+      String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUserUid == null) return false;
+
+      final likeDoc = await FirebaseFirestore.instance
+          .collection('posts')
+          .doc(postId)
+          .collection('likes')
+          .doc(currentUserUid)
+          .get();
+
+      return likeDoc.exists;
+    } catch (e) {
+      print('Error checking like status for post $postId: $e');
+      return false;
+    }
+  }
+
+  // Update the _likeVideo method to handle actual liking/unliking
+  void _likeVideo() async {
+    if (_isCheckingLikeStatus || widget.post['pid'] == null) return;
+
+    // Optimistically update UI
+    final wasLiked = isLiked;
+    setState(() {
+      isLiked = !isLiked;
+    });
+
+    if (isLiked) {
+      _likeController.forward();
+      // _pulseController.repeat(max: 2);
+    } else {
+      _likeController.reverse();
+      _pulseController.stop();
+    }
+
+    HapticFeedback.mediumImpact();
+
+    try {
+      // Perform actual like/unlike operation
+      await _performLikeAction(widget.post['pid'], isLiked);
+      
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  isLiked ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.red,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(isLiked ? 'Video liked!' : 'Like removed'),
+              ],
+            ),
+            backgroundColor: Colors.grey[900],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      // Revert UI on error
+      if (mounted) {
+        setState(() {
+          isLiked = wasLiked;
+        });
+        
+        if (wasLiked) {
+          _likeController.forward();
+        } else {
+          _likeController.reverse();
+          _pulseController.stop();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.orange, size: 20),
+                SizedBox(width: 8),
+                Text('Failed to update like. Try again.'),
+              ],
+            ),
+            backgroundColor: Colors.grey[900],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            duration: const Duration(milliseconds: 2000),
+          ),
+        );
+      }
+    }
+  }
+
+  // Add method to perform the actual like/unlike operation
+  Future<void> _performLikeAction(String postId, bool shouldLike) async {
+    String? currentUserUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserUid == null) throw Exception('User not authenticated');
+
+    final likeDocRef = FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(currentUserUid);
+
+    final postRef = FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId);
+
+    if (shouldLike) {
+      // Add like
+      await likeDocRef.set({
+        'uid': currentUserUid,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+      
+      // Increment like count
+      await postRef.update({
+        'likes': FieldValue.increment(1),
+      });
+    } else {
+      // Remove like
+      await likeDocRef.delete();
+      
+      // Decrement like count
+      await postRef.update({
+        'likes': FieldValue.increment(-1),
+      });
+    }
   }
 
   void _startAutoHideControls() {
@@ -338,8 +1301,8 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
         final pos = widget.controller!.value.position;
         final dur = widget.controller!.value.duration;
         setState(() {
-          currentPosition = dur.inMilliseconds > 0 
-              ? pos.inMilliseconds / dur.inMilliseconds 
+          currentPosition = dur.inMilliseconds > 0
+              ? pos.inMilliseconds / dur.inMilliseconds
               : 0.0;
           currentTime = _formatDuration(pos);
           totalTime = _formatDuration(dur);
@@ -354,6 +1317,11 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     super.didUpdateWidget(oldWidget);
     if (widget.controller != oldWidget.controller) {
       _setupVideoListener();
+    }
+    
+    // Check like status if post changed
+    if (widget.post['pid'] != oldWidget.post['pid']) {
+      _checkInitialLikeStatus();
     }
   }
 
@@ -376,7 +1344,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     if (widget.controller == null) return;
 
     _scaleController.forward().then((_) => _scaleController.reverse());
-    
+
     setState(() {
       isPlaying = !isPlaying;
     });
@@ -404,42 +1372,6 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     HapticFeedback.lightImpact();
   }
 
-  void _likeVideo() {
-    setState(() {
-      isLiked = !isLiked;
-    });
-    
-    if (isLiked) {
-      _likeController.forward();
-      _pulseController.repeat(max: 2);
-    } else {
-      _likeController.reverse();
-      _pulseController.stop();
-    }
-
-    HapticFeedback.mediumImpact();
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              isLiked ? Icons.favorite : Icons.favorite_border,
-              color: Colors.red,
-              size: 20,
-            ),
-            const SizedBox(width: 8),
-            Text(isLiked ? 'Video liked!' : 'Like removed'),
-          ],
-        ),
-        backgroundColor: Colors.grey[900],
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        duration: const Duration(milliseconds: 1500),
-      ),
-    );
-  }
-
   void _openComments() {
     showCommentBottomSheet(context, postId: widget.post['pid']);
     print(widget.post['pid']);
@@ -449,7 +1381,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     setState(() {
       isBookmarked = !isBookmarked;
     });
-    
+
     HapticFeedback.lightImpact();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -493,7 +1425,9 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   void _navigateToProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Navigate to ${widget.post['username'] ?? 'User'}\'s profile'),
+        content: Text(
+          'Navigate to ${widget.post['username'] ?? 'User'}\'s profile',
+        ),
         backgroundColor: Colors.grey[900],
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -505,7 +1439,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   @override
   Widget build(BuildContext context) {
     final isInitialized = widget.controller?.value.isInitialized ?? false;
-    
+
     return GestureDetector(
       onTap: _showControlsTemporary,
       child: Stack(
@@ -518,10 +1452,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.1),
-                    ],
+                    colors: [Colors.transparent, Colors.black.withOpacity(0.1)],
                   ),
                 ),
                 child: FittedBox(
@@ -561,10 +1492,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.6),
-                    Colors.transparent,
-                  ],
+                  colors: [Colors.black.withOpacity(0.6), Colors.transparent],
                 ),
               ),
             ),
@@ -577,26 +1505,38 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
             right: 100,
             child: FadeTransition(
               opacity: _fadeController,
-              child: GestureDetector(
-                onTap: (){
-                  String currentUid = FirebaseAuth.instance.currentUser!.uid;
-                  if (currentUid != null) {
-
-                    if(currentUid == widget.post['user']['uid']) {
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => ProfilePage(role: widget.post['user']['role'], uid: widget.post['user']['uid'])
-                      ));
-                    }else{
-                      Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => ProfileView(role: widget.post['user']['role'], uid: widget.post['user']['uid'])
-                      ));
-                    }
-                  }
-                },
-                child: Row(
-                  children: [
-                    // Profile Picture
-                    Container(
+              child: Row(
+                children: [
+                  // Profile Picture
+                  GestureDetector(
+                    onTap: () {
+                      String currentUid =
+                          FirebaseAuth.instance.currentUser!.uid;
+                      if (currentUid != null) {
+                        if (currentUid == widget.post['user']['uid']) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfilePage(
+                                role: widget.post['user']['role'],
+                                uid: widget.post['user']['uid'],
+                              ),
+                            ),
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileView(
+                                role: widget.post['user']['role'],
+                                uid: widget.post['user']['uid'],
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
@@ -614,124 +1554,140 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                         ],
                       ),
                       child: ClipOval(
-                        child: widget.post['user']['profile'] != null && 
-                               widget.post['profile'].toString().isNotEmpty
+                        child:
+                            widget.post['user']['profile'] != null &&
+                                widget.post['profile'].toString().isNotEmpty
                             ? Image.network(
                                 widget.post['user']['profile'],
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => 
+                                errorBuilder: (context, error, stackTrace) =>
                                     _buildDefaultAvatar(),
                               )
                             : _buildDefaultAvatar(),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    // User Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Username
-                          Text(
-                            widget.post['user']['name'] ?? 'Anonymous User',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(width: 12),
+                  // User Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Username
+                        Text(
+                          widget.post['user']['name'] ?? 'Anonymous User',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        // Role and Sport badges
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: _getRoleGradient(widget.post['role']),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _getRoleColor(
+                                      widget.post['role'],
+                                    ).withOpacity(0.3),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                widget.post['role'] ?? 'User',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          // Role and Sport badges
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Colors.orange, Colors.deepOrange],
                                 ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: _getRoleGradient(widget.post['role']),
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.orange.withOpacity(0.3),
+                                    blurRadius: 6,
+                                    spreadRadius: 1,
                                   ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: _getRoleColor(widget.post['role']).withOpacity(0.3),
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  widget.post['role'] ?? 'User',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                widget.post['sport'] ?? 'Sports',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 3,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [Colors.orange, Colors.deepOrange],
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.orange.withOpacity(0.3),
-                                      blurRadius: 6,
-                                      spreadRadius: 1,
-                                    ),
-                                  ],
-                                ),
-                                child: Text(
-                                  widget.post['sport'] ?? 'Sports',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Follow button
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Colors.pink, Colors.purple],
+                            ),
+                          ],
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.pink.withOpacity(0.3),
-                            blurRadius: 8,
-                            spreadRadius: 1,
+                      ],
+                    ),
+                  ),
+                  // Follow button
+                  Material(
+                    color: Colors.transparent, // Keep background transparent
+                    borderRadius: BorderRadius.circular(20),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: () {
+                        print("Follow button clicked!");
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Colors.pink, Colors.purple],
                           ),
-                        ],
-                      ),
-                      child: const Text(
-                        'Follow',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.pink.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Follow',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -741,7 +1697,10 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
             Center(
               child: ScaleTransition(
                 scale: Tween<double>(begin: 1.0, end: 0.9).animate(
-                  CurvedAnimation(parent: _scaleController, curve: Curves.easeInOut),
+                  CurvedAnimation(
+                    parent: _scaleController,
+                    curve: Curves.easeInOut,
+                  ),
                 ),
                 child: GestureDetector(
                   onTap: _togglePlayPause,
@@ -780,14 +1739,34 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
             bottom: 120,
             child: Column(
               children: [
-                SideActionButton(
-                  icon: isLiked ? Icons.favorite : Icons.favorite_border,
-                  label: _formatNumber(widget.post['likes'] ?? 0),
-                  onTap: _likeVideo,
-                  isActive: isLiked,
-                  activeColor: Colors.red,
-                  pulseController: isLiked ? _pulseController : null,
-                ),
+                // Show loading indicator while checking like status
+                _isCheckingLikeStatus 
+                  ? Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.4),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                      ),
+                    )
+                  : SideActionButton(
+                      icon: isLiked ? Icons.favorite : Icons.favorite_border,
+                      label: _formatNumber(widget.post['likes'] ?? 0),
+                      onTap: _likeVideo,
+                      isActive: isLiked,
+                      activeColor: Colors.red,
+                      pulseController: isLiked ? _pulseController : null,
+                    ),
                 const SizedBox(height: 20),
                 SideActionButton(
                   icon: Icons.chat_bubble_outline,
@@ -796,20 +1775,6 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                   activeColor: Colors.white,
                 ),
                 const SizedBox(height: 20),
-                // SideActionButton(
-                //   icon: isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                //   label: 'Save',
-                //   onTap: _bookmarkVideo,
-                //   isActive: isBookmarked,
-                //   activeColor: Colors.orange,
-                // ),
-                // const SizedBox(height: 20),
-                // SideActionButton(
-                //   icon: Icons.send,
-                //   label: 'Share',
-                //   onTap: _shareVideo,
-                //   activeColor: Colors.blue,
-                // ),
               ],
             ),
           ),
@@ -839,7 +1804,8 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Enhanced description
-                    if (widget.post['text'] != null && widget.post['text'].isNotEmpty)
+                    if (widget.post['text'] != null &&
+                        widget.post['text'].isNotEmpty)
                       Text(
                         widget.post['text'],
                         style: const TextStyle(
@@ -911,16 +1877,21 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                                     overlayRadius: 16,
                                   ),
                                   activeTrackColor: Colors.white,
-                                  inactiveTrackColor: Colors.white.withOpacity(0.3),
+                                  inactiveTrackColor: Colors.white.withOpacity(
+                                    0.3,
+                                  ),
                                   thumbColor: Colors.white,
                                   overlayColor: Colors.white.withOpacity(0.3),
                                 ),
                                 child: Slider(
                                   value: currentPosition,
                                   onChanged: (value) {
-                                    final duration = widget.controller!.value.duration;
+                                    final duration =
+                                        widget.controller!.value.duration;
                                     final newPosition = Duration(
-                                      milliseconds: (duration.inMilliseconds * value).toInt(),
+                                      milliseconds:
+                                          (duration.inMilliseconds * value)
+                                              .toInt(),
                                     );
                                     widget.controller!.seekTo(newPosition);
                                   },
@@ -969,9 +1940,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   Widget _buildDefaultAvatar() {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: _getRoleGradient(widget.post['role']),
-        ),
+        gradient: LinearGradient(colors: _getRoleGradient(widget.post['role'])),
         shape: BoxShape.circle,
       ),
       child: Center(
@@ -993,7 +1962,8 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     if (nameParts.length == 1) {
       return nameParts[0].substring(0, 1).toUpperCase();
     } else {
-      return (nameParts[0].substring(0, 1) + nameParts[1].substring(0, 1)).toUpperCase();
+      return (nameParts[0].substring(0, 1) + nameParts[1].substring(0, 1))
+          .toUpperCase();
     }
   }
 
@@ -1036,4 +2006,3 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
     }
   }
 }
-

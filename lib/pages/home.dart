@@ -57,9 +57,9 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
       for (var post in fetchedPosts) {
         final postId = post['pid']; // Use the actual post ID from Firebase
         if (postId != null && currentUserUid != null) {
-          bool isLiked = await _checkIfUserLikedPost(postId);
+          bool isLiked = await PostService().checkIfUserLikedPost(postId);
           likeStatuses[postId] = isLiked;
-          print("Post $postId is liked: $isLiked"); // Debug print
+          ; // Debug print
         }
       }
 
@@ -88,23 +88,7 @@ class _SocialFeedScreenState extends State<SocialFeedScreen>
   }
 
   // Check if current user has liked a specific post
-  Future<bool> _checkIfUserLikedPost(String postId) async {
-    try {
-      if (currentUserUid == null) return false;
-
-      final likeDoc = await FirebaseFirestore.instance
-          .collection('posts')
-          .doc(postId)
-          .collection('likes')
-          .doc(currentUserUid!)
-          .get();
-
-      return likeDoc.exists;
-    } catch (e) {
-      print('Error checking like status for post $postId: $e');
-      return false;
-    }
-  }
+  
 
   Future<Map<String, dynamic>?> _getUserProfile(String uid, String role) async {
     try {
