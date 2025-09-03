@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sport_ignite/config/essentials.dart';
 import 'package:sport_ignite/model/SearchService.dart';
-// Import your SearchService
+
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -22,7 +22,7 @@ class _SearchScreenState extends State<SearchScreen> {
     'All',
     'Athletes',
     'Sponsors',
-    
+    'Users',
   ];
 
   @override
@@ -31,9 +31,57 @@ class _SearchScreenState extends State<SearchScreen> {
     filters.addAll(sports);
   }
 
-  
+  final List<Map<String, dynamic>> searchSuggestions = [
+    {
+      'title': 'Qualified Athletes',
+      'icon': Icons.run_circle_outlined,
+      'category': 'Athletes'
+    },
+    {
+      'title': 'Sponsors',
+      'icon': Icons.smart_toy_outlined,
+      'category': 'Sponsors'
+    },
+    {
+      'title': 'balancing work and personal life',
+      'icon': Icons.balance_outlined,
+      'category': 'Cricket'
+    },
+    {
+      'title': 'remote work',
+      'icon': Icons.home_work_outlined,
+      'category': 'Work'
+    },
+    {
+      'title': 'when\'s the best time to switch jobs',
+      'icon': Icons.swap_horiz_outlined,
+      'category': 'Career'
+    },
+    {
+      'title': 'productivity hacks',
+      'icon': Icons.trending_up_outlined,
+      'category': 'Tips'
+    },
+    {
+      'title': 'machine learning trends',
+      'icon': Icons.psychology_outlined,
+      'category': 'Technology'
+    },
+    {
+      'title': 'work life balance strategies',
+      'icon': Icons.self_improvement_outlined,
+      'category': 'Lifestyle'
+    },
+  ];
 
-  
+  List<Map<String, dynamic>> get filteredSuggestions {
+    if (selectedFilter == 'All') {
+      return searchSuggestions;
+    }
+    return searchSuggestions
+        .where((suggestion) => suggestion['category'] == selectedFilter)
+        .toList();
+  }
 
   List<Map<String, dynamic>> get filteredSearchResults {
     if (selectedFilter == 'All') {
@@ -96,73 +144,226 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Widget _buildUserCard(Map<String, dynamic> user) {
     String collection = user['collection'] ?? 'user';
+    String name = user['name'] ?? user['fullName'] ?? 'Unknown';
+    String email = user['email'] ?? '';
+    String profileImage = user['profile'] ?? '';
+
+    // Collection specific data
+    String subtitle = '';
+    String extraInfo = '';
     IconData icon;
-    Color iconColor;
-    String subtitle = collection.toUpperCase();
+    Color primaryColor;
+    Color backgroundColor;
 
     switch (collection) {
       case 'athlete':
-        icon = Icons.sports;
-        iconColor = Colors.orange;
+        icon = Icons.sports_basketball;
+        primaryColor = Colors.orange[600]!;
+        backgroundColor = Colors.orange[50]!;
+        subtitle = user['sport'] ?? 'Athlete';
+        
+        List<String> infoParts = [];
+        if (user['positions'] != null) infoParts.add(user['positions']);
+        if (user['experience'] != null) infoParts.add('${user['experience']} years exp');
+        if (user['city'] != null) infoParts.add(user['city']);
+        extraInfo = infoParts.join(' • ');
         break;
+        
       case 'sponsor':
-        icon = Icons.business;
-        iconColor = Colors.green;
+        icon = Icons.business_center;
+        primaryColor = Colors.blue[600]!;
+        backgroundColor = Colors.blue[50]!;
+        subtitle = user['company'] ?? 'Sponsor';
+        
+        List<String> infoParts = [];
+        if (user['sportIntrested'] != null) infoParts.add(user['sportIntrested']);
+        if (user['orgStructure'] != null) infoParts.add(user['orgStructure']);
+        if (user['city'] != null) infoParts.add(user['city']);
+        extraInfo = infoParts.join(' • ');
         break;
+        
       default:
         icon = Icons.person;
-        iconColor = Colors.blue;
-        subtitle = 'USER';
+        primaryColor = Colors.grey[600]!;
+        backgroundColor = Colors.grey[50]!;
+        subtitle = 'User';
+        if (user['city'] != null) extraInfo = user['city'];
     }
 
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 1,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: iconColor.withOpacity(0.1),
-          child: Icon(icon, color: iconColor, size: 20),
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      child: Card(
+        elevation: 2,
+        shadowColor: Colors.black26,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
         ),
-        title: Text(
-          user['name'] ?? 'Unknown',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+        child: InkWell(
+          onTap: () {
+            // Handle user selection
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Selected: $name'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Profile Image or Icon
+                Container(
+                  width: 56,
+                  height: 56,
+                  child: profileImage.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(28),
+                          child: Image.network(
+                            profileImage,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return _buildDefaultAvatar(icon, primaryColor, backgroundColor);
+                            },
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return _buildDefaultAvatar(icon, primaryColor, backgroundColor);
+                            },
+                          ),
+                        )
+                      : _buildDefaultAvatar(icon, primaryColor, backgroundColor),
+                ),
+                
+                SizedBox(width: 16),
+                
+                // User Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name
+                      Text(
+                        name,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      
+                      SizedBox(height: 4),
+                      
+                      // Role/Company with badge
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: backgroundColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: primaryColor.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              subtitle,
+                              style: TextStyle(
+                                color: primaryColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      SizedBox(height: 8),
+                      
+                      // Email
+                      if (email.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.email_outlined,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
+                            SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                email,
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                  fontSize: 13,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                      ],
+                      
+                      // Extra info
+                      if (extraInfo.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              size: 14,
+                              color: Colors.grey[600],
+                            ),
+                            SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                extraInfo,
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                
+                // Arrow icon
+                Container(
+                  padding: EdgeInsets.all(8),
+                  child: Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey[400],
+                    size: 24,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              subtitle,
-              style: TextStyle(
-                color: iconColor,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (user['email'] != null) ...[
-              SizedBox(height: 2),
-              Text(
-                user['email'],
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ],
-        ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-        onTap: () {
-          // Handle user selection
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Selected: ${user['name']}'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        },
+      ),
+    );
+  }
+
+  Widget _buildDefaultAvatar(IconData icon, Color primaryColor, Color backgroundColor) {
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: primaryColor.withOpacity(0.2), width: 2),
+      ),
+      child: Icon(
+        icon,
+        color: primaryColor,
+        size: 28,
       ),
     );
   }
