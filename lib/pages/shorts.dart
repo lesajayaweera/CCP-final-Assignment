@@ -47,7 +47,7 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
 
   Future<void> _loadVideos() async {
     try {
-      final videos = await PostService.getVideoPosts(context);
+      final videos = await PostService.getVideoPosts(context,widget.role);
       setState(() {
         _videoPosts = videos;
         _controllers = List.generate(videos.length, (_) => null);

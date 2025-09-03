@@ -276,60 +276,141 @@ class PostService {
     }
   }
 
+  // static Future<List<Map<String, dynamic>>> getVideoPosts(
+  //   BuildContext context,
+  // ) async {
+  //   try {
+  //     final querySnapshot = await FirebaseFirestore.instance
+  //         .collection('posts')
+  //         .orderBy('timestamp', descending: true)
+  //         .get();
+
+  //     // Filter only video posts
+  //     final videoPosts = querySnapshot.docs.where((doc) {
+  //       final data = doc.data();
+  //       if (data['media'] == null || (data['media'] as List).isEmpty) {
+  //         return false;
+  //       }
+  //       return (data['media'] as List).any((url) {
+  //         final lower = url.toString().toLowerCase();
+  //         return lower.contains('.mp4') ||
+  //             lower.contains('.mov') ||
+  //             lower.contains('.avi') ||
+  //             lower.contains('.mkv');
+  //       });
+  //     }).toList();
+
+  //     // Now enrich posts with user details
+  //     List<Map<String, dynamic>> enrichedPosts = [];
+
+  //     for (var doc in videoPosts) {
+  //       final postData = doc.data();
+  //       postData['id'] = doc.id;
+
+  //       // Fetch user details by uid + role
+  //       final userDetails = await Users().getUserDetailsByUIDAndRole(
+  //         context,
+  //         postData['uid'],
+  //         postData['role'],
+  //       );
+
+  //       // Attach user details to post
+  //       if (userDetails != null) {
+  //         postData['user'] = userDetails; // 👈 add a "user" field
+  //       }
+
+  //       enrichedPosts.add(postData);
+  //     }
+
+  //     print("Video Posts with User Details: $enrichedPosts");
+
+  //     return enrichedPosts;
+  //   } catch (e) {
+  //     print("Error fetching video posts: $e");
+  //     return [];
+  //   }
+  // }
+
   static Future<List<Map<String, dynamic>>> getVideoPosts(
-    BuildContext context,
-  ) async {
-    try {
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('posts')
-          .orderBy('timestamp', descending: true)
+  BuildContext context,
+  String role,
+) async {
+  try {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception("User not logged in");
+    }
+
+    // 🔹 Fetch current user's sport based on role
+    String? userSport;
+    if (role == 'Athlete') {
+      final doc = await FirebaseFirestore.instance
+          .collection('athlete')
+          .doc(user.uid)
           .get();
+      userSport = doc.data()?['sport'];
+    } else if (role == 'Sponsor') {
+      final doc = await FirebaseFirestore.instance
+          .collection('sponsor')
+          .doc(user.uid)
+          .get();
+      userSport = doc.data()?['sportIntrested'];
+    }
 
-      // Filter only video posts
-      final videoPosts = querySnapshot.docs.where((doc) {
-        final data = doc.data();
-        if (data['media'] == null || (data['media'] as List).isEmpty) {
-          return false;
-        }
-        return (data['media'] as List).any((url) {
-          final lower = url.toString().toLowerCase();
-          return lower.contains('.mp4') ||
-              lower.contains('.mov') ||
-              lower.contains('.avi') ||
-              lower.contains('.mkv');
-        });
-      }).toList();
+    if (userSport == null) {
+      throw Exception("User sport not found");
+    }
 
-      // Now enrich posts with user details
-      List<Map<String, dynamic>> enrichedPosts = [];
+    // 🔹 Query posts for this sport + "Anyone" audience
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('posts')
+        .where('audience', isEqualTo: 'Anyone')
+        .where('sport', isEqualTo: userSport)
+        .orderBy('timestamp', descending: true)
+        .get();
 
-      for (var doc in videoPosts) {
-        final postData = doc.data();
-        postData['id'] = doc.id;
+    // 🔹 Filter only video posts
+    final videoPosts = querySnapshot.docs.where((doc) {
+      final data = doc.data();
+      if (data['media'] == null || (data['media'] as List).isEmpty) {
+        return false;
+      }
+      return (data['media'] as List).any((url) {
+        final lower = url.toString().toLowerCase();
+        return lower.contains('.mp4') ||
+            lower.contains('.mov') ||
+            lower.contains('.avi') ||
+            lower.contains('.mkv');
+      });
+    }).toList();
 
-        // Fetch user details by uid + role
-        final userDetails = await Users().getUserDetailsByUIDAndRole(
-          context,
-          postData['uid'],
-          postData['role'],
-        );
+    // 🔹 Enrich posts with user details
+    List<Map<String, dynamic>> enrichedPosts = [];
+    for (var doc in videoPosts) {
+      final postData = doc.data();
+      postData['id'] = doc.id;
 
-        // Attach user details to post
-        if (userDetails != null) {
-          postData['user'] = userDetails; // 👈 add a "user" field
-        }
+      final userDetails = await Users().getUserDetailsByUIDAndRole(
+        context,
+        postData['uid'],
+        postData['role'],
+      );
 
-        enrichedPosts.add(postData);
+      if (userDetails != null) {
+        postData['user'] = userDetails;
       }
 
-      print("Video Posts with User Details: $enrichedPosts");
-
-      return enrichedPosts;
-    } catch (e) {
-      print("Error fetching video posts: $e");
-      return [];
+      enrichedPosts.add(postData);
     }
+
+    print("Video Posts for $userSport with User Details: $enrichedPosts");
+    return enrichedPosts;
+  } catch (e) {
+    print("Error fetching sport-based video posts: $e");
+    return [];
   }
+}
+
 
   Future<bool> checkIfUserLikedPost(String postId) async {
     try {
