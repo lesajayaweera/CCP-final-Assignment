@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:sport_ignite/model/postService.dart';
 import 'package:sport_ignite/pages/profile.dart';
 import 'package:sport_ignite/pages/profileView.dart';
+import 'package:sport_ignite/widget/post/comments.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -439,155 +440,8 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
   }
 
   void _openComments() {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        child: DraggableScrollableSheet(
-          initialChildSize: 0.7,
-          maxChildSize: 0.95,
-          minChildSize: 0.3,
-          builder: (context, scrollController) => Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 12),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[600],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Text(
-                      'Comments',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${widget.post['comments'] ?? 0}',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  controller: scrollController,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: 10,
-                  itemBuilder: (context, index) => Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.purple.withOpacity(0.8),
-                                Colors.blue.withOpacity(0.8),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '${index + 1}',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'User ${index + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Amazing ${widget.post['sport']?.toLowerCase() ?? 'sports'} content! This is so inspiring',
-                                style: TextStyle(
-                                  color: Colors.grey[300],
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Text(
-                                    '2h',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Text(
-                                    'Reply',
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            Icon(Icons.favorite_border, color: Colors.grey[600], size: 18),
-                            Text('${index + 1}', style: TextStyle(color: Colors.grey[600], fontSize: 10)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    showCommentBottomSheet(context, postId: widget.post['pid']);
+    print(widget.post['pid']);
   }
 
   void _bookmarkVideo() {
