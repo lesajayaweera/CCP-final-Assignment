@@ -44,11 +44,11 @@ class PostActions extends StatelessWidget {
           label: 'Share',
           onTap: onShare,
         ),
-        _ActionButton(
-          icon: Icons.send_outlined,
-          label: 'Send',
-          onTap: onSend,
-        ),
+        // _ActionButton(
+        //   icon: Icons.send_outlined,
+        //   label: 'Send',
+        //   onTap: onSend,
+        // ),
       ],
     );
   }

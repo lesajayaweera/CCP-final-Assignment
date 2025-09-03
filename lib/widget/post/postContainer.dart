@@ -217,7 +217,8 @@ class _SocialPostState extends State<SocialPost>
                   Navigator.pop(context);
                   Clipboard.setData(
                     ClipboardData(
-                      text: "https://sportignite.app/post/${widget.postId}",
+                      // text: "https://sportignite.app/post/${widget.postId}",
+                      text: widget.postId,
                     ),
                   );
                   ScaffoldMessenger.of(
