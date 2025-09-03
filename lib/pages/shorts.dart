@@ -1,6 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:sport_ignite/model/postService.dart';
+import 'package:sport_ignite/pages/profile.dart';
+import 'package:sport_ignite/pages/profileView.dart';
 import 'package:video_player/video_player.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -42,7 +45,7 @@ class _ShortsPageState extends State<ShortsPage> with TickerProviderStateMixin {
 
   Future<void> _loadVideos() async {
     try {
-      final videos = await PostService.getVideoPosts();
+      final videos = await PostService.getVideoPosts(context);
       setState(() {
         _videoPosts = videos;
         _controllers = List.generate(videos.length, (_) => null);
@@ -720,7 +723,21 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
             child: FadeTransition(
               opacity: _fadeController,
               child: GestureDetector(
-                onTap: _navigateToProfile,
+                onTap: (){
+                  String currentUid = FirebaseAuth.instance.currentUser!.uid;
+                  if (currentUid != null) {
+
+                    if(currentUid == widget.post['user']['uid']) {
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => ProfilePage(role: widget.post['user']['role'], uid: widget.post['user']['uid'])
+                      ));
+                    }else{
+                      Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => ProfileView(role: widget.post['user']['role'], uid: widget.post['user']['uid'])
+                      ));
+                    }
+                  }
+                },
                 child: Row(
                   children: [
                     // Profile Picture
@@ -742,10 +759,10 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                         ],
                       ),
                       child: ClipOval(
-                        child: widget.post['profilePicUrl'] != null && 
-                               widget.post['profilePicUrl'].toString().isNotEmpty
+                        child: widget.post['user']['profile'] != null && 
+                               widget.post['profile'].toString().isNotEmpty
                             ? Image.network(
-                                widget.post['profilePicUrl'],
+                                widget.post['user']['profile'],
                                 fit: BoxFit.cover,
                                 errorBuilder: (context, error, stackTrace) => 
                                     _buildDefaultAvatar(),
@@ -761,7 +778,7 @@ class _ShortsPlayerWidgetState extends State<ShortsPlayerWidget>
                         children: [
                           // Username
                           Text(
-                            widget.post['username'] ?? 'Anonymous User',
+                            widget.post['user']['name'] ?? 'Anonymous User',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
