@@ -572,6 +572,8 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
                 ),
               ),
               // Message Button
+
+              widget.role =='Sponsor'?
               Container(
                 decoration: BoxDecoration(
                   color: const Color(0xFF667eea).withOpacity(0.1),
@@ -583,7 +585,9 @@ class _MyNetworkScreenState extends State<MyNetworkScreen>
                   },
                   icon: const Icon(Icons.message_rounded, color: Color(0xFF667eea), size: 20),
                 ),
-              ),
+              )
+              :
+              const SizedBox.shrink(),
             ],
           ),
         ),
