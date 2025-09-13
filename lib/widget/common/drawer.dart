@@ -534,9 +534,16 @@ class _LinkedInDrawerState extends State<LinkedInDrawer>
               ),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: ()async {
                 Navigator.pop(context);
                 // Handle logout logic here
+                await Users.logout(context);
+
+                
+
+                 
+                     
+                  
               },
               child: Text(
                 'Logout',
