@@ -32,6 +32,7 @@ final List<String> gender = ['Male', 'Female'];
 final List<String> sector = ['Private', 'Government'];
 
 final List<String> cricketPositions = [
+  'All Positions',
   'Batsman',
   'Bowler',
   'All-rounder',
@@ -45,7 +46,7 @@ final List<String> cricketPositions = [
 ];
 
 final List<String> footballPositions = [
-  
+  'All Positions',
   'Goalkeeper',
   'Right Back',
   'Left Back',
@@ -64,6 +65,7 @@ final List<String> footballPositions = [
 ];
 
 final List<String> basketballPositions = [
+  'All Positions',
   'Point Guard',
   'Shooting Guard',
   'Small Forward',

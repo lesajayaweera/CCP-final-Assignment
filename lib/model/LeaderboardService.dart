@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LeaderboardService {
   /// Step 1: Get all verified athlete UIDs
@@ -64,18 +65,44 @@ class LeaderboardService {
   /// Step 4: Calculate score per sport
   static double calculateScore(String sport, Map<String, dynamic> stats) {
     switch (sport.toLowerCase()) {
+      // -------------------- BASKETBALL --------------------
       case "basketball":
-        return (stats["Points"] ?? 0) * 1.0 +
-            (stats["Assists"] ?? 0) * 0.5 +
-            (stats["Rebounds"] ?? 0) * 0.5;
+        return (stats["Points"] ?? 0) * 1.0 + // scoring
+            (stats["Assists"] ?? 0) * 0.9 + // playmaking
+            (stats["Rebounds"] ?? 0) * 0.8 + // possession
+            (stats["Steals"] ?? 0) * 1.2 + // defense
+            (stats["Blocks"] ?? 0) * 1.2 + // defense
+            ((stats["FieldGoalPercentage"] ?? 0) * 0.2) + // efficiency bonus
+            ((stats["FreeThrowPercentage"] ?? 0) * 0.1) +
+            ((stats["ThreePointPercentage"] ?? 0) * 0.2) -
+            (stats["Turnovers"] ?? 0) * 1.5; // penalize mistakes
+
+      // -------------------- CRICKET --------------------
       case "cricket":
-        return (stats["Runs"] ?? 0) * 1.0 +
-            (stats["BattingAverage"] ?? 0) * 2.0 +
-            (stats["StrikeRate"] ?? 0) * 0.5;
+        return (stats["Runs"] ?? 0) * 0.25 + // main contribution
+            (stats["BattingAverage"] ?? 0) * 2.0 + // consistency
+            (stats["StrikeRate"] ?? 0) * 0.4 + // attacking play
+            (stats["Hundreds"] ?? 0) * 20 + // milestone bonus
+            (stats["Fifties"] ?? 0) * 10 + // milestone bonus
+            (stats["Wickets"] ?? 0) * 10 + // bowling impact
+            (stats["Catches"] ?? 0) * 3 + // fielding
+            (stats["RunOuts"] ?? 0) * 2 +
+            ((100 - (stats["EconomyRate"] ?? 0)) *
+                1.5); // lower economy = better
+
+      // -------------------- FOOTBALL --------------------
       case "football":
-        return (stats["Goals"] ?? 0) * 2.0 +
-            (stats["Assists"] ?? 0) * 1.5 +
-            (stats["PassAccuracy"] ?? 0) * 0.2;
+        return (stats["Goals"] ?? 0) * 30 + // most impactful
+            (stats["Assists"] ?? 0) * 20 + // playmaking
+            (stats["PassAccuracy"] ?? 0) * 0.4 + // efficiency
+            (stats["Tackles"] ?? 0) * 1.5 + // defensive contribution
+            (stats["DuelsWon"] ?? 0) * 0.5 + // physical presence
+            (stats["Touches"] ?? 0) * 0.1 + // involvement
+            (stats["MinutesPlayed"] ?? 0) * 0.05 - // experience/time
+            (stats["FoulsCommitted"] ?? 0) * 1.0 - // negative impact
+            (stats["YellowCards"] ?? 0) * 5 -
+            (stats["RedCards"] ?? 0) * 15; // harsher penalty
+
       default:
         return 0.0;
     }
@@ -113,5 +140,25 @@ class LeaderboardService {
     allAthletes.sort((a, b) => (b["score"]).compareTo(a["score"]));
 
     return allAthletes;
+  }
+
+
+
+   static Future<String> getUserPreferredSport() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await FirebaseFirestore.instance
+        .collection('sponsor')
+        .doc(uid)
+        .get();
+
+    return doc.data()?['sportIntrested'] ?? 'All Sports';
+  }
+
+  static Future<void> saveUserPreferredSport(String sport) async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(uid)
+        .update({'sportIntrested': sport});
   }
 }

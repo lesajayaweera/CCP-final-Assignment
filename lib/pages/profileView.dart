@@ -91,7 +91,7 @@ class _ProfileViewState extends State<ProfileView>
       if (data?['role'] == 'Athlete' && widget.role == 'Sponsor') {
         canMessage = true;
       } else if (data?['role'] == 'Athlete' && widget.role == 'Athlete') {
-        canMessage = true;
+        canMessage = false;
       }
       else if (data?['role'] == 'Sponsor' && widget.role == 'Sponsor') {
         canMessage = true;
@@ -480,7 +480,7 @@ class _ProfileViewState extends State<ProfileView>
       );
     }
 
-    String sport = userData!['sport'] ?? '';
+    String sport = userData!['sport'] ;
     print(sport);
     List<Widget> statsWidgets = [];
 
